@@ -1,0 +1,115 @@
+<div id="memberDetailModal" class="modal">
+    <div class="modal-content" style="max-width: 900px; width: 95%; background-color: #f8f9fa; padding: 20px;">
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
+            <button class="btn btn-secondary" onclick="closeModal('memberDetailModal')"
+                style="padding: 8px 20px;">닫기</button>
+        </div>
+
+        <!-- Filter Section (Period Selector) -->
+        <div class="filter-container"
+            style="background: #ffffff; padding: 15px; border-radius: 10px; border: 1px solid #e0e0e0; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+            <select id="modalPeriod" class="form-control"
+                style="width: 150px; padding: 8px; border-radius: 5px; border: 1px solid #dcdcdc;"
+                onchange="handleModalPeriodChange()">
+                <option value="daily">개점일</option>
+                <option value="weekly">주간 (이번주)</option>
+                <option value="monthly" selected>월간 (이번달)</option>
+                <option value="yearly">연간 (올해)</option>
+                <option value="custom">기간별</option>
+            </select>
+
+            <div id="modalDateContainer" style="display: flex; align-items: center; gap: 5px;">
+                <div class="date-picker-wrapper">
+                    <input type="text" id="modalDateDisplay" class="form-control date-display" readonly>
+                    <svg class="calendar-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <input type="date" id="modalDate" class="date-input-hidden"
+                        onchange="updateModalDateDisplay(this, 'modalDateDisplay')">
+                </div>
+
+                <span class="date-separator" style="display: none;">~</span>
+
+                <div class="date-picker-wrapper date-end" style="display: none;">
+                    <input type="text" id="modalEndDateDisplay" class="form-control date-display" readonly>
+                    <svg class="calendar-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <input type="date" id="modalEndDate" class="date-input-hidden"
+                        onchange="updateModalDateDisplay(this, 'modalEndDateDisplay')">
+                </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="loadModalMemberHistory()">조회</button>
+        </div>
+
+        <div class="stats-grid"
+            style="margin-bottom: 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+            <div class="stat-card"
+                style="background: #fff; padding: 20px; border-radius: 10px; border: 1px solid #e0e0e0; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                <div class="stat-label" style="font-size: 14px; color: #888; margin-bottom: 10px;">회원 정보</div>
+                <div id="modalMemberInfoDisplay">
+                    <span id="modalMemberNameDisplay"
+                        style="font-size: 20px; font-weight: bold; color: #2c3e50;"></span>
+                    <span id="modalMemberPhoneDisplay" style="font-size: 16px; color: #666; margin-left: 5px;"></span>
+                </div>
+            </div>
+            <div class="stat-card"
+                style="background: #fff; padding: 20px; border-radius: 10px; border: 1px solid #e0e0e0; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                <div class="stat-label" style="font-size: 14px; color: #888; margin-bottom: 10px;">기간 내 출석 횟수</div>
+                <div class="stat-value" id="modalPeriodAttendanceCount"
+                    style="font-size: 24px; font-weight: bold; color: #2c3e50;">0회</div>
+            </div>
+            <div class="stat-card"
+                style="background: #fff; padding: 20px; border-radius: 10px; border: 1px solid #e0e0e0; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                <div class="stat-label" style="font-size: 14px; color: #888; margin-bottom: 10px;">조회 기간</div>
+                <div class="stat-value" id="modalPeriodInfo"
+                    style="font-size: 16px; font-weight: bold; color: #2c3e50; margin-top: 5px;">-</div>
+            </div>
+        </div>
+
+        <!-- Calendar Section -->
+        <div style="margin-bottom: 30px;">
+            <h3 style="margin: 0 0 15px 0; font-size: 16px; font-weight: bold; color: #333;">출석 캘린더</h3>
+            <div class="calendar-container"
+                style="background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                <div class="calendar-header"
+                    style="display: flex; justify-content: center; align-items: center; gap: 20px; margin-bottom: 20px;">
+                    <button class="btn btn-sm btn-light" onclick="changeModalMonth(-1)"
+                        style="border: 1px solid #ddd; background: #fff; border-radius: 4px; padding: 5px 12px; cursor: pointer;">◀</button>
+                    <h4 id="modalCalendarTitle"
+                        style="margin: 0; font-size: 16px; font-weight: bold; color: #2c3e50; min-width: 100px; text-align: center;">
+                    </h4>
+                    <button class="btn btn-sm btn-light" onclick="changeModalMonth(1)"
+                        style="border: 1px solid #ddd; background: #fff; border-radius: 4px; padding: 5px 12px; cursor: pointer;">▶</button>
+                </div>
+                <div id="modalCalendarBody" class="calendar-grid"
+                    style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px;">
+                    <!-- Calendar Days Generated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- History List Section -->
+        <div class="data-table-container"
+            style="background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; max-height: 300px; overflow-y: auto; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+            <h3 style="margin: 0 0 15px 0; font-size: 16px; font-weight: bold; color: #333;">최근 출석 내역 (최대 20개)</h3>
+            <table class="users-table" style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <th style="padding: 10px; text-align: left; color: #555; font-size: 14px;">일시</th>
+                        <th style="padding: 10px; text-align: left; color: #555; font-size: 14px;">매장</th>
+                        <th style="padding: 10px; text-align: left; color: #555; font-size: 14px;">교시</th>
+                    </tr>
+                </thead>
+                <tbody id="modalHistoryListBody">
+                    <!-- Dynamic Content -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

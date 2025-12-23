@@ -1,0 +1,16 @@
+name: NAS Auto Deploy  # 이 작업의 이름
+on:
+  push:
+    branches: [main]  # 'main' 브랜치에 코드가 올라오면 시작!
+
+jobs:
+  build-and-deploy:
+    runs-on: nas-runner-01  # 아까 우리가 이름 붙인 그 일꾼!
+    steps:
+      - name: 소스 코드 가져오기
+        uses: actions/checkout@v3
+
+      - name: 컨테이너 실행 (Docker Compose)
+        run: |
+          docker compose down || true
+          docker compose up -d --build --remove-orphans

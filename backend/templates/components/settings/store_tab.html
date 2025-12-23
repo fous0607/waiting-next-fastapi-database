@@ -1,0 +1,513 @@
+<div id="storeTab" class="tab-content active requires-auth">
+    <!-- 설정 복제 섹션 (클래스) -->
+    <div class="card requires-auth"
+        style="margin-bottom: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+        <h3 style="margin-bottom: 15px; color: white;">⚡ 빠른 설정</h3>
+        <p style="margin-bottom: 20px; opacity: 0.9;">다른 매장의 설정을 복제하여 간편하게 설정할 수 있습니다.</p>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <select id="cloneSourceStore" class="form-control" style="flex: 1; max-width: 400px;">
+                <option value="">복제할 매장 선택</option>
+            </select>
+            <button class="btn" style="background: white; color: #667eea; font-weight: 600;" onclick="cloneSettings()">
+                🔄 설정 복제하기
+            </button>
+        </div>
+        <small style="display: block; margin-top: 10px; opacity: 0.85;">
+            💡 복제 시 매장명을 제외한 모든 설정값이 복사됩니다
+        </small>
+    </div>
+
+    <div class="card">
+        <h2 style="margin-bottom:20px;">매장 기본 정보</h2>
+        <form id="storeForm" onsubmit="saveStoreSettings(event)">
+            <div class="form-group">
+                <label>매장명</label>
+                <input type="text" id="storeName" class="form-control" style="max-width: 400px;" required>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>대기현황판 표시 클래스 수</label>
+                    <input type="number" id="displayClassesCount" class="form-control" min="1" max="10" required
+                        style="width: 150px;">
+                    <small style="color:#7f8c8d;">대기현황판에 한 번에 표시할 클래스 개수</small>
+                </div>
+
+                <div class="form-group">
+                    <label>클래스당 줄 수</label>
+                    <input type="number" id="rowsPerClass" class="form-control" min="1" max="5" required
+                        style="width: 150px;">
+                    <small style="color:#7f8c8d;">각 클래스별 대기자 목록을 몇 줄로 표시할지</small>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>영업 시작 기준 시간 (새벽)</label>
+                <select id="businessDayStart" class="form-control" style="max-width: 250px;">
+                    <option value="0">00:00 (자정)</option>
+                    <option value="1">01:00</option>
+                    <option value="2">02:00</option>
+                    <option value="3">03:00</option>
+                    <option value="4">04:00</option>
+                    <option value="5" selected>05:00 (기본값)</option>
+                    <option value="6">06:00</option>
+                    <option value="7">07:00</option>
+                    <option value="8">08:00</option>
+                </select>
+                <small style="color:#7f8c8d;">
+                    하루 영업 시작으로 간주할 시간을 선택합니다.<br>
+                    예: 05:00 선택 시, 새벽 4시에 오신 손님은 '전날' 영업일로 기록됩니다.
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label class="d-block font-weight-bold mb-2">개점 설정 (Opening Rules)</label>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="dailyOpeningRule" id="openingRuleStrict"
+                        value="strict">
+                    <label class="form-check-label" for="openingRuleStrict">
+                        당일 개점은 1번만 가능 (1일 1회 제한)
+                    </label>
+                    <small class="form-text text-muted">
+                        이미 개점/마감한 날짜에는 다시 개점할 수 없습니다. "내일 개점해주세요" 알림이 표시됩니다.
+                    </small>
+                </div>
+                <div class="form-check mt-2">
+                    <input class="form-check-input" type="radio" name="dailyOpeningRule" id="openingRuleFlexible"
+                        value="flexible">
+                    <label class="form-check-label" for="openingRuleFlexible">
+                        2회 이상 개점 가능 (자동 날짜 변경)
+                    </label>
+                    <small class="form-text text-muted">
+                        이미 마감한 날짜에 다시 개점하면, 자동으로 <strong>다음 날짜</strong>로 개점됩니다.
+                    </small>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-check-label" for="autoClosing">
+                    <input type="checkbox" id="autoClosing" style="width: 20px; height: 20px; cursor: pointer;">
+                    자동 마감 및 리셋 사용
+                </label>
+                <small class="form-text text-muted d-block mt-1">
+                    활성화 시(기본): 기준 시간이 되면 자동으로 마감 처리되고 대기자가 리셋됩니다.<br>
+                    비활성화 시: 기준 시간이 지나도 마감되지 않으며, 미처리된 대기자는 다음 영업일로 자동 이월됩니다.
+                </small>
+
+                <!-- 마감 처리 방식 설 (자동 마감 활성화 시 표시) -->
+                <div id="closingActionContainer" class="mt-3 ml-4" style="display: none;">
+                    <label class="d-block font-weight-bold mb-2">미처리 대기자 처리 방식</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="closingAction" id="actionReset" value="reset"
+                            checked>
+                        <label class="form-check-label" for="actionReset">
+                            초기화 (취소 처리)
+                        </label>
+                        <small class="form-text text-muted">
+                            미처리 대기자를 '취소' 상태로 변경하고 목록에서 제거합니다.
+                        </small>
+                    </div>
+                    <div class="form-check mt-2">
+                        <input class="form-check-input" type="radio" name="closingAction" id="actionAttended"
+                            value="attended">
+                        <label class="form-check-label" for="actionAttended">
+                            일괄 출석 처리
+                        </label>
+                        <small class="form-text text-muted">
+                            미처리 대기자를 모두 '출석' 상태로 변경합니다. (데이터 누락 방지)
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>대기자 리스트 방향</label>
+                <select id="listDirection" class="form-control" style="width: 250px;">
+                    <option value="vertical">세로 방향</option>
+                    <option value="horizontal">가로 방향</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>대기관리자 버튼 크기</label>
+                <select id="managerButtonSize" class="form-control" style="width: 250px;">
+                    <option value="xsmall">더 작게</option>
+                    <option value="small">작게</option>
+                    <option value="medium" selected>중간 (기본)</option>
+                    <option value="large">크게</option>
+                </select>
+                <small style="color:#7f8c8d;">대기관리자 화면의 버튼 크기를 설정합니다.</small>
+            </div>
+
+            <div class="form-group">
+                <label>대기자 리스트 박스 크기</label>
+                <select id="waitingListBoxSize" class="form-control" style="width: 250px;">
+                    <option value="small">작게</option>
+                    <option value="medium" selected>중간 (기본)</option>
+                    <option value="large">크게</option>
+                </select>
+                <small style="color:#7f8c8d;">대기관리자 화면의 대기자 리스트 박스 크기를 설정합니다.</small>
+            </div>
+
+            <div class="form-group">
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                    <input type="checkbox" id="useMaxWaitingLimit" style="width: 20px; height: 20px; cursor: pointer;">
+                    <span>최대 대기 인원 제한 사용</span>
+                </label>
+                <small style="color:#7f8c8d; margin-left: 30px;">
+                    비활성화 시, 최대 대기 인원 제한이 적용되지 않습니다.
+                </small>
+            </div>
+
+            <div class="form-group" id="maxWaitingLimitGroup">
+                <label>최대 대기 인원</label>
+                <input type="number" id="maxWaitingLimit" class="form-control" min="0" required style="width: 150px;">
+                <small style="color:#7f8c8d;">최대 대기 등록 가능 인원 (0 = 무제한)</small>
+            </div>
+
+            <div class="form-group">
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                    <input type="checkbox" id="blockLastClassRegistration"
+                        style="width: 20px; height: 20px; cursor: pointer;">
+                    <span>마지막 교시 정원 초과 시 대기접수 차단</span>
+                </label>
+                <small style="color:#7f8c8d; margin-left: 30px;">
+                    활성화 시, 마지막 교시의 대기 인원이 정원을 초과하면 더 이상 대기접수를 받지 않습니다.
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                    <input type="checkbox" id="autoRegisterMember" style="width: 20px; height: 20px; cursor: pointer;">
+                    <span>대기 등록 시 자동 회원가입</span>
+                </label>
+                <small style="color:#7f8c8d; margin-left: 30px;">
+                    활성화 시, 비회원이 대기 등록을 하면 자동으로 회원으로 등록됩니다.
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label class="d-block font-weight-bold mb-2">출석 횟수 표시 기준</label>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="attendanceCountType" id="countTypeDays"
+                        value="days" onchange="toggleAttendanceSettings()">
+                    <label class="form-check-label" for="countTypeDays">최근 N일 기준</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="attendanceCountType" id="countTypeMonthly"
+                        value="monthly" onchange="toggleAttendanceSettings()">
+                    <label class="form-check-label" for="countTypeMonthly">이번 달 (월간) 기준</label>
+                </div>
+
+                <div id="attendanceLookbackDaysContainer" style="margin-top: 10px; margin-left: 20px; display: none;">
+                    <label>조회 기간 (일)</label>
+                    <input type="number" id="attendanceLookbackDays" class="form-control"
+                        style="width: 100px; display: inline-block; margin-left: 10px;" min="1" value="30">
+                    <small class="form-text text-muted d-block mt-1">오늘을 포함한 최근 며칠간의 출석을 집계할지 설정합니다.</small>
+                </div>
+            </div>
+
+            <hr style="margin: 30px 0; border: none; border-top: 2px solid #ecf0f1;">
+
+            <h3 style="margin-bottom: 20px; color: #2c3e50;">대기현황판 표시 설정</h3>
+
+            <div class="form-group">
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                    <input type="checkbox" id="showWaitingNumber" style="width: 20px; height: 20px; cursor: pointer;">
+                    <span>대기번호 표시</span>
+                </label>
+                <small style="color:#7f8c8d; margin-left: 30px;">
+                    대기번호(예: 대기 5번)를 현황판에 표시합니다.
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                    <input type="checkbox" id="maskCustomerName" style="width: 20px; height: 20px; cursor: pointer;">
+                    <span>이름 마스킹 (홍O동)</span>
+                </label>
+                <small style="color:#7f8c8d; margin-left: 30px;">
+                    이름을 마스킹하여 표시합니다 (예: 홍길동 → 홍O동).
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label>이름 표시 자릿수</label>
+                <input type="number" id="nameDisplayLength" class="form-control" min="0" max="10" value="0"
+                    style="width: 150px;">
+                <small style="color:#7f8c8d;">
+                    이름을 몇 글자까지 표시할지 설정합니다. (0 = 전체 표시, 1 = 첫 글자만, 2 = 두 글자만 등)
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                    <input type="checkbox" id="showOrderNumber" style="width: 20px; height: 20px; cursor: pointer;">
+                    <span>순번 표시 (1번째, 2번째)</span>
+                </label>
+                <small style="color:#7f8c8d; margin-left: 30px;">
+                    교시 내 순번(예: 1번째, 2번째)을 표시합니다.
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label>표시 순서</label>
+                <select id="boardDisplayOrder" class="form-control" style="max-width: 300px;">
+                    <option value="number,name,order">대기번호 → 이름 → 순번</option>
+                    <option value="number,order,name">대기번호 → 순번 → 이름</option>
+                    <option value="name,number,order">이름 → 대기번호 → 순번</option>
+                    <option value="name,order,number">이름 → 순번 → 대기번호</option>
+                    <option value="order,number,name">순번 → 대기번호 → 이름</option>
+                    <option value="order,name,number">순번 → 이름 → 대기번호</option>
+                </select>
+                <small style="color:#7f8c8d;">현황판에서 정보를 표시할 순서를 선택합니다.</small>
+            </div>
+
+            <hr style="margin: 30px 0; border: none; border-top: 2px solid #ecf0f1;">
+
+            <h3 style="margin-bottom: 20px; color: #2c3e50;">폰트 및 스타일 설정</h3>
+
+            <div class="form-group">
+                <label class="d-block font-weight-bold mb-2">대기관리자 화면 (Manager)</label>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>글꼴 (Font)</label>
+                        <select id="managerFontFamily" class="form-control" style="max-width: 250px;">
+                            <option value="Nanum Gothic">나눔고딕 (Nanum Gothic)</option>
+                            <option value="Gowun Dodum">고운돋움 (Gowun Dodum)</option>
+                            <option value="Noto Sans KR">노토 산스 (Noto Sans KR)</option>
+                            <option value="Spoqa Han Sans Neo">스포카 한 산스 네오 (Spoqa Han Sans Neo)</option>
+                            <option value="Malgun Gothic">맑은 고딕 (Microsoft)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>글자 크기 (Size)</label>
+                        <select id="managerFontSize" class="form-control" style="max-width: 150px;">
+                            <option value="14px">14px (작음)</option>
+                            <option value="15px">15px (보통)</option>
+                            <option value="16px">16px (조금 큼)</option>
+                            <option value="18px">18px (큼)</option>
+                            <option value="20px">20px (아주 큼)</option>
+                            <option value="24px">24px (더 큼)</option>
+                            <option value="28px">28px (매우 큼)</option>
+                            <option value="30px">30px (최대)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row" style="margin-top: 15px;">
+                    <div class="form-group">
+                        <label>레이아웃 최대 너비 (px)</label>
+                        <input type="number" id="managerMaxWidth" class="form-control" placeholder="기본값 (95%)" min="800"
+                            step="10" style="width: 200px;">
+                        <small style="color:#7f8c8d;">
+                            화면의 최대 너비를 픽셀(px) 단위로 설정합니다. 비워두면 화면 전체 너비(95%)를 사용합니다.
+                        </small>
+                    </div>
+                </div>
+
+                <h4 style="margin-top: 20px; margin-bottom: 10px; font-size: 1.1rem; color: #555;">대기현황판 페이지 설정 (자동 회전)
+                </h4>
+                <div class="form-row">
+                    <div class="form-group">
+                        <div class="col-md-6 mb-3">
+                            <label for="waitingBoardPageSize" class="form-label">페이지 당 표시 개수</label>
+                            <input type="number" id="waitingBoardPageSize" class="form-control" placeholder="기본값 (12)"
+                                min="1" max="50">
+                            <div class="form-text">한 화면에 표시할 대기자 수 (넘으면 자동 회전)</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="waitingBoardRotationInterval" class="form-label">페이지 회전 간격 (초)</label>
+                            <input type="number" class="form-control" id="waitingBoardRotationInterval" min="3"
+                                value="5">
+                            <div class="form-text">페이지가 자동 전환되는 시간 간격</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="waitingBoardTransitionEffect" class="form-label">페이지 전환 효과</label>
+                            <select class="form-select" id="waitingBoardTransitionEffect">
+                                <option value="slide">슬라이드 (기본)</option>
+                                <option value="fade">페이드</option>
+                                <option value="scale">스케일</option>
+                                <option value="none">없음</option>
+                            </select>
+                            <div class="form-text">현황판 페이지 전환 시 적용할 애니메이션</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="waitingBoardTransitionEffect" class="form-label">페이지 전환 효과</label>
+                            <select class="form-select" id="waitingBoardTransitionEffect">
+                                <option value="slide">슬라이드 (기본)</option>
+                                <option value="fade">페이드</option>
+                                <option value="scale">스케일</option>
+                                <option value="none">없음</option>
+                            </select>
+                            <div class="form-text">현황판 페이지 전환 시 적용할 애니메이션</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="d-block font-weight-bold mb-2">대기현황판 화면 (Board)</label>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>글꼴 (Font)</label>
+                            <select id="boardFontFamily" class="form-control" style="max-width: 250px;">
+                                <option value="Nanum Gothic">나눔고딕 (Nanum Gothic)</option>
+                                <option value="Gowun Dodum">고운돋움 (Gowun Dodum)</option>
+                                <option value="Noto Sans KR">노토 산스 (Noto Sans KR)</option>
+                                <option value="Spoqa Han Sans Neo">스포카 한 산스 네오 (Spoqa Han Sans Neo)</option>
+                                <option value="Malgun Gothic">맑은 고딕 (Microsoft)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>글자 크기 (Size)</label>
+                            <select id="boardFontSize" class="form-control" style="max-width: 150px;">
+                                <option value="20px">20px (작음)</option>
+                                <option value="24px">24px (보통)</option>
+                                <option value="28px">28px (조금 큼)</option>
+                                <option value="32px">32px (큼)</option>
+                                <option value="36px">36px (아주 큼)</option>
+                                <option value="40px">40px (초대형)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="d-block font-weight-bold mb-2">대기접수 데스크 키패드</label>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>키패드 스타일</label>
+                            <select id="keypadStyle" class="form-control" style="max-width: 300px;">
+                                <option value="modern">모던 (Modern) - 부드러운 그라데이션</option>
+                                <option value="bold">진한 경계선 (Bold) - 명확한 구분</option>
+                                <option value="dark">다크 모드 (Dark) - 검정 배경</option>
+                                <option value="colorful">컬러풀 (Colorful) - 화려한 그라데이션</option>
+                            </select>
+                            <small style="color:#7f8c8d; margin-top: 5px; display: block;">
+                                어르신들은 '진한 경계선' 스타일을 추천합니다.
+                            </small>
+                        </div>
+                        <div class="form-group">
+                            <label>숫자 크기</label>
+                            <select id="keypadFontSize" class="form-control" style="max-width: 200px;">
+                                <option value="small">작음 (32px)</option>
+                                <option value="medium">보통 (38px)</option>
+                                <option value="large">크게 (44px)</option>
+                                <option value="xlarge">매우 크게 (52px)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+
+
+                <div class="form-group">
+                    <label class="d-block font-weight-bold mb-2">대기접수 완료 화면 설정</label>
+                    <div class="form-group">
+                        <label>모달 자동 닫힘 시간 (초)</label>
+                        <input type="number" id="waitingModalTimeout" class="form-control" min="1" max="60" value="5"
+                            style="width: 100px;">
+                        <small style="color:#7f8c8d;">대기접수 완료 모달이 자동으로 닫힐 때까지의 시간</small>
+                    </div>
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                            <input type="checkbox" id="showMemberNameInWaitingModal" style="width: 20px; height: 20px;">
+                            <span>회원 이름 표시 (예: 홍길동님)</span>
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                            <input type="checkbox" id="showNewMemberTextInWaitingModal"
+                                style="width: 20px; height: 20px;">
+                            <span>신규회원 문구 표시 (예: 신규회원님)</span>
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                            <input type="checkbox" id="enableWaitingVoiceAlert" style="width: 20px; height: 20px;">
+                            <span>대기접수 완료 음성 안내 사용 (예: "1교시 대기 접수 되었습니다")</span>
+                        </label>
+                        <div style="margin-left: 30px; margin-top: 10px;">
+                            <input type="text" id="waitingVoiceMessage" class="form-control"
+                                placeholder="음성 안내 문구를 입력하세요 (비워두면 기본 문구 사용)" style="max-width: 500px;">
+                            <small style="color: #666; display: block; margin-top: 5px;">
+                                * 문구 미입력 시 "{클래스명} 대기 접수 되었습니다" 로 안내됩니다.
+                            </small>
+                        </div>
+                        <div style="margin-left: 30px; margin-top: 10px;">
+                            <label style="display: block; margin-bottom: 5px;">음성 목소리 선택</label>
+                            <div style="display: flex; gap: 10px;">
+                                <select id="waitingVoiceSelect" class="form-control" style="max-width: 400px;">
+                                    <option value="">기본 목소리</option>
+                                </select>
+                                <button type="button" id="testVoiceBtn" class="btn btn-secondary"
+                                    style="width: auto;">미리듣기</button>
+                            </div>
+                        </div>
+                        <div style="margin-left: 30px; margin-top: 10px;">
+                            <label style="display: block; margin-bottom: 5px;">음성 스타일</label>
+                            <select id="waitingVoiceStyle" class="form-control" style="max-width: 400px;">
+                                <option value="standard">기본 (보통 속도/톤)</option>
+                                <option value="senior">어르신 추천 (느리고 또렷하게)</option>
+                                <option value="soft">부드러움 (조금 느리고 부드럽게)</option>
+                                <option value="calm">차분함 (조금 느리고 낮게)</option>
+                                <option value="bright">활기참 (보통 속도, 조금 높게)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <hr style="margin: 30px 0; border: none; border-top: 2px solid #ecf0f1;">
+
+
+
+                <h3 style="margin-bottom: 20px; color: #2c3e50;">🎨 테마 설정</h3>
+                <div class="form-group">
+                    <label>시스템 테마</label>
+                    <select id="systemTheme" class="form-control" onchange="previewTheme(this.value)"
+                        style="max-width: 300px;">
+                        <option value="zinc">Zinc (기본 - 모던 그레이)</option>
+                        <option value="blue">Blue (신뢰 - 비즈니스 블루)</option>
+                        <option value="green">Green (편안 - 네이처 그린)</option>
+                        <option value="orange">Orange (활기 - 에너제틱 오렌지)</option>
+                    </select>
+                    <small style="color:#7f8c8d;">시스템 전체의 색상 테마를 변경합니다. 선택 즉시 미리보기 됩니다.</small>
+                </div>
+
+                <hr style="margin: 30px 0; border: none; border-top: 2px solid #ecf0f1;">
+
+                <h3 style="margin-bottom: 20px; color: #2c3e50;">🚦 트래픽 관리 설정</h3>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" id="enableWaitingBoard"
+                            style="width: 20px; height: 20px; cursor: pointer;">
+                        <span>대기현황판 사용</span>
+                    </label>
+                    <small style="color:#7f8c8d; margin-left: 30px;">
+                        비활성화 시, 대기현황판 실시간 업데이트(SSE)가 중지되어 트래픽이 감소합니다.
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" id="enableReceptionDesk"
+                            style="width: 20px; height: 20px; cursor: pointer;">
+                        <span>대기접수 데스크 사용</span>
+                    </label>
+                    <small style="color:#7f8c8d; margin-left: 30px;">
+                        비활성화 시, 대기접수 데스크 실시간 업데이트(SSE)가 중지되어 트래픽이 감소합니다.
+                    </small>
+                </div>
+
+                <hr style="margin: 30px 0; border: none; border-top: 2px solid #ecf0f1;">
+
+                <div class="form-group">
+                    <label>관리자 비밀번호</label>
+                    <input type="password" id="adminPassword" class="form-control" required style="max-width: 300px;">
+                    <small style="color:#7f8c8d;">매장 설정 변경 시 사용됩니다</small>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg">설정 저장</button>
+        </form>
+    </div>
+</div>

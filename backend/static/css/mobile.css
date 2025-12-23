@@ -1,0 +1,299 @@
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body,
+        html {
+            height: 100%;
+            overflow: hidden;
+            /* 스크롤 방지 */
+        }
+
+        body {
+            font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+        }
+
+        .mobile-container {
+            padding: 2vh 20px;
+            max-width: 500px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .header {
+            text-align: center;
+            padding: 1vh 0 2vh 0;
+            flex-shrink: 0;
+        }
+
+        .header h1 {
+            font-size: 3.5vh;
+            margin-bottom: 0.5vh;
+        }
+
+        .header .date {
+            font-size: 1.8vh;
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 2vh;
+            flex-shrink: 0;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 1.5vh;
+            text-align: center;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            font-size: 2vh;
+        }
+
+        .tab.active {
+            background: #fff;
+            color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .tab-content.active {
+            display: flex;
+            flex-direction: column;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2.5vh 20px;
+            color: #2c3e50;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            /* 위아래 분산 */
+            max-height: 100%;
+        }
+
+        .phone-input-section {
+            margin-bottom: 2vh;
+        }
+
+        .phone-input-section label {
+            display: block;
+            font-size: 2vh;
+            font-weight: 600;
+            margin-bottom: 1vh;
+            color: #2c3e50;
+        }
+
+        .phone-display {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 1.5vh;
+        }
+
+        .phone-prefix {
+            font-size: 2.5vh;
+            font-weight: 600;
+            color: #7f8c8d;
+            padding: 1.5vh;
+            background: #ecf0f1;
+            border-radius: 10px;
+        }
+
+        .phone-number {
+            flex: 1;
+            font-size: 3vh;
+            font-weight: 600;
+            padding: 1.5vh;
+            text-align: center;
+            background: #fff;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            letter-spacing: 1px;
+        }
+
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1vh;
+            margin-bottom: 2vh;
+            flex: 1;
+            /* 남은 공간 차지 */
+        }
+
+        .key {
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3vh;
+            font-weight: 600;
+            background: #fff;
+            border: 1px solid #ecf0f1;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #2c3e50;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .key:active {
+            background: #667eea;
+            color: #fff;
+            transform: scale(0.95);
+        }
+
+        .key.zero {
+            grid-column: 2;
+        }
+
+        .key.special {
+            background: #e74c3c;
+            color: #fff;
+            border-color: #e74c3c;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 2.2vh;
+            font-size: 2.5vh;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .submit-btn:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+
+        .submit-btn:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* Compact Mode for smaller screens or keyboards */
+        .mobile-container.compact-mode .header {
+            padding: 0;
+            margin-bottom: 1vh;
+        }
+
+        .mobile-container.compact-mode .header h1 {
+            font-size: 2.5vh;
+        }
+
+        .mobile-container.compact-mode .header .date {
+            display: none;
+        }
+
+        .mobile-container.compact-mode .tabs {
+            margin-bottom: 1vh;
+            padding: 2px;
+        }
+
+        .mobile-container.compact-mode .card {
+            padding: 1.5vh;
+        }
+
+        .mobile-container.compact-mode .key {
+            font-size: 2.5vh;
+        }
+
+        /* Search Section specific */
+        .search-section input {
+            width: 100%;
+            padding: 2vh;
+            font-size: 2.5vh;
+            border: 2px solid #ecf0f1;
+            border-radius: 10px;
+            margin-bottom: 2vh;
+        }
+
+        .search-btn {
+            width: 100%;
+            padding: 2vh;
+            font-size: 2.5vh;
+            font-weight: 600;
+            background: #3498db;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        .result-box {
+            background: #f8f9fa;
+            padding: 3vh;
+            border-radius: 12px;
+            text-align: center;
+            margin-top: 2vh;
+            flex: 0 0 auto;
+        }
+
+        .result-box .number {
+            font-size: 5vh;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 1.5vh;
+        }
+
+        .result-box .info {
+            font-size: 2.5vh;
+            margin-bottom: 1vh;
+            color: #2c3e50;
+        }
+
+        .result-box .detail {
+            font-size: 1.8vh;
+            color: #7f8c8d;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 5vh 20px;
+            color: #7f8c8d;
+        }
+
+        .empty-state .icon {
+            font-size: 6vh;
+            margin-bottom: 2vh;
+        }
+    </style>

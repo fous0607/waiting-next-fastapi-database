@@ -1,0 +1,84 @@
+<!-- 0. 대기현황 탭 -->
+<div id="waiting_statusTab" class="tab-content active">
+    <div class="filter-container">
+        <select id="waitingPeriod" class="form-control" style="width: 150px;" onchange="handlePeriodChange('waiting')">
+            <option value="daily">개점일</option>
+            <option value="weekly">주간 (이번주)</option>
+            <option value="monthly">월간 (이번달)</option>
+            <option value="yearly">연간 (올해)</option>
+            <option value="custom">기간별</option>
+        </select>
+
+        <!-- 날짜 선택 영역 -->
+        <div id="waitingDateContainer" style="display: flex; align-items: center; gap: 5px;">
+            <div class="date-picker-wrapper">
+                <input type="text" id="waitingDateDisplay" class="form-control date-display" readonly>
+                <svg class="calendar-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <input type="date" id="waitingDate" class="date-input-hidden"
+                    onchange="updateDateDisplay(this, 'waitingDateDisplay')">
+            </div>
+
+            <span class="date-separator" style="display: none;">~</span>
+
+            <div class="date-picker-wrapper date-end" style="display: none;">
+                <input type="text" id="waitingEndDateDisplay" class="form-control date-display" readonly>
+                <svg class="calendar-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <input type="date" id="waitingEndDate" class="date-input-hidden"
+                    onchange="updateDateDisplay(this, 'waitingEndDateDisplay')">
+            </div>
+        </div>
+
+        <button class="btn btn-primary" onclick="loadWaitingStatus()">조회</button>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">총 대기</div>
+            <div class="stat-value" id="totalWaiting">0명</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">기존 회원 대기</div>
+            <div class="stat-value" style="color: #3498db;" id="existingMemberWaiting">0명</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">신규 회원 대기</div>
+            <div class="stat-value" style="color: #2ecc71;" id="newMemberWaiting">0명</div>
+        </div>
+    </div>
+
+    <div class="stats-grid" style="margin-top: 15px;">
+        <div class="stat-card">
+            <div class="stat-label">현 대기</div>
+            <div class="stat-value" id="currentTotalWaiting">0명</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">현 기존회원 대기</div>
+            <div class="stat-value" style="color: #3498db;" id="currentExistingWaiting">0명</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">현 신규회원 대기</div>
+            <div class="stat-value" style="color: #2ecc71;" id="currentNewWaiting">0명</div>
+        </div>
+    </div>
+
+    <!-- 실시간 업데이트 상태 표시 -->
+    <div
+        style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 10px; height: 10px; border-radius: 50%; background: #95a5a6;" id="autoRefreshIndicator">
+            </div>
+            <span style="font-size: 14px; color: #7f8c8d;">
+                이벤트 연결: <span id="autoRefreshStatus" style="font-weight: bold; color: #95a5a6;">연결 중...</span>
+            </span>
+        </div>
+        <span style="font-size: 12px; color: #95a5a6;" id="lastUpdateTime">이벤트 기반 실시간 업데이트</span>
+    </div>
+</div>

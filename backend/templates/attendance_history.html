@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>출석 이력</title>
+    <link rel="stylesheet" href="/static/css/common.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding: 20px;
+            margin: 0;
+            font-family: 'Nanum Gothic', sans-serif;
+        }
+
+        .history-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .header {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+        }
+
+        .header h2 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 18px;
+        }
+
+        .member-info {
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .history-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f1f1;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .date {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .time {
+            color: #888;
+            font-size: 13px;
+            margin-left: 8px;
+        }
+
+        .class-name {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 0;
+            color: #999;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="history-card">
+        <div class="header">
+            <h2>{{ member.name }}님의 출석 이력</h2>
+            <div class="member-info">{{ member.phone }} | 총 {{ total_count }}회 출석</div>
+        </div>
+
+        {% if history %}
+        <ul class="history-list">
+            {% for item in history %}
+            <li class="history-item">
+                <div>
+                    <span class="date">{{ item.date }}</span>
+                    <span class="time">{{ item.time }}</span>
+                </div>
+                <span class="class-name">{{ item.class_name }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div class="empty-state">
+            출석 이력이 없습니다.
+        </div>
+        {% endif %}
+    </div>
+</body>
+
+</html>

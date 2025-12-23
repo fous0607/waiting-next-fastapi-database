@@ -1,0 +1,19 @@
+<!-- 확인 모달 -->
+<div id="confirmModal" class="modal">
+    <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header" style="border-bottom: none; padding-bottom: 0;">
+            <h2 id="confirmTitle" style="text-align: center; width: 100%; margin: 0;">확인</h2>
+        </div>
+        <div class="modal-body" style="padding: 30px; text-align: center;">
+            <div style="font-size: 64px; margin-bottom: 20px;" id="confirmIcon">❓</div>
+            <p id="confirmMessage"
+                style="font-size: 24px; font-weight: 600; color: #2c3e50; line-height: 1.5; margin: 0;"></p>
+        </div>
+        <div class="modal-footer" style="border-top: none; padding-top: 0; display: flex; gap: 10px;">
+            <button type="button" class="btn btn-secondary" onclick="closeConfirmModal()"
+                style="flex: 1; font-size: 20px; padding: 15px;">취소</button>
+            <button type="button" id="confirmOkBtn" class="btn btn-primary"
+                style="flex: 1; font-size: 20px; padding: 15px;">확인</button>
+        </div>
+    </div>
+</div>

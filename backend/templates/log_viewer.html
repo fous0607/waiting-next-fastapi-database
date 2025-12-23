@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>시스템 로그 분석기</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/log_viewer.css">
+</head>
+
+<body>
+    {% include 'components/log_viewer/header.html' %}
+
+    <div id="log-container">
+        <!-- Logs will be injected here -->
+    </div>
+
+    <script src="/static/js/log_viewer.js"></script>
+</body>
+
+</html>

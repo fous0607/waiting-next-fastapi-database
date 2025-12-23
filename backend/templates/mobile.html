@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>대기접수 - 모바일</title>
+    <link rel="stylesheet" href="/static/css/mobile.css">
+</head>
+
+<body>
+    <div class="mobile-container">
+        <div class="header">
+            <h1 id="storeName">대기 시스템</h1>
+            <div class="date" id="currentDate"></div>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('register')">대기 접수</div>
+            <div class="tab" onclick="switchTab('search')">대기 조회</div>
+        </div>
+
+        <!-- 대기 접수 탭 -->
+        <div id="registerTab" class="tab-content active">
+            <div class="card">
+                <!-- waitingStatus 제거됨 -->
+
+                <div class="phone-input-section">
+                    <label>핸드폰번호 입력</label>
+                    <div class="phone-display">
+                        <div class="phone-prefix">010-</div>
+                        <div class="phone-number" id="phoneDisplay">____-____</div>
+                    </div>
+                </div>
+
+                <div class="keypad">
+                    <button class="key" onclick="inputNumber('1')">1</button>
+                    <button class="key" onclick="inputNumber('2')">2</button>
+                    <button class="key" onclick="inputNumber('3')">3</button>
+                    <button class="key" onclick="inputNumber('4')">4</button>
+                    <button class="key" onclick="inputNumber('5')">5</button>
+                    <button class="key" onclick="inputNumber('6')">6</button>
+                    <button class="key" onclick="inputNumber('7')">7</button>
+                    <button class="key" onclick="inputNumber('8')">8</button>
+                    <button class="key" onclick="inputNumber('9')">9</button>
+                    <button class="key special" onclick="backspace()">←</button>
+                    <button class="key zero" onclick="inputNumber('0')">0</button>
+                    <button class="key" onclick="clearInput()">C</button>
+                </div>
+
+                <button class="submit-btn" id="submitBtn" onclick="submitReception()">
+                    대기 접수
+                </button>
+            </div>
+
+            <div id="registerResult" style="display:none;">
+                <div class="card result-box">
+                    <div class="number" id="resultNumber"></div>
+                    <div class="info" id="resultClass"></div>
+                    <div class="detail" id="resultDetail"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 대기 조회 탭 -->
+        <div id="searchTab" class="tab-content">
+            <div class="card">
+                <div class="search-section">
+                    <label style="display:block; margin-bottom:10px; font-weight:600;">핸드폰번호 조회</label>
+                    <div class="phone-display" style="margin-bottom:15px;">
+                        <div class="phone-prefix">010-</div>
+                        <input type="tel" id="searchPhone" placeholder="1234-5678" maxlength="9"
+                            style="flex:1; padding:12px; font-size:18px; border:2px solid #ecf0f1; border-radius:10px; text-align:center;">
+                    </div>
+                    <button class="search-btn" onclick="searchWaiting()">조회하기</button>
+                </div>
+
+                <div id="searchResult" style="display:none;">
+                    <div class="result-box">
+                        <div class="number" id="searchResultNumber"></div>
+                        <div class="info" id="searchResultClass"></div>
+                        <div class="detail" id="searchResultDetail"></div>
+                    </div>
+                </div>
+
+                <div id="searchEmpty" class="empty-state" style="display:none;">
+                    <div class="icon">🔍</div>
+                    <p>대기 내역이 없습니다</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/mobile.js"></script>
+</body>
+
+</html>

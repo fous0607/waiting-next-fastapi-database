@@ -1,0 +1,133 @@
+<div id="analyticsDetailContainer" style="display: none; padding: 24px;">
+    <!-- Title -->
+    <div style="margin-bottom: 24px;">
+        <h2 style="font-size: 26px; font-weight: 700; color: #191f28; margin-bottom: 16px;">기간별 통계 조회</h2>
+
+        <!-- Tabs -->
+        <div style="display: flex; gap: 24px; border-bottom: 1px solid #e5e8eb; margin-bottom: 24px;">
+            <div class="toss-tab active" onclick="switchDetailTab('hourly')" id="tab-hourly">시간별</div>
+            <div class="toss-tab" onclick="switchDetailTab('daily')" id="tab-daily">일별</div>
+            <div class="toss-tab" onclick="switchDetailTab('weekly')" id="tab-weekly">주별</div>
+            <div class="toss-tab" onclick="switchDetailTab('monthly')" id="tab-monthly">월별</div>
+        </div>
+
+        <!-- Filter Controls -->
+        <div style="display: flex; gap: 8px; margin-bottom: 24px; align-items: center; flex-wrap: wrap;">
+            <!-- Date Quick Buttons -->
+            <div class="toss-date-group" id="detailDateQuickGroups">
+                <button class="toss-choice-chip" data-range="yesterday">어제</button>
+                <button class="toss-choice-chip active" data-range="today">오늘</button>
+                <button class="toss-choice-chip" data-range="last_week">지난주</button>
+                <button class="toss-choice-chip" data-range="this_week">이번 주</button>
+                <button class="toss-choice-chip" data-range="this_month">이번 달</button>
+            </div>
+
+            <!-- Date Picker -->
+            <!-- Date Picker -->
+            <div style="position: relative;">
+                <div style="display: flex; align-items: center; gap: 8px; background: #fff; border: 1px solid #d1d6db; border-radius: 8px; padding: 0 12px; height: 40px; cursor: pointer;"
+                    onclick="toggleDualCalendar()">
+                    <div class="toss-date-picker-trigger"
+                        style="border:none; padding: 0; min-width: auto; height: 100%; pointer-events: none;">
+                        <span id="detailStartDateDisplay">2025-02-27</span>
+                    </div>
+                    <span style="color: #8b95a1;">~</span>
+                    <div class="toss-date-picker-trigger"
+                        style="border:none; padding: 0; min-width: auto; height: 100%; pointer-events: none;">
+                        <span id="detailEndDateDisplay">2025-02-27</span>
+                    </div>
+                    <i class="fas fa-calendar" style="color: #b0b8c1; margin-left: 8px;"></i>
+                </div>
+                <!-- Reset Icon outside -->
+                <i class="fas fa-times-circle"
+                    style="color: #b0b8c1; cursor: pointer; margin-left: 8px; font-size: 16px; display: inline-flex; align-items: center; height: 40px;"
+                    onclick="resetDetailDate()"></i>
+
+                <!-- Custom Dual Calendar -->
+                <div id="dualCalendarContainer" class="dual-calendar-container" style="display: none;">
+                    <div class="dual-calendar-header">
+                        <button class="calendar-nav-btn" onclick="calPrevMonth(event)"><i
+                                class="fas fa-chevron-left"></i></button>
+                        <div style="display: flex; gap: 32px; justify-content: space-around; flex: 1;">
+                            <span class="calendar-month-title" id="calTitleLeft">2025 4</span>
+                            <span class="calendar-month-title" id="calTitleRight">2025 5</span>
+                        </div>
+                        <button class="calendar-nav-btn" onclick="calNextMonth(event)"><i
+                                class="fas fa-chevron-right"></i></button>
+                    </div>
+                    <div class="dual-calendar-body">
+                        <div class="calendar-month" id="calGridLeft"></div>
+                        <div class="calendar-month" id="calGridRight"></div>
+                    </div>
+                </div>
+            </div>
+            <!-- Hidden Inputs -->
+            <input type="date" id="detailStartDateInput" class="date-input-hidden">
+            <input type="date" id="detailEndDateInput" class="date-input-hidden">
+        </div>
+
+        <!-- Store Filter & Actions -->
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="toss-dropdown-trigger" style="min-width: 240px; background: #fff; border: 1px solid #d1d6db;">
+                <i class="fas fa-store" style="color: #333d4b;"></i>
+                <select id="detailStoreFilter" onchange="loadDetailData()"
+                    style="border: none; background: transparent; font-size: 15px; color: #333d4b; width: 100%; outline: none; cursor: pointer;">
+                    <option value="">전체 매장</option>
+                </select>
+                <i class="fas fa-chevron-down" style="color: #8b95a1;"></i>
+            </div>
+
+            <div style="display: flex; gap: 8px;">
+                <button class="toss-btn toss-btn-secondary" style="height: 40px; font-weight: 500;">
+                    <i class="fas fa-sliders-h" style="margin-right: 6px;"></i>항목 추가/삭제
+                </button>
+                <button class="toss-btn toss-btn-secondary" style="height: 40px; font-weight: 500;">
+                    <i class="far fa-file-excel" style="margin-right: 6px;"></i>엑셀 다운로드
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="toss-card">
+        <div class="table-container">
+            <table class="toss-table" style="width: 100%;">
+                <thead style="background: #f9fafb; border-bottom: 1px solid #e5e8eb;">
+                    <tr id="detailTableHeader">
+                        <!-- Dynamic Headers -->
+                        <th style="padding: 12px 24px;">시간</th>
+                        <th style="padding: 12px;">매장명</th>
+                        <th style="padding: 12px; text-align: right;">총 대기</th>
+                        <th style="padding: 12px; text-align: right;">입장 완료</th>
+                        <th style="padding: 12px; text-align: right;">취소</th>
+                        <th style="padding: 12px; text-align: right;">평균 대기</th>
+                    </tr>
+                </thead>
+                <tbody id="detailTableBody">
+                    <!-- Populated by JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .toss-tab {
+        font-size: 18px;
+        font-weight: 600;
+        color: #8b95a1;
+        padding-bottom: 12px;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        transition: all 0.2s;
+    }
+
+    .toss-tab.active {
+        color: #191f28;
+        border-bottom: 2px solid #191f28;
+    }
+
+    .toss-tab:hover {
+        color: #333d4b;
+    }
+</style>

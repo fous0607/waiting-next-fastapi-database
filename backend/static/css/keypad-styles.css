@@ -1,0 +1,114 @@
+/* 키패드 스타일 - Modern (기본) */
+.keypad-style-modern .key {
+    background: linear-gradient(145deg, #ffffff, #f8f9fa);
+    border: 2px solid #e8ecef;
+    border-radius: 18px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12),
+        0 3px 6px rgba(0, 0, 0, 0.08),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.keypad-style-modern .key:hover {
+    background: linear-gradient(145deg, #3498db, #2980b9);
+    border-color: #2980b9;
+    transform: translateY(-4px) scale(1.03);
+    box-shadow: 0 10px 24px rgba(52, 152, 219, 0.35),
+        0 6px 12px rgba(52, 152, 219, 0.25);
+}
+
+/* 키패드 스타일 - Bold (진한 경계선) */
+.keypad-style-bold .key {
+    background: #ffffff;
+    border: 4px solid #34495e;
+    border-radius: 16px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.keypad-style-bold .key:hover {
+    background: #3498db;
+    border-color: #2c3e50;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 16px rgba(52, 152, 219, 0.4);
+}
+
+/* 키패드 스타일 - Dark (검정 배경, 흰색 글자) */
+.keypad-style-dark .key {
+    background: linear-gradient(145deg, #2c3e50, #34495e);
+    border: 2px solid #1a252f;
+    border-radius: 18px;
+    color: #ffffff !important;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3),
+        0 3px 6px rgba(0, 0, 0, 0.2),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.keypad-style-dark .key:hover {
+    background: linear-gradient(145deg, #3498db, #2980b9);
+    border-color: #2980b9;
+    transform: translateY(-4px) scale(1.03);
+    box-shadow: 0 10px 24px rgba(52, 152, 219, 0.5),
+        0 6px 12px rgba(52, 152, 219, 0.3);
+}
+
+/* 키패드 스타일 - Colorful (다채로운 그라데이션) */
+.keypad-style-colorful .key {
+    background: linear-gradient(145deg, #667eea, #764ba2);
+    border: none;
+    border-radius: 20px;
+    color: #ffffff !important;
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4),
+        0 4px 10px rgba(118, 75, 162, 0.3);
+}
+
+.keypad-style-colorful .key:hover {
+    background: linear-gradient(145deg, #f093fb, #f5576c);
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 12px 28px rgba(240, 147, 251, 0.5),
+        0 6px 14px rgba(245, 87, 108, 0.4);
+}
+
+/* 백스페이스 버튼 스타일 오버라이드 */
+.keypad-style-modern .key.backspace,
+.keypad-style-bold .key.backspace,
+.keypad-style-dark .key.backspace,
+.keypad-style-colorful .key.backspace {
+    background: linear-gradient(145deg, #e74c3c, #c0392b);
+    border-color: #c0392b;
+    color: #fff !important;
+}
+
+/* 폰트 크기 - Small */
+.keypad-font-small .key {
+    font-size: 32px;
+}
+
+.keypad-font-small .phone-number {
+    font-size: 52px;
+}
+
+/* 폰트 크기 - Medium */
+.keypad-font-medium .key {
+    font-size: 38px;
+}
+
+.keypad-font-medium .phone-number {
+    font-size: 60px;
+}
+
+/* 폰트 크기 - Large (기본) */
+.keypad-font-large .key {
+    font-size: 44px;
+}
+
+.keypad-font-large .phone-number {
+    font-size: 68px;
+}
+
+/* 폰트 크기 - XLarge */
+.keypad-font-xlarge .key {
+    font-size: 52px;
+}
+
+.keypad-font-xlarge .phone-number {
+    font-size: 76px;
+}

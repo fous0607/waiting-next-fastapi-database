@@ -1,0 +1,129 @@
+<!-- Add Store Modal -->
+<div id="addStoreModal" class="modal-overlay">
+    <div class="modal-content">
+        <i class="fas fa-times close-modal" onclick="closeModal('addStoreModal')"></i>
+        <div class="modal-title">가맹점 추가</div>
+        <form id="addStoreForm">
+            <div class="input-group">
+                <label class="input-label">프랜차이즈 선택</label>
+                <select id="addStoreFranchiseSelect" class="toss-input" required>
+                    <option value="">프랜차이즈를 선택하세요</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label class="input-label">매장명</label>
+                <input type="text" id="storeName" class="toss-input" placeholder="예: 강남본점" required>
+            </div>
+            <div class="input-group">
+                <label class="input-label">매장 코드 (자동 생성)</label>
+                <input type="text" id="storeCodeDisplay" class="toss-input" placeholder="프랜차이즈 선택 후 자동 생성" readonly
+                    style="background-color: var(--toss-gray-100);">
+                <small style="font-size: 12px; color: var(--toss-gray-500); margin-top: 4px; display: block;">매장 코드는
+                    프랜차이즈 코드를 기반으로 자동 생성됩니다.</small>
+            </div>
+            <div class="modal-actions" style="margin-top: 40px;">
+                <button type="button" class="toss-btn toss-btn-secondary"
+                    onclick="closeModal('addStoreModal')">취소</button>
+                <button type="submit" class="toss-btn toss-btn-primary">추가하기</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Store Name Modal -->
+<div id="editStoreNameModal" class="modal-overlay">
+    <div class="modal-content">
+        <i class="fas fa-times close-modal" onclick="closeModal('editStoreNameModal')"></i>
+        <div class="modal-title">매장 정보 수정</div>
+        <form id="editStoreNameForm">
+            <input type="hidden" id="editStoreId">
+            <div class="input-group">
+                <label class="input-label">매장명</label>
+                <input type="text" id="editStoreName" class="toss-input" required>
+            </div>
+            <div class="input-group"
+                style="padding: 16px; background: var(--toss-gray-50); border-radius: 12px; margin-top: 24px;">
+                <label class="input-label" style="display: flex; align-items: center; justify-content: space-between;">
+                    비밀번호 초기화
+                    <span style="font-size: 11px; color: var(--toss-gray-400); font-weight: normal;">입력 시에만
+                        변경됩니다.</span>
+                </label>
+                <input type="password" id="editStoreAdminPassword" class="toss-input" placeholder="새 비밀번호 입력">
+            </div>
+            <div class="modal-actions" style="margin-top: 40px;">
+                <button type="button" class="toss-btn toss-btn-secondary"
+                    onclick="closeModal('editStoreNameModal')">취소</button>
+                <button type="submit" class="toss-btn toss-btn-primary">수정 완료</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Store Maintenance Modal -->
+<div id="storeMaintenanceModal" class="modal-overlay">
+    <div class="modal-content" style="width: 520px;">
+        <i class="fas fa-times close-modal" onclick="closeModal('storeMaintenanceModal')"></i>
+        <div class="modal-title">매장 데이터 관리</div>
+        <div id="maintenanceStoreName"
+            style="font-weight: 700; color: var(--toss-gray-900); margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid var(--toss-gray-100);">
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+            <div
+                style="display: flex; align-items: center; justify-content: space-between; padding: 20px; background: var(--toss-gray-50); border-radius: 12px;">
+                <div>
+                    <div style="font-weight: 700; font-size: 15px;">전체 대기 목록 초기화</div>
+                    <div style="font-size: 12px; color: var(--toss-gray-500); margin-top: 4px;">현재 대기 중인 모든 데이터를 즉시
+                        삭제합니다.</div>
+                </div>
+                <button class="toss-btn toss-btn-outline"
+                    style="color: var(--toss-red); border-color: rgba(240, 68, 82, 0.3);"
+                    onclick="performMaintenance('waiting')">초기화</button>
+            </div>
+
+            <div
+                style="display: flex; align-items: center; justify-content: space-between; padding: 20px; background: var(--toss-gray-50); border-radius: 12px;">
+                <div>
+                    <div style="font-weight: 700; font-size: 15px;">회원 데이터 초기화</div>
+                    <div style="font-size: 12px; color: var(--toss-gray-500); margin-top: 4px;">등록된 모든 회원 정보를 삭제합니다. (복구
+                        불가)</div>
+                </div>
+                <button class="toss-btn toss-btn-outline"
+                    style="color: var(--toss-red); border-color: rgba(240, 68, 82, 0.3);"
+                    onclick="performMaintenance('members')">전체 삭제</button>
+            </div>
+
+            <div
+                style="display: flex; align-items: center; justify-content: space-between; padding: 20px; background: var(--toss-gray-50); border-radius: 12px;">
+                <div>
+                    <div style="font-weight: 700; font-size: 15px;">방문/출석 기록 초기화</div>
+                    <div style="font-size: 12px; color: var(--toss-gray-500); margin-top: 4px;">통계에 사용되는 모든 누적 히스토리를
+                        삭제합니다.</div>
+                </div>
+                <button class="toss-btn toss-btn-outline"
+                    style="color: var(--toss-red); border-color: rgba(240, 68, 82, 0.3);"
+                    onclick="performMaintenance('history')">기록 삭제</button>
+            </div>
+        </div>
+
+        <div class="modal-actions" style="margin-top: 32px;">
+            <button type="button" class="toss-btn toss-btn-secondary" style="width: 100%; justify-content: center;"
+                onclick="closeModal('storeMaintenanceModal')">닫기</button>
+        </div>
+    </div>
+</div>
+
+<!-- Confirm Store Status Modal -->
+<div id="confirmStoreStatusModal" class="modal-overlay">
+    <div class="modal-content" style="width: 400px; text-align: center;">
+        <div class="modal-title" style="margin-bottom: 12px;">매장 상태 변경</div>
+        <div id="storeStatusConfirmMessage"
+            style="font-size: 16px; color: var(--toss-gray-700); margin-bottom: 32px; line-height: 1.5;"></div>
+        <div class="modal-actions" style="justify-content: center; gap: 12px;">
+            <button type="button" class="toss-btn toss-btn-secondary"
+                onclick="closeModal('confirmStoreStatusModal')">취소</button>
+            <button type="button" id="btnConfirmStoreStatus" class="toss-btn toss-btn-primary"
+                onclick="confirmStoreStatusChange()">확인</button>
+        </div>
+    </div>
+</div>

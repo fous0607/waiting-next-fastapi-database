@@ -1,0 +1,46 @@
+:root {
+    /* Default Theme: Zinc (Shadcn Default) */
+    --primary-color: #18181b;
+    --primary-hover: #27272a;
+    --background-color: #ffffff;
+    --card-background: #ffffff;
+    --text-color: #09090b;
+    --text-muted: #71717a;
+    --border-color: #e4e4e7;
+    --radius: 0.5rem;
+    --shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+
+    /* Button Text Colors */
+    --btn-text-primary: #ffffff;
+    --btn-text-secondary: #18181b;
+
+    /* Secondary/Action Colors */
+    --success-color: #10b981;
+    --danger-color: #ef4444;
+    --warning-color: #f59e0b;
+}
+
+/* Blue Theme */
+[data-theme="blue"] {
+    --primary-color: #2563eb;
+    --primary-hover: #1d4ed8;
+    --border-color: #bfdbfe;
+
+    --btn-text-primary: #ffffff;
+}
+
+/* Green Theme */
+[data-theme="green"] {
+    --primary-color: #16a34a;
+    --primary-hover: #15803d;
+    --border-color: #bbf7d0;
+
+    --btn-text-primary: #ffffff;
+}
+
+/* Orange Theme (Bonus) */
+[data-theme="orange"] {
+    --primary-color: #f97316;
+    --primary-hover: #ea580c;
+    --border-color: #fed7aa;
+}

@@ -1,0 +1,38 @@
+version: '3'
+
+services:
+  backend:
+    build: ./backend
+    container_name: waiting_backend
+    ports:
+      - "8088:8000"
+    volumes:
+      - ./backend:/app
+      - ./backend/waiting.db:/app/waiting.db
+    environment:
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      # 2. 서비스 레벨: 사용할 네트워크 지정
+      - waiting-net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: waiting_frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://backend:8000/api
+    depends_on:
+      - backend
+    networks:
+      # 2. 서비스 레벨: 사용할 네트워크 지정
+      - waiting-net
+
+networks:
+  # 1. 최상위 레벨: 네트워크 정의 및 생성
+  waiting-net:
+    driver: bridge

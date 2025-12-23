@@ -1,0 +1,46 @@
+<div id="view-franchises" class="admin-view">
+    <div class="table-header">
+        <div class="view-controls">
+            <div class="toss-search-container">
+                <i class="fas fa-search toss-search-icon"></i>
+                <input type="text" class="toss-search-input" placeholder="프랜차이즈 검색..."
+                    onkeyup="filterFranchises(this.value)">
+            </div>
+        </div>
+        <button class="toss-btn toss-btn-primary" onclick="showAddFranchiseModal()">
+            <i class="fas fa-plus"></i> 프랜차이즈 등록
+        </button>
+    </div>
+
+    <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr); margin-top: 24px; margin-bottom: 24px;">
+        <div class="stat-card" style="padding: 16px;">
+            <div class="stat-label">전체</div>
+            <div class="stat-value" id="totalFranchiseCount">...</div>
+        </div>
+        <div class="stat-card" style="padding: 16px;">
+            <div class="stat-label">활성</div>
+            <div class="stat-value" style="color: var(--toss-green);" id="activeFranchiseCount">...</div>
+        </div>
+        <div class="stat-card" style="padding: 16px;">
+            <div class="stat-label">비활성</div>
+            <div class="stat-value" style="color: var(--toss-red);" id="inactiveFranchiseCount">...</div>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table class="toss-table">
+            <thead>
+                <tr>
+                    <th>프랜차이즈명</th>
+                    <th>코드</th>
+                    <th>매장 수</th>
+                    <th>상태</th>
+                    <th style="text-align: right;">작업</th>
+                </tr>
+            </thead>
+            <tbody id="franchisesGrid">
+                <!-- Data populated by JS -->
+            </tbody>
+        </table>
+    </div>
+</div>

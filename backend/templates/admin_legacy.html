@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>프랜차이즈 관리 - 대기 시스템</title>
+    <link rel="stylesheet" href="/static/css/common.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="/static/css/admin.css">
+    <script>
+        // Apply theme immediately to prevent flash
+        const savedTheme = localStorage.getItem('selected_theme') || 'zinc';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
+</head>
+
+<body>
+    <div class="admin-container">
+        {% include 'components/admin/layout/header.html' %}
+        {% include 'components/admin/layout/tabs.html' %}
+
+        {% include 'components/admin/dashboard/overview.html' %}
+        {% include 'components/admin/franchise/store_management.html' %}
+        {% include 'components/admin/franchise/user_management.html' %}
+        {% include 'components/admin/members/management.html' %}
+        {% include 'components/admin/dashboard/status.html' %}
+    </div>
+
+    {% include 'components/admin/modals/history_modal.html' %}
+    {% include 'components/admin/modals/add_user_modal.html' %}
+    {% include 'components/admin/modals/edit_user_modal.html' %}
+    {% include 'components/admin/modals/member_detail_modal.html' %}
+
+    <script src="/static/js/admin.js"></script>
+    <script src="/static/js/logout.js"></script>
+</body>
+
+</html>

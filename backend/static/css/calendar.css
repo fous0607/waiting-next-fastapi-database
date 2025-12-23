@@ -1,0 +1,126 @@
+/* Custom Dual Calendar Styles */
+.dual-calendar-container {
+    top: 50px;
+    /* Adjust based on trigger position */
+    right: -10px;
+    left: auto;
+    z-index: 1000;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+    padding: 24px;
+    display: none;
+    width: 680px;
+    border: 1px solid #e5e8eb;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.dual-calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.calendar-month-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #191f28;
+}
+
+.calendar-nav-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #4e5968;
+    transition: background 0.2s;
+}
+
+.calendar-nav-btn:hover {
+    background: #f2f4f6;
+}
+
+.dual-calendar-body {
+    display: flex;
+    gap: 32px;
+}
+
+.calendar-month {
+    flex: 1;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    row-gap: 8px;
+}
+
+.calendar-weekday {
+    font-size: 13px;
+    color: #8b95a1;
+    /* Light gray for weekdays */
+    font-weight: 500;
+    margin-bottom: 12px;
+}
+
+.calendar-day {
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: #333d4b;
+    cursor: pointer;
+    border-radius: 50%;
+    position: relative;
+    user-select: none;
+}
+
+.calendar-day:hover {
+    background-color: #f2f4f6;
+}
+
+.calendar-day.empty {
+    cursor: default;
+    pointer-events: none;
+}
+
+/* Selected States */
+.calendar-day.selected {
+    background-color: #3182f6;
+    color: #fff;
+    z-index: 2;
+}
+
+.calendar-day.in-range {
+    background-color: #e8f3ff;
+    /* Light blue */
+    border-radius: 0;
+    color: #3182f6;
+}
+
+.calendar-day.range-start {
+    background-color: #3182f6;
+    color: #fff;
+    border-radius: 50% 0 0 50%;
+}
+
+.calendar-day.range-end {
+    background-color: #3182f6;
+    color: #fff;
+    border-radius: 0 50% 50% 0;
+}
+
+/* Detect single day range or start=end */
+.calendar-day.selected.range-start.range-end {
+    border-radius: 50%;
+}
+
+/* Helper for week row background if full week selected? Not needed for now */

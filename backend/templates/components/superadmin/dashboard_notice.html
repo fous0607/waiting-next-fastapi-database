@@ -1,0 +1,95 @@
+<div id="noticeDashboardContainer" style="display: none; padding: 24px;">
+    <!-- Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+        <h2 style="font-size: 26px; font-weight: 700; color: #191f28;">공지사항 관리</h2>
+        <button class="toss-btn tossed-primary" onclick="openNoticeModal()">
+            <i class="fas fa-plus" style="margin-right: 6px;"></i>공지 등록
+        </button>
+    </div>
+
+    <!-- Notice List -->
+    <div class="toss-card">
+        <table class="toss-table" style="width: 100%;">
+            <thead>
+                <tr style="background: #f9fafb; border-bottom: 1px solid #e5e8eb;">
+                    <th style="width: 60px; text-align: center;">No</th>
+                    <th>제목</th>
+                    <th style="width: 150px;">대상</th>
+                    <th style="width: 120px;">작성자</th>
+                    <th style="width: 150px;">작성일</th>
+                    <th style="width: 80px; text-align: center;">상태</th>
+                </tr>
+            </thead>
+            <tbody id="noticeListBody">
+                <!-- Populated by JS -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Notice Modal -->
+<div id="noticeModal" class="toss-modal" style="display: none;">
+    <div class="toss-modal-content" style="width: 600px;">
+        <div class="toss-modal-header">
+            <h3>공지사항 등록</h3>
+            <button class="close-btn" onclick="closeNoticeModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="toss-modal-body">
+            <div class="form-group" style="margin-bottom: 16px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 8px;">제목</label>
+                <input type="text" id="noticeTitleInput" class="toss-input" placeholder="공지 제목을 입력하세요">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 16px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 8px;">공지 대상</label>
+                <div style="display: flex; gap: 16px;">
+                    <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                        <input type="radio" name="noticeTarget" value="all" checked
+                            onchange="toggleNoticeStoreSelect()"> 전체 매장
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                        <input type="radio" name="noticeTarget" value="selected" onchange="toggleNoticeStoreSelect()">
+                        일부 매장
+                    </label>
+                </div>
+            </div>
+
+            <div id="noticeStoreSelector"
+                style="display: none; margin-bottom: 16px; border: 1px solid #e5e8eb; padding: 12px; border-radius: 8px; max-height: 150px; overflow-y: auto;">
+                <!-- Checkboxes populated by JS -->
+            </div>
+
+            <div class="form-group" style="margin-bottom: 24px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 8px;">내용</label>
+                <textarea id="noticeContentInput" class="toss-input" rows="6" placeholder="공지 내용을 입력하세요"
+                    style="resize: vertical;"></textarea>
+            </div>
+
+            <button class="toss-btn tossed-primary" style="width: 100%;" onclick="submitNotice()">등록하기</button>
+        </div>
+    </div>
+</div>
+<div id="noticeModalBackdrop" class="modal-backdrop" onclick="closeNoticeModal()" style="display: none;"></div>
+
+<style>
+    .notice-row {
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .notice-row:hover {
+        background: #f2f4f6;
+    }
+
+    .notice-details-row {
+        background: #f9fafb;
+        display: none;
+    }
+
+    .notice-details-content {
+        padding: 24px;
+        white-space: pre-wrap;
+        line-height: 1.6;
+        color: #4e5968;
+    }
+</style>

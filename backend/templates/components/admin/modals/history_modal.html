@@ -1,0 +1,22 @@
+<div id="memberHistoryModal" class="modal">
+    <div class="modal-content">
+        <h2 class="modal-header">회원 출석 이력</h2>
+        <p id="historyMemberName" style="margin-bottom: 15px; font-weight: bold;"></p>
+        <div style="max-height: 400px; overflow-y: auto;">
+            <table class="users-table">
+                <thead>
+                    <tr>
+                        <th>일시</th>
+                        <th>매장</th>
+                        <th>상태</th>
+                    </tr>
+                </thead>
+                <tbody id="memberHistoryBody">
+                </tbody>
+            </table>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" onclick="closeModal('memberHistoryModal')">닫기</button>
+        </div>
+    </div>
+</div>

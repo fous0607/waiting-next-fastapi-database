@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>대기접수 - 데스크</title>
+    <link rel="stylesheet" href="/static/css/common.css">
+    <link rel="stylesheet" href="/static/css/keypad-styles.css">
+    <link rel="stylesheet" href="/static/css/reception.css">
+    <script src="/static/js/screen-monitor.js"></script>
+    <script>
+        const savedTheme = localStorage.getItem('selected_theme') || 'zinc';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
+</head>
+
+<body>
+    <div class="container reception-container">
+        {% include 'components/reception/header.html' %}
+        {% include 'components/reception/keypad.html' %}
+    </div>
+
+    {% include 'components/reception/modals/result_modal.html' %}
+    {% include 'components/reception/modals/error_modal.html' %}
+
+    <script src="/static/js/reception.js"></script>
+</body>
+
+</html>

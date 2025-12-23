@@ -1,0 +1,42 @@
+<div id="addUserModal" class="modal">
+    <div class="modal-content">
+        <h2 class="modal-header">새 사용자 추가</h2>
+        <form id="addUserForm">
+            <div class="form-group">
+                <label for="username">사용자명 *</label>
+                <input type="text" id="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">비밀번호 *</label>
+                <input type="password" id="password" required>
+            </div>
+            <div class="form-group">
+                <label for="userRole">역할 *</label>
+                <select id="userRole" required onchange="toggleStoreSelect()">
+                    <option value="">선택하세요</option>
+                    <option value="franchise_admin">프랜차이즈 최종 관리자</option>
+                    <option value="franchise_manager">프랜차이즈 중간 관리자</option>
+                    <option value="store_admin">매장 관리자</option>
+                </select>
+            </div>
+            <div class="form-group" id="storeSelectGroup" style="display: none;">
+                <label for="userStore">매장 *</label>
+                <select id="userStore">
+                    <option value="">선택하세요</option>
+                </select>
+            </div>
+            <!-- Multi-select for Franchise Manager -->
+            <div class="form-group" id="storeMultiSelectGroup" style="display: none;">
+                <label>관리 매장 선택 *</label>
+                <div id="storeMultiSelectContainer"
+                    style="border: 1px solid #dcdcdc; padding: 10px; max-height: 150px; overflow-y: auto; border-radius: 5px; background: #fff;">
+                    <!-- Checkboxes will be injected here -->
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('addUserModal')">취소</button>
+                <button type="submit" class="btn btn-primary">추가</button>
+            </div>
+        </form>
+    </div>
+</div>

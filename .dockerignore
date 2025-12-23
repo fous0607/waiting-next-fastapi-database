@@ -1,0 +1,41 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Environment variables
+.env
+.env.local
+
+# IDE configurations
+.idea/
+.vscode/
+.claude/
+
+# MacOS
+.DS_Store
+
+# Logs
+logs/
+*.log
+
+# Docker
+Dockerfile
+.dockerignore
+cloudbuild.yaml
+
+# Documentation & Others
+*.md
+docs/
+migrations/
+tests/

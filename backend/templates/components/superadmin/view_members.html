@@ -1,0 +1,95 @@
+<div id="view-members" class="admin-view">
+    <div class="table-header">
+        <div class="view-controls">
+            <div class="sub-tabs">
+                <button class="sub-tab-btn active" id="btn-member-list" onclick="switchMemberTab('list')">회원 목록</button>
+                <button class="sub-tab-btn" id="btn-member-stats" onclick="switchMemberTab('stats')">누적 통계</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Member Search View -->
+    <div id="subview-member-list">
+        <div class="dashboard-widget" style="margin-top: 24px;">
+            <div class="widget-title">회원 통합 검색</div>
+            <div
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                <div class="input-group">
+                    <label class="input-label">프랜차이즈</label>
+                    <select id="memberFilterFranchise" class="toss-input" onchange="loadMemberFilterStores(this.value)">
+                        <option value="">전체 프랜차이즈</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">매장</label>
+                    <select id="memberFilterStore" class="toss-input">
+                        <option value="">전체 매장</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">이름 또는 연락처</label>
+                    <input type="text" id="memberSearchInput" class="toss-input" placeholder="검색어 입력...">
+                </div>
+                <div class="input-group" style="display: flex; align-items: flex-end;">
+                    <button class="toss-btn toss-btn-primary" style="width: 100%; justify-content: center;"
+                        onclick="handleMemberSearch()">
+                        <i class="fas fa-search"></i> 검색하기
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table class="toss-table">
+                    <thead>
+                        <tr>
+                            <th>회원명</th>
+                            <th>연락처</th>
+                            <th>프랜차이즈</th>
+                            <th>최근 이용 매장</th>
+                            <th>가입일</th>
+                            <th style="text-align: right;">상세</th>
+                        </tr>
+                    </thead>
+                    <tbody id="membersGrid">
+                        <!-- Data populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Member Stats View -->
+    <div id="subview-member-stats" style="display: none; margin-top: 24px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+            <div class="dashboard-widget">
+                <div class="widget-title">프랜차이즈별 회원수</div>
+                <table class="toss-table">
+                    <thead>
+                        <tr>
+                            <th>프랜차이즈</th>
+                            <th style="text-align: right;">회원수</th>
+                        </tr>
+                    </thead>
+                    <tbody id="franchiseStatsBody">
+                        <!-- Data populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="dashboard-widget">
+                <div class="widget-title">매장별 회원수 Top 10</div>
+                <table class="toss-table">
+                    <thead>
+                        <tr>
+                            <th>매장명</th>
+                            <th>프랜차이즈</th>
+                            <th style="text-align: right;">회원수</th>
+                        </tr>
+                    </thead>
+                    <tbody id="storeStatsBody">
+                        <!-- Data populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

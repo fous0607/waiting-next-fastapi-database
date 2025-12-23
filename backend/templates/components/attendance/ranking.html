@@ -1,0 +1,63 @@
+<!-- 4. 출석순위 탭 -->
+<div id="rankingTab" class="tab-content">
+    <div class="filter-container">
+        <select id="rankingPeriod" class="form-control" style="width: 150px;" onchange="handlePeriodChange('ranking')">
+            <option value="daily">개점일</option>
+            <option value="weekly">주간 (이번주)</option>
+            <option value="monthly" selected>월간 (이번달)</option>
+            <option value="yearly">연간 (올해)</option>
+            <option value="custom">기간별</option>
+        </select>
+
+        <div id="rankingDateContainer" style="display: flex; align-items: center; gap: 5px;">
+            <div class="date-picker-wrapper">
+                <input type="text" id="rankingDateDisplay" class="form-control date-display" readonly>
+                <svg class="calendar-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <input type="date" id="rankingDate" class="date-input-hidden"
+                    onchange="updateDateDisplay(this, 'rankingDateDisplay')">
+            </div>
+
+            <span class="date-separator" style="display: none;">~</span>
+
+            <div class="date-picker-wrapper date-end" style="display: none;">
+                <input type="text" id="rankingEndDateDisplay" class="form-control date-display" readonly>
+                <svg class="calendar-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <input type="date" id="rankingEndDate" class="date-input-hidden"
+                    onchange="updateDateDisplay(this, 'rankingEndDateDisplay')">
+            </div>
+        </div>
+
+        <input type="number" id="minAttendance" class="form-control" placeholder="최소 출석 횟수 (예: 10)"
+            style="width: 200px;">
+        <button class="btn btn-primary" onclick="loadRanking()">조회</button>
+    </div>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th width="80">순위</th>
+                <th>이름</th>
+                <th>전화번호</th>
+                <th>출석 횟수</th>
+                <th>최근 출석일</th>
+                <th>상세</th>
+            </tr>
+        </thead>
+        <tbody id="rankingList">
+            <!-- JS로 채움 -->
+        </tbody>
+    </table>
+
+    <!-- 무한 스크롤 감지용 Sentinel -->
+    <div id="rankingSentinel" style="height: 20px; text-align: center; margin-top: 10px;">
+        <span id="rankingLoader" style="display: none; color: #7f8c8d;">불러오는 중...</span>
+    </div>
+</div>

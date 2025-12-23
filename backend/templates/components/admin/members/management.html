@@ -1,0 +1,279 @@
+<div id="members" class="tab-content">
+    <div class="info-card" style="padding: 0; background: transparent; box-shadow: none;">
+        <!-- Sub Tabs -->
+        <div class="sub-tab-container">
+            <button class="sub-tab" onclick="showMemberSubTab('waiting-status')">대기현황</button>
+            <button class="sub-tab active" onclick="showMemberSubTab('attendance-status')">출석현황</button>
+            <button class="sub-tab" onclick="showMemberSubTab('individual-attendance')">개인별 출석</button>
+            <button class="sub-tab" onclick="showMemberSubTab('new-members')">신규회원</button>
+            <button class="sub-tab" onclick="showMemberSubTab('attendance-ranking')">출석순위</button>
+        </div>
+
+        <!-- 1. 대기현황 (Waiting Status) -->
+        <div id="waiting-status" class="sub-tab-content">
+            <div class="control-panel responsive-panel">
+                <select id="waitingPeriod" class="form-select period-select" onchange="updateTabDateRange('waiting')">
+                    <option value="day">일간 (오늘)</option>
+                    <option value="week">주간 (이번주)</option>
+                    <option value="month">월간 (이번달)</option>
+                </select>
+                <div class="date-range-picker">
+                    <input type="date" id="waitingStartDate"> <span class="tilde">~</span> <input type="date"
+                        id="waitingEndDate">
+                </div>
+                <select id="waitingStoreFilter" class="form-select store-select" onchange="loadWaitingStatus()">
+                    <option value="">전체 매장</option>
+                </select>
+                <button class="btn btn-primary search-btn" onclick="loadWaitingStatus()">조회</button>
+            </div>
+
+            <!-- Waiting Statistics Cards -->
+            <div class="stats-grid" style="margin-bottom: 20px;">
+                <div class="stat-card">
+                    <div class="stat-label">총 대기</div>
+                    <div class="stat-value" id="waitingTotalCount">0명</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">기존 회원 대기</div>
+                    <div class="stat-value" id="waitingExistingCount">0명</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">신규 회원 대기</div>
+                    <div class="stat-value" id="waitingNewCount">0명</div>
+                </div>
+            </div>
+
+            <div class="stats-grid" style="margin-bottom: 30px;">
+                <div class="stat-card">
+                    <div class="stat-label">현 대기</div>
+                    <div class="stat-value" id="waitingCurrentCount">0명</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">현 기존 회원 대기</div>
+                    <div class="stat-value" id="waitingCurrentExistingCount">0명</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">현 신규 회원 대기</div>
+                    <div class="stat-value" id="waitingCurrentNewCount">0명</div>
+                </div>
+            </div>
+
+            <div class="data-table-container">
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>대기번호</th>
+                            <th>매장</th>
+                            <th>이름/전화번호</th>
+                            <th>상태</th>
+                            <th>선택</th>
+                        </tr>
+                    </thead>
+                    <tbody id="waitingStatusBody">
+                        <!-- Dynamic Content -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 2. 출석현황 (Attendance Status) -->
+        <div id="attendance-status" class="sub-tab-content active">
+            <div class="control-panel responsive-panel">
+                <select id="memStatsPeriod" class="form-select period-select" onchange="updateTabDateRange('mem')">
+                    <option value="day">일간 (오늘)</option>
+                    <option value="week">주간 (이번주)</option>
+                    <option value="month">월간 (이번달)</option>
+                </select>
+                <div class="date-range-picker">
+                    <input type="date" id="memStartDate"> <span class="tilde">~</span> <input type="date"
+                        id="memEndDate">
+                </div>
+                <select id="memStoreFilter" class="form-select store-select" onchange="loadMemberDashboard()">
+                    <option value="">전체 매장</option>
+                </select>
+                <button class="btn btn-primary search-btn" onclick="loadMemberDashboard()">조회</button>
+            </div>
+
+            <div class="stats-row" style="margin-bottom: 20px;">
+                <div class="stat-card" style="height: 150px;">
+                    <div class="stat-title">총 출석</div>
+                    <div class="stat-value" id="memTotalAttendance">0명</div>
+                </div>
+                <div class="stat-card" style="height: 150px;">
+                    <div class="stat-title">기존 회원 출석</div>
+                    <div class="stat-value text-blue" id="memExistingAttendance">0명</div>
+                </div>
+                <div class="stat-card" style="height: 150px;">
+                    <div class="stat-title">신규 회원 출석</div>
+                    <div class="stat-value text-green" id="memNewAttendance">0명</div>
+                </div>
+            </div>
+
+            <div class="data-table-container">
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>일시</th>
+                            <th>매장</th>
+                            <th>이름/전화번호</th>
+                            <th>상태</th>
+                            <th>상세</th>
+                        </tr>
+                    </thead>
+                    <tbody id="attendanceListBody">
+                        <!-- Dynamic Content -->
+                    </tbody>
+                </table>
+            </div>
+
+
+        </div>
+
+        <!-- 3. 개인별 출석 (Individual Attendance) -->
+        <div id="individual-attendance" class="sub-tab-content">
+            <div class="control-panel responsive-panel">
+                <div class="search-container" style="width: 100%; display: flex; gap: 10px;">
+                    <input type="text" id="memberSearchInput" placeholder="이름 또는 전화번호 뒷자리 입력"
+                        style="flex: 1; padding: 12px; border: 1px solid #e0e0e0; border-radius: 5px; font-size: 16px;">
+                    <button class="btn btn-primary search-btn" onclick="searchMember()">검색</button>
+                </div>
+            </div>
+
+            <!-- Search Results -->
+            <div id="memberSearchResults" class="data-table-container" style="margin-bottom: 20px; display: none;">
+                <h3 style="font-size: 16px; margin-bottom: 15px;">검색 결과</h3>
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>이름</th>
+                            <th>전화번호</th>
+                            <th>가입일</th>
+                            <th>가입매장</th>
+                            <th>선택</th>
+                        </tr>
+                    </thead>
+                    <tbody id="memberSearchBody"></tbody>
+                </table>
+            </div>
+
+            <!-- Member History -->
+            <div id="memberHistoryContainer" class="data-table-container" style="display: none;">
+                <div class="history-header">
+                    <h3 style="font-size: 16px; margin: 0;">
+                        출석 이력: <span id="selectedMemberName"></span>
+                        <span id="selectedMemberTotal"
+                            style="color: #3498db; margin-left: 8px; font-weight: bold;"></span>
+                    </h3>
+                    <div class="date-range-picker">
+                        <input type="date" id="historyStartDate"> <span>~</span> <input type="date" id="historyEndDate">
+                        <button class="btn btn-sm btn-primary" onclick="loadSelectedMemberHistory()">조회</button>
+                    </div>
+                </div>
+                <div style="max-height: 300px; overflow-y: auto; margin-bottom: 20px;">
+                    <table class="users-table">
+                        <thead style="position: sticky; top: 0; z-index: 1;">
+                            <tr>
+                                <th>일시</th>
+                                <th>매장</th>
+                                <th>상태</th>
+                            </tr>
+                        </thead>
+                        <tbody id="memberHistoryListBody"></tbody>
+                    </table>
+                </div>
+
+                <!-- Calendar View -->
+                <div class="calendar-container">
+                    <div class="calendar-header">
+                        <button class="calendar-nav-btn" onclick="changeMonth(-1)">&lt; 이전달</button>
+                        <h4 id="calendarTitle">2023년 12월</h4>
+                        <button class="calendar-nav-btn" onclick="changeMonth(1)">다음달 &gt;</button>
+                    </div>
+                    <div class="calendar-grid" id="calendarGridHeader">
+                        <div class="calendar-day-header sunday">일</div>
+                        <div class="calendar-day-header">월</div>
+                        <div class="calendar-day-header">화</div>
+                        <div class="calendar-day-header">수</div>
+                        <div class="calendar-day-header">목</div>
+                        <div class="calendar-day-header">금</div>
+                        <div class="calendar-day-header saturday">토</div>
+                    </div>
+                    <div class="calendar-grid" id="calendarBody">
+                        <!-- Days generated by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. 신규회원 (New Members) -->
+        <div id="new-members" class="sub-tab-content">
+            <div class="control-panel responsive-panel">
+                <select id="newMemPeriod" class="form-select period-select" onchange="updateTabDateRange('newMem')">
+                    <option value="day">일간 (오늘)</option>
+                    <option value="week">주간 (이번주)</option>
+                    <option value="month">월간 (이번달)</option>
+                </select>
+                <div class="date-range-picker">
+                    <input type="date" id="newMemStartDate"> <span class="tilde">~</span> <input type="date"
+                        id="newMemEndDate">
+                </div>
+                <select id="newMemStoreFilter" class="form-select store-select" onchange="loadNewMembers()">
+                    <option value="">전체 매장</option>
+                </select>
+                <button class="btn btn-primary search-btn" onclick="loadNewMembers()">조회</button>
+            </div>
+
+            <div class="data-table-container">
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>이름</th>
+                            <th>전화번호</th>
+                            <th>가입일시</th>
+                            <th>가입매장</th>
+                            <th>선택</th>
+                        </tr>
+                    </thead>
+                    <tbody id="newMembersBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 5. 출석순위 (Attendance Ranking) -->
+        <div id="attendance-ranking" class="sub-tab-content">
+            <div class="control-panel responsive-panel">
+                <select id="rankPeriod" class="form-select period-select" onchange="updateTabDateRange('rank')">
+                    <option value="day">일간 (오늘)</option>
+                    <option value="week">주간 (이번주)</option>
+                    <option value="month">월간 (이번달)</option>
+                </select>
+                <div class="date-range-picker">
+                    <input type="date" id="rankStartDate"> <span class="tilde">~</span> <input type="date"
+                        id="rankEndDate">
+                </div>
+                <select id="rankStoreFilter" class="form-select store-select" onchange="loadAttendanceRanking()">
+                    <option value="">전체 매장</option>
+                </select>
+                <button class="btn btn-primary search-btn" onclick="loadAttendanceRanking()">조회</button>
+            </div>
+            <div class="data-table-container">
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th width="80">순위</th>
+                            <th>이름</th>
+                            <th>전화번호</th>
+                            <th>출석횟수</th>
+                            <th>최근 출석</th>
+                            <th>매장</th>
+                            <th>선택</th>
+                        </tr>
+                    </thead>
+                    <tbody id="attendanceRankingBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+
+    </div>
+</div>

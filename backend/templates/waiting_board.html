@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>대기현황판</title>
+    <link rel="stylesheet" href="/static/css/waiting_board.css">
+    <link rel="stylesheet" href="/static/css/themes.css">
+    <script>
+        const savedTheme = localStorage.getItem('selected_theme') || 'zinc';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
+</head>
+
+<body>
+    <div class="board-container">
+        {% include 'components/waiting_board/header.html' %}
+
+        <div class="classes-container" id="classesContainer">
+            <!-- 동적으로 생성됨 -->
+        </div>
+    </div>
+
+    <script src="/static/js/waiting_board.js"></script>
+</body>
+
+</html>

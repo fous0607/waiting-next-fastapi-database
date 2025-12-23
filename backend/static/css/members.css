@@ -1,0 +1,104 @@
+        .members-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .search-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-section input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ecf0f1;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+
+        .actions-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .members-table {
+            overflow-x: auto;
+        }
+
+        .member-item {
+            display: grid;
+            grid-template-columns: 60px 1fr 150px 180px 150px;
+            gap: 15px;
+            padding: 20px;
+            background: #fff;
+            border-bottom: 1px solid #ecf0f1;
+            align-items: center;
+            transition: background 0.2s;
+        }
+
+        .member-item:hover {
+            background: #f8f9fa;
+        }
+
+        .member-item:first-child {
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+
+        .member-item:last-child {
+            border-bottom: none;
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 10px;
+        }
+
+        .member-number {
+            font-weight: 600;
+            color: #7f8c8d;
+            text-align: center;
+        }
+
+        .member-info .name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .member-info .date {
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+
+        .member-phone {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2980b9;
+            letter-spacing: 0.5px;
+        }
+
+        .member-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .member-item {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .members-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+
+            .actions-bar {
+                flex-wrap: wrap;
+            }
+        }
+    </style>

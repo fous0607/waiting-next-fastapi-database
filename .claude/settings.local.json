@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m pip install:*)",
+      "Bash(python3 -m pip install:*)",
+      "Bash(python3 main.py)",
+      "Bash(curl:*)",
+      "Bash(source venv/bin/activate)",
+      "Bash(python migrate_add_empty_seat.py:*)",
+      "Bash(lsof:*)",
+      "Bash(xargs kill -9)",
+      "Bash(python3:*)",
+      "Bash(python migrate_add_waiting_limit.py:*)",
+      "Bash(cat:*)",
+      "Bash(python migrate_add_block_last_class.py:*)",
+      "Bash(timeout 5 python:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

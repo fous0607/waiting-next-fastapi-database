@@ -1,0 +1,23 @@
+<!-- 공휴일 추가 모달 -->
+<div id="holidayModal" class="modal">
+    <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-header" style="border-bottom: none; padding-bottom: 0;">
+            <h3 style="text-align: center; width: 100%; margin: 0;">공휴일 등록</h3>
+        </div>
+        <div class="modal-body" style="padding: 20px 30px;">
+            <p id="holidayDateDisplay" style="text-align: center; color: #666; margin-bottom: 20px; font-weight: bold;">
+                <!-- 날짜가 여기에 표시됩니다 (예: 2025-12-25) -->
+            </p>
+            <div class="form-group">
+                <input type="text" id="holidayNameInput" class="form-control" placeholder="공휴일 이름 입력 (예: 크리스마스)"
+                    style="text-align: center; font-size: 16px;"
+                    onkeydown="if(event.key === 'Enter') confirmAddHoliday()">
+            </div>
+            <input type="hidden" id="holidayDateInput">
+        </div>
+        <div class="modal-footer" style="border-top: none; padding-top: 0; display: flex; gap: 10px;">
+            <button type="button" class="btn btn-secondary" onclick="closeHolidayModal()" style="flex: 1;">취소</button>
+            <button type="button" class="btn btn-primary" onclick="confirmAddHoliday()" style="flex: 1;">확인</button>
+        </div>
+    </div>
+</div>

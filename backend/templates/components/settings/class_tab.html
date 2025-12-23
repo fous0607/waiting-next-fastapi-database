@@ -1,0 +1,99 @@
+<!-- 클래스 관리 탭 -->
+<div id="classTab" class="tab-content">
+    <!-- 설정 복제 섹션 (클래스) -->
+    <div class="card requires-auth"
+        style="margin-bottom: 20px; background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); color: white;">
+        <h3 style="margin-bottom: 15px; color: white;">⚡ 클래스 빠른 설정</h3>
+        <p style="margin-bottom: 20px; opacity: 0.9;">다른 매장의 클래스 설정을 복제합니다. (현재 매장의 기존 클래스는 모두 삭제됩니다)</p>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <select id="cloneSourceStoreForClass" class="form-control" style="flex: 1; max-width: 400px;">
+                <option value="">복제할 매장 선택</option>
+            </select>
+            <button class="btn" style="background: white; color: #27ae60; font-weight: 600;" onclick="cloneClasses()">
+                🔄 클래스 복제하기
+            </button>
+        </div>
+    </div>
+    <!-- 평일/주말 서브 탭 -->
+    <div class="tabs-container" style="margin-bottom: 20px;">
+        <button class="settings-tab active" onclick="switchClassTypeTab('weekday')">평일 클래스</button>
+        <button class="settings-tab" onclick="switchClassTypeTab('weekend')">주말 클래스</button>
+        <button class="settings-tab" onclick="switchClassTypeTab('holiday')">공휴일 클래스</button>
+    </div>
+
+    <!-- 평일 클래스 -->
+    <div id="weekdayClassTab" class="class-type-content active">
+        <div class="card" style="margin-bottom:20px;">
+            <button class="btn btn-success" onclick="openAddClassModal('weekday')">+ 평일 클래스 추가</button>
+        </div>
+
+        <div class="class-list" id="weekdayClassList">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>로딩 중...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 주말 클래스 -->
+    <div id="weekendClassTab" class="class-type-content">
+        <div class="card" style="margin-bottom:20px;">
+            <button class="btn btn-success" onclick="openAddClassModal('weekend')">+ 주말 클래스 추가</button>
+        </div>
+
+        <div class="class-list" id="weekendClassList">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>로딩 중...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 공휴일 클래스 (New) -->
+    <div id="holidayClassTab" class="class-type-content">
+        <!-- 공휴일 캘린더 (New) -->
+        <div class="card" style="margin-bottom:20px; border-left: 5px solid #e74c3c;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3>📅 공휴일 캘린더</h3>
+                <div class="calendar-controls">
+                    <button class="btn btn-sm btn-secondary" onclick="changeHolidayMonth(-1)">◀</button>
+                    <span id="calendarTitle" style="font-size: 18px; font-weight: bold; margin: 0 15px;">2024. 12</span>
+                    <button class="btn btn-sm btn-secondary" onclick="changeHolidayMonth(1)">▶</button>
+                    <button class="btn btn-sm btn-primary" onclick="goToToday()" style="margin-left: 10px;">오늘</button>
+                </div>
+            </div>
+
+            <div class="custom-calendar">
+                <div class="calendar-header">
+                    <div class="day-name sun">일</div>
+                    <div class="day-name">월</div>
+                    <div class="day-name">화</div>
+                    <div class="day-name">수</div>
+                    <div class="day-name">목</div>
+                    <div class="day-name">금</div>
+                    <div class="day-name sat">토</div>
+                </div>
+                <div id="calendarGrid" class="calendar-grid">
+                    <!-- Javascript will inject days here -->
+                </div>
+            </div>
+            <p style="margin-top: 10px; color: #666; font-size: 14px;">
+                * 날짜를 클릭하여 공휴일을 추가하거나 삭제할 수 있습니다.
+            </p>
+        </div>
+
+        <!-- 공휴일 클래스 스케줄 -->
+        <div class="card" style="margin-bottom:20px;">
+            <h3>⏰ 공휴일 전용 클래스 스케줄</h3>
+            <p style="color: #666; margin-bottom: 15px;">위에서 등록한 공휴일에만 적용되는 클래스입니다.</p>
+            <button class="btn btn-success" onclick="openAddClassModal('holiday')">+ 공휴일 클래스 추가</button>
+        </div>
+
+        <div class="class-list" id="holidayClassList">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>로딩 중...</p>
+            </div>
+        </div>
+    </div>
+</div>

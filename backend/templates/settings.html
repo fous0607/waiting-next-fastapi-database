@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>매장 설정</title>
+    <link rel="stylesheet" href="/static/css/common.css">
+    <link rel="stylesheet" href="/static/css/settings.css">
+    <script>
+        // Apply theme immediately
+        const savedTheme = localStorage.getItem('selected_theme') || 'zinc';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
+</head>
+
+<body>
+    <div class="container">
+        {% include 'components/settings/header.html' %}
+        {% include 'components/settings/tabs.html' %}
+        {% include 'components/settings/store_tab.html' %}
+        {% include 'components/settings/class_tab.html' %}
+        {% include 'components/settings/history_tab.html' %}
+        {% include 'components/settings/backup_tab.html' %}
+    </div>
+
+    {% include 'components/settings/modals/class_modals.html' %}
+    {% include 'components/settings/modals/notification_modal.html' %}
+    {% include 'components/settings/modals/confirm_modal.html' %}
+    {% include 'components/settings/modals/password_modal.html' %}
+    {% include 'components/settings/modals/holiday_modal.html' %}
+
+    <script src="/static/js/settings.js"></script>
+</body>
+
+</html>

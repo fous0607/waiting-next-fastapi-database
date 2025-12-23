@@ -1,0 +1,44 @@
+<div class="card">
+    <div class="waiting-status" id="waitingStatus">
+        <div class="count" id="waitingCount">로딩 중...</div>
+    </div>
+
+    <div class="phone-input-group">
+        <label>핸드폰번호 또는 바코드 입력</label>
+        <div class="phone-display">
+            <!-- Prefix removed/hidden via CSS, JS handles full display -->
+            <div class="phone-number" id="phoneDisplay">010-____-____</div>
+        </div>
+    </div>
+
+    <div class="keypad-container">
+        <div class="keypad">
+            <button class="key" onclick="inputNumber('1')">1</button>
+            <button class="key" onclick="inputNumber('2')">2</button>
+            <button class="key" onclick="inputNumber('3')">3</button>
+            <button class="key" onclick="inputNumber('4')">4</button>
+            <button class="key" onclick="inputNumber('5')">5</button>
+            <button class="key" onclick="inputNumber('6')">6</button>
+            <button class="key" onclick="inputNumber('7')">7</button>
+            <button class="key" onclick="inputNumber('8')">8</button>
+            <button class="key" onclick="inputNumber('9')">9</button>
+            <button class="key backspace" onclick="backspace()">←</button>
+            <button class="key zero" onclick="inputNumber('0')">0</button>
+            <button class="key" onclick="clearInput()">C</button>
+        </div>
+
+        <!-- 접수 마감 오버레이 -->
+        <div class="closed-overlay" id="closedOverlay">
+            <div class="closed-message">
+                <div class="icon">🚫</div>
+                <div class="text">대기접수가<br>마감되었습니다</div>
+            </div>
+        </div>
+    </div>
+
+    <button class="submit-btn" id="submitBtn" onclick="submitReception()">
+        대기 접수
+    </button>
+</div>
+
+<a href="/dashboard" class="back-link">← 메인으로 돌아가기</a>

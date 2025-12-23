@@ -1,0 +1,950 @@
+:root {
+    --manager-font-family: 'Nanum Gothic', sans-serif;
+    --manager-font-size: 15px;
+}
+
+/* Override container max-width for this page to allow wider layout */
+.container {
+    max-width: 95% !important;
+}
+
+/* Custom Modal Styles to match .modal but avoid conflicts */
+.custom-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    /* High z-index */
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    /* transition: opacity 0.3s ease; REMOVED for stability */
+}
+
+.custom-modal.active {
+    display: flex;
+    opacity: 1;
+}
+
+/* Force content visibility, overriding common.css opacity:0 animation */
+.custom-modal .modal-content {
+    opacity: 1 !important;
+    animation: none !important;
+    transform: none !important;
+}
+
+.manage-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.batch-section {
+    background: #fff;
+    padding: 12px 20px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.batch-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.batch-info .info-text {
+    font-size: 24px;
+    /* Increased from 18px */
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.class-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    overflow-x: auto;
+    padding: 10px 5px;
+    position: sticky;
+    top: 0;
+    z-index: 90;
+    background: #f5f7fa;
+}
+
+.class-tab {
+    padding: 16px 32px;
+    /* Adjusted padding */
+    background: #fff;
+    border: 2px solid #ecf0f1;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    white-space: nowrap;
+    font-weight: 600;
+    font-size: 22px;
+    /* Increased from 18px to 22px */
+}
+
+.class-tab:hover {
+    border-color: #3498db;
+}
+
+.class-tab.active {
+    background: #3498db;
+    color: #fff;
+    border-color: #3498db;
+}
+
+.class-tab .count {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 2px 8px;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    font-size: 18px;
+    /* Increased from 15px to 18px */
+}
+
+/* 마감된 교시 드롭다운 버튼 스타일 */
+.closed-classes-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.closed-dropdown-btn {
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: #fff;
+    border: 2px solid #c0392b;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    white-space: nowrap;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
+}
+
+.closed-dropdown-btn:hover {
+    background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
+}
+
+.closed-dropdown-btn .arrow {
+    transition: transform 0.3s;
+    font-size: 12px;
+}
+
+.closed-dropdown-btn.active .arrow {
+    transform: rotate(180deg);
+}
+
+.closed-dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 8px;
+    background: #fff;
+    border: 2px solid #e74c3c;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    min-width: 250px;
+    z-index: 1000;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.closed-dropdown-menu.show {
+    display: block;
+    animation: dropdownFadeIn 0.3s ease-out;
+}
+
+@keyframes dropdownFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.closed-class-item {
+    padding: 12px 16px;
+    border-bottom: 1px solid #ecf0f1;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.closed-class-item:last-child {
+    border-bottom: none;
+}
+
+.closed-class-item:hover {
+    background: #fef5f5;
+}
+
+.closed-class-item.active {
+    background: #e74c3c;
+    color: #fff;
+}
+
+.closed-class-item .class-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.closed-class-item .class-name {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.closed-class-item .class-count {
+    font-size: 12px;
+    color: #7f8c8d;
+}
+
+.closed-class-item.active .class-count {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.closed-class-item .badge-closed {
+    padding: 4px 12px;
+    background: #e74c3c;
+    color: #fff;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.closed-class-item.active .badge-closed {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* 스크롤바 스타일 */
+.closed-dropdown-menu::-webkit-scrollbar {
+    width: 6px;
+}
+
+.closed-dropdown-menu::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 8px;
+}
+
+.closed-dropdown-menu::-webkit-scrollbar-thumb {
+    background: #e74c3c;
+    border-radius: 8px;
+}
+
+.closed-dropdown-menu::-webkit-scrollbar-thumb:hover {
+    background: #c0392b;
+}
+
+.waiting-table {
+    width: 100%;
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    position: relative;
+    padding-bottom: 0px;
+    /* 푸터에 가려지지 않도록 하단 여백 추가 */
+}
+
+/* 마감된 교시의 리스트 스타일 - 비활성화 상태로 표시 */
+.waiting-table.closed {
+    background: #f5f5f5;
+    opacity: 0.8;
+}
+
+.waiting-table.closed::before {
+    content: '🔒 마감된 교시입니다';
+    display: block;
+    padding: 15px;
+    background: #e74c3c;
+    color: #fff;
+    text-align: center;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.waiting-table.closed .waiting-item {
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+/* 하단 상태바 스타일 */
+.footer-status-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: #fff;
+    border-top: 1px solid #ddd;
+    padding: 8px 20px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    font-size: 13px;
+    color: #666;
+    z-index: 1000;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.footer-status-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #ccc;
+    transition: background-color 0.3s;
+}
+
+.status-indicator.connected {
+    background-color: #2ecc71;
+    box-shadow: 0 0 5px rgba(46, 204, 113, 0.5);
+}
+
+.status-indicator.disconnected {
+    background-color: #e74c3c;
+}
+
+.status-indicator.connecting {
+    background-color: #f1c40f;
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.waiting-table.closed .waiting-item button {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.waiting-item {
+    display: grid;
+    /* grid-template-columns: 60px minmax(100px, 1fr) minmax(180px, 1.5fr) 90px 90px auto; */
+    /* Fully responsive grid for large fonts */
+    /* Number | Name (min 140px) | Phone (min 200px) | Class (auto) | Order (auto) | Actions (auto) */
+    /* grid-template-columns: 80px 1fr 1.5fr auto auto auto; OLD */
+    grid-template-columns: 50px minmax(80px, 0.5fr) minmax(150px, 1fr) auto auto auto;
+    /* Changed to fr units to fill width: Number Name Phone Class Order Actions */
+    align-items: center;
+    padding: 15px 10px;
+    border-bottom: 2px solid #ecf0f1;
+    transition: all 0.3s;
+    cursor: grab;
+    background: #fff;
+    position: relative;
+    /* Added */
+    column-gap: 5px;
+    /* Removed justify-content: center to fill width */
+}
+
+.waiting-item:hover {
+    background: #f8f9fa;
+}
+
+.waiting-item:last-child {
+    border-bottom: none;
+}
+
+.waiting-item.dragging {
+    opacity: 0.5;
+    background: #e3f2fd;
+    cursor: grabbing;
+}
+
+.waiting-item.drag-over {
+    border-top: 3px solid #3498db;
+}
+
+.item-number {
+    font-size: 22px;
+    font-weight: 700;
+    color: #3498db;
+    text-align: center;
+    font-family: var(--manager-font-family);
+    /* 폰트 통일 */
+    line-height: 1;
+    /* 줄간격 최소화 */
+    transform: translateY(-1px);
+    /* 시각적 중앙 정렬 보정 */
+}
+
+.item-info {
+    display: contents;
+}
+
+.item-name {
+    font-size: calc(var(--manager-font-size) + 4px);
+    font-weight: 700;
+    color: #2c3e50;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: var(--manager-font-family);
+}
+
+.item-phone {
+    font-size: calc(var(--manager-font-size) + 3px);
+    font-weight: bold;
+    color: #5f6c6d;
+    letter-spacing: 0.5px;
+    font-family: var(--manager-font-family);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.item-class {
+    font-size: calc(var(--manager-font-size) + 6px);
+    /* Increased from +2px to +6px */
+    color: #3498db;
+    font-weight: 600;
+    text-align: center;
+    font-family: var(--manager-font-family);
+    margin-left: 15px;
+    /* Added spacing */
+}
+
+.item-order {
+    font-size: calc(var(--manager-font-size) + 2px);
+    color: #e74c3c;
+    font-weight: 700;
+    text-align: center;
+    font-family: var(--manager-font-family);
+    margin-right: 20px;
+    /* Added spacing before action buttons */
+}
+
+.item-order-controls {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
+.btn-icon {
+    width: 50px;
+    /* Increased from 40px */
+    height: 50px;
+    /* Increased from 40px */
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 20px;
+    /* Increased from 16px */
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-icon:hover:not(:disabled) {
+    transform: translateY(-2px);
+}
+
+.btn-icon:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.btn-up {
+    background: #95a5a6;
+    color: #fff;
+}
+
+.btn-down {
+    background: #95a5a6;
+    color: #fff;
+}
+
+.btn-left {
+    background: #f39c12;
+    color: #fff;
+}
+
+.btn-right {
+    background: #f39c12;
+    color: #fff;
+}
+
+.item-actions {
+    display: flex;
+    gap: 15px;
+    /* Increased from 5px to 15px */
+    /* flex-wrap: wrap; */
+    flex-wrap: nowrap;
+    /* Prevent wrapping */
+    align-items: center;
+}
+
+.item-actions .btn {
+    /* padding: 8px 14px;  Removed relative padding */
+    width: auto;
+    /* Dynamic width */
+    min-width: 60px;
+    /* Minimum width */
+    padding: 0 16px;
+    /* Horizontal padding */
+    height: 50px;
+    /* Fixed height */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--manager-font-size);
+    font-family: var(--manager-font-family);
+    font-weight: 600;
+    white-space: nowrap;
+    /* Prevent text wrapping */
+}
+
+/* Button Size Overrides */
+.waiting-table.size-small .item-actions .btn {
+    height: 40px;
+    font-size: 13px;
+    padding: 0 10px;
+    min-width: 50px;
+}
+
+.waiting-table.size-small .btn-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+}
+
+.waiting-table.size-medium .item-actions .btn {
+    height: 50px;
+    font-size: 15px;
+}
+
+.waiting-table.size-medium .btn-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
+}
+
+.waiting-table.size-large .item-actions .btn {
+    height: 65px;
+    font-size: 20px;
+    padding: 0 20px;
+    min-width: 70px;
+}
+
+.waiting-table.size-large .btn-icon {
+    width: 65px;
+    height: 65px;
+    font-size: 26px;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #7f8c8d;
+}
+
+.empty-state .icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+}
+
+.quick-register-input {
+    width: 280px;
+    padding: 6px 15px;
+    height: 50px;
+    font-size: 24px;
+    font-weight: bold;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    letter-spacing: 2px;
+}
+
+/* Tablet Layout (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .container {
+        max-width: 95%;
+        padding: 10px;
+    }
+
+    .waiting-item {
+        /* Number, Name, Phone, Order, Actions */
+        /* Class name hidden to save space */
+        grid-template-columns: 60px 120px 1fr 80px auto;
+        gap: 5px;
+        padding: 12px 10px;
+        font-size: 14px;
+    }
+
+    .item-class {
+        display: none;
+    }
+
+    .item-actions .btn {
+        padding: 8px 12px;
+    }
+
+    .btn-icon {
+        width: 36px;
+        height: 36px;
+    }
+}
+
+/* Mobile Layout (< 768px) */
+@media (max-width: 767px) {
+    .container {
+        padding: 10px;
+    }
+
+    .manage-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .manage-header h1 {
+        font-size: 22px;
+    }
+
+    .quick-register-input {
+        width: 100% !important;
+        height: 40px !important;
+        font-size: 14px !important;
+        padding: 6px 10px !important;
+    }
+
+    .batch-info {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .quick-register {
+        width: 100%;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        flex-wrap: wrap;
+        /* Allow wrapping if needed */
+    }
+
+    .batch-info .btn {
+        width: 100%;
+        padding: 12px;
+    }
+
+    .waiting-table {
+        background: transparent;
+        box-shadow: none;
+    }
+
+    .waiting-item {
+        display: grid;
+        grid-template-columns: 50px 1fr auto;
+        grid-template-areas:
+            "number name order"
+            "number phone class"
+            "actions actions actions";
+        gap: 8px 10px;
+        background: #fff;
+        margin-bottom: 12px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        padding: 15px;
+        border: 1px solid #eee;
+    }
+
+    .waiting-item:last-child {
+        border-bottom: 1px solid #eee;
+    }
+
+    .item-number {
+        grid-area: number;
+        font-size: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f8f9fa;
+        border-radius: 8px;
+        height: 100%;
+        color: #3498db;
+        font-weight: 700;
+    }
+
+    .item-name {
+        grid-area: name;
+        font-size: 16px;
+        font-weight: 700;
+        align-self: end;
+    }
+
+    .item-phone {
+        grid-area: phone;
+        font-size: 13px;
+        color: #888;
+        align-self: start;
+    }
+
+    .item-order {
+        grid-area: order;
+        text-align: right;
+        font-size: 14px;
+        color: #e74c3c;
+        font-weight: 700;
+    }
+
+    .item-class {
+        grid-area: class;
+        text-align: right;
+        font-size: 12px;
+        color: #999;
+    }
+
+    .item-actions {
+        grid-area: actions;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid #f5f5f5;
+        gap: 8px;
+    }
+
+    .item-actions .btn {
+        flex: 1;
+        padding: 10px 0;
+        font-size: 14px;
+        min-width: 60px;
+    }
+
+    .btn-icon {
+        width: 44px;
+        height: 44px;
+        flex: none;
+    }
+}
+
+/* 애니메이션 효과 */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideOut {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(52, 152, 219, 0.7);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(52, 152, 219, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(52, 152, 219, 0);
+    }
+}
+
+.highlight {
+    animation: pulse 1.5s infinite;
+    background-color: #e3f2fd;
+    border: 2px solid #3498db;
+}
+
+
+/* 모달 스타일 추가/오버라이드 */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    /* Extended to standard semi-transparent */
+    align-items: center;
+    justify-content: center;
+}
+
+.modal.show {
+    display: flex !important;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    /* animation: modalSlideIn 0.3s ease-out; Removed for stability */
+    opacity: 1 !important;
+    /* User requested 100% opacity */
+    max-width: 400px;
+    width: 90%;
+}
+
+@keyframes modalSlideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.attendance-modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    align-items: center;
+    justify-content: center;
+}
+
+.attendance-modal.active {
+    display: flex;
+}
+
+.attendance-modal-content {
+    background-color: #fefefe;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    width: 90%;
+    max-width: 1000px;
+    height: 90%;
+    max-height: 900px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    /* animation: modalSlideIn 0.3s ease-out; Removed for stability */
+}
+
+.attendance-modal-header {
+    padding: 20px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff;
+}
+
+.attendance-modal-close {
+    background: none;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: #aaa;
+}
+
+.attendance-modal-close:hover {
+    color: #333;
+}
+
+#attendanceFrame {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+/* Force Modal Visibility Override - Essential for User Environment */
+#notificationModal.show,
+#notificationModal.active,
+.modal.show,
+.attendance-modal.active {
+    display: flex !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    background-color: transparent !important;
+    /* Transparent overlay as requested */
+    z-index: 9999 !important;
+}
+
+#notificationModal .modal-content,
+.modal .modal-content,
+.attendance-modal .attendance-modal-content {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+    animation: none !important;
+    background-color: white !important;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Ensure text is visible */
+#notificationModal *,
+.modal-content * {
+    opacity: 1 !important;
+    visibility: visible !important;
+}

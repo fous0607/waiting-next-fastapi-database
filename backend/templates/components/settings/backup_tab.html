@@ -1,0 +1,33 @@
+<!-- 백업 관리 탭 -->
+<div id="backupTab" class="tab-content requires-auth">
+    <div class="card" style="margin-bottom: 20px;">
+        <h3>💾 설정 백업</h3>
+        <p style="color: #666; margin-bottom: 15px;">현재 매장 설정을 백업합니다. 중요한 변경 전에 백업을 권장합니다.</p>
+        <div style="display: flex; gap: 10px; margin-top: 15px;">
+            <input type="text" id="snapshotDescription" placeholder="백업 설명 (예: 업데이트 전 백업)" class="form-control"
+                style="flex: 1;">
+            <button class="btn btn-primary" onclick="createSnapshot()">백업 생성</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>📑 백업 목록</h3>
+        <div style="overflow-x: auto;">
+            <table class="table" style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #f8f9fa; border-bottom: 2px solid #eee;">
+                        <th style="padding: 12px; text-align: left;">시간</th>
+                        <th style="padding: 12px; text-align: left;">설명</th>
+                        <th style="padding: 12px; text-align: left;">작성자</th>
+                        <th style="padding: 12px; text-align: right;">관리</th>
+                    </tr>
+                </thead>
+                <tbody id="snapshotListBody">
+                    <tr>
+                        <td colspan="4" style="padding: 20px; text-align: center; color: #999;">로딩 중...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

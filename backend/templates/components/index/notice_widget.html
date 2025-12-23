@@ -1,0 +1,60 @@
+<div id="noticeWidget"
+    style="background: white; border-radius: 12px; padding: 4px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); margin-bottom: 10px; display: none;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+        <h3 style="margin: 0; font-size: 15px; color: #333; display: flex; align-items: center; gap: 6px;">
+            <i class="fas fa-bullhorn" style="color: #3182f6;"></i> 공지사항
+        </h3>
+    </div>
+    <div id="noticeList" style="display: flex; flex-direction: column; gap: 4px;">
+        <!-- Populated by JS -->
+    </div>
+</div>
+
+<!-- Notice Detail Modal (Separate from generic notification) -->
+<div id="noticeDetailModal" class="modal"
+    style="display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+    <div class="modal-content"
+        style="background-color: #fefefe; margin: 10% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 600px; border-radius: 12px;">
+        <div
+            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+            <h3 id="noticeDetailTitle" style="margin: 0; font-size: 20px;">공지 제목</h3>
+            <span style="cursor: pointer; font-size: 24px;" onclick="closeNoticeDetailModal()">&times;</span>
+        </div>
+        <div style="margin-bottom: 10px; font-size: 14px; color: #666;" id="noticeDetailMeta">
+            <!-- Date/Author -->
+        </div>
+        <div id="noticeDetailContent" style="line-height: 1.6; color: #333;">
+            <!-- Content -->
+        </div>
+        <div style="margin-top: 24px; text-align: right;">
+            <button class="btn btn-primary" onclick="closeNoticeDetailModal()" style="padding: 8px 20px;">닫기</button>
+        </div>
+    </div>
+</div>
+
+<!-- All Notices Modal -->
+<div id="allNoticesModal" class="modal"
+    style="display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+    <div class="modal-content"
+        style="background-color: #fefefe; margin: 10% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 600px; border-radius: 12px;">
+        <div
+            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+            <h3 style="margin: 0; font-size: 20px;">전체 공지사항</h3>
+            <span style="cursor: pointer; font-size: 24px;"
+                onclick="document.getElementById('allNoticesModal').style.display='none'">&times;</span>
+        </div>
+        <div id="allNoticesList" style="max-height: 400px; overflow-y: auto;">
+            <!-- Populated by JS -->
+        </div>
+        <div style="margin-top: 24px; text-align: right;">
+            <button class="btn btn-primary" onclick="document.getElementById('allNoticesModal').style.display='none'"
+                style="padding: 8px 20px;">닫기</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function closeNoticeDetailModal() {
+        document.getElementById('noticeDetailModal').style.display = 'none';
+    }
+</script>

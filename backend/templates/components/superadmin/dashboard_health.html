@@ -1,0 +1,38 @@
+<div id="healthDashboardContainer" style="display: none; margin-top: 24px;">
+    <div class="table-header">
+        <h3 style="margin: 0; font-size: 20px; font-weight: 800; color: var(--toss-gray-900);">시스템 헬스 체크</h3>
+        <div class="view-controls" style="margin-bottom: 0;">
+            <div class="sub-tabs" style="margin-right: 16px;">
+                <button class="sub-tab-btn active" onclick="filterStoreHealth('all')">전체</button>
+                <button class="sub-tab-btn" onclick="filterStoreHealth('online')">온라인</button>
+                <button class="sub-tab-btn" onclick="filterStoreHealth('warning')">지연</button>
+                <button class="sub-tab-btn" onclick="filterStoreHealth('offline')">오프라인</button>
+            </div>
+            <button class="toss-btn toss-btn-secondary" onclick="loadStoreHealth()">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="dashboard-widget" style="margin-top: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <div class="widget-title">매장 서버 연결 상태</div>
+            <span id="healthLastUpdated" style="font-size: 13px; color: var(--toss-gray-400);"></span>
+        </div>
+        <div class="table-container">
+            <table class="toss-table">
+                <thead>
+                    <tr>
+                        <th>매장명</th>
+                        <th>프랜차이즈</th>
+                        <th style="text-align: center;">상태</th>
+                        <th style="text-align: right;">마지막 신호 (Heartbeat)</th>
+                    </tr>
+                </thead>
+                <tbody id="healthStoreListBody">
+                    <!-- Data populated by JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

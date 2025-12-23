@@ -1,0 +1,142 @@
+<div id="attendance" class="tab-content active">
+    <div class="info-card">
+        <div class="dashboard-header">
+            <h2 style="margin: 0; font-size: 22px; color: #2c3e50;">회원 대기 및 출석 현황</h2>
+
+            <div class="filter-group">
+                <select id="statsStoreFilter" onchange="loadAttendanceStats()"
+                    style="padding: 8px 12px; border: 1px solid #dcdcdc; border-radius: 8px; outline: none; font-size: 14px; background: white; cursor: pointer;">
+                    <option value="">전체 매장</option>
+                </select>
+                <div style="width: 1px; background: #dcdcdc; margin: 0 5px;" class="hide-on-mobile"></div>
+                <select id="statsPeriodFilter" onchange="updateDateRange(); loadAttendanceStats()"
+                    style="padding: 8px 12px; border: 1px solid #dcdcdc; border-radius: 8px; outline: none; font-size: 14px; background: white; cursor: pointer;">
+                    <option value="day" selected>일간(오늘)</option>
+                    <option value="week">주간(이번주)</option>
+                    <option value="month">월간(이번달)</option>
+                </select>
+                <div
+                    style="display: flex; align-items: center; gap: 8px; background: white; padding: 0 10px; border: 1px solid #dcdcdc; border-radius: 8px;">
+                    <input type="date" id="statsStartDate" onchange="loadAttendanceStats()"
+                        style="border: none; padding: 8px 0; font-family: inherit; font-size: 14px; outline: none;">
+                    <span style="color: #999;">~</span>
+                    <input type="date" id="statsEndDate" onchange="loadAttendanceStats()"
+                        style="border: none; padding: 8px 0; font-family: inherit; font-size: 14px; outline: none;">
+                </div>
+                <button class="btn btn-primary" onclick="loadAttendanceStats()"
+                    style="padding: 8px 20px; border-radius: 8px; font-weight: 600; box-shadow: 0 2px 5px rgba(52, 152, 219, 0.2);">조회</button>
+            </div>
+        </div>
+
+        <!-- 그래프 컨트롤 및 차트 영역 -->
+        <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="font-size: 16px; color: #333; margin: 0;">매장별 현황 그래프</h3>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <label for="graphStyleSelect" style="font-size: 14px; font-weight: bold; color: #555;">그래프
+                        스타일:</label>
+                    <select id="graphStyleSelect" onchange="renderStoreCharts()"
+                        style="padding: 6px 10px; border: 1px solid #dcdcdc; border-radius: 6px; font-size: 14px; outline: none;">
+                        <option value="bar">막대형 (Bar)</option>
+                        <option value="line">꺾은선형 (Line)</option>
+                        <option value="pie">원형 (Pie)</option>
+                        <option value="doughnut">도넛형 (Doughnut)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="charts-row" style="display: flex; gap: 20px; flex-wrap: wrap;">
+                <!-- 매장별 대기 현황 -->
+                <div
+                    style="flex: 1; min-width: 300px; background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #eee;">
+                    <h4 style="font-size: 14px; color: #555; margin-bottom: 10px; text-align: center;">매장별 대기 현황
+                    </h4>
+                    <div style="position: relative; height: 300px;">
+                        <canvas id="storeWaitingChart"></canvas>
+                    </div>
+                </div>
+                <!-- 매장별 출석 현황 -->
+                <div
+                    style="flex: 1; min-width: 300px; background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #eee;">
+                    <h4 style="font-size: 14px; color: #555; margin-bottom: 10px; text-align: center;">매장별 출석 현황
+                    </h4>
+                    <div style="position: relative; height: 300px;">
+                        <canvas id="storeAttendanceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 대시보드 통계 카드 -->
+        <div class="stats-container">
+            <!-- Row 1: 총 대기 -->
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-title">총 대기</div>
+                    <div class="stat-value" id="totalWaitingTotal">0명</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">기존 회원 대기</div>
+                    <div class="stat-value text-blue" id="totalWaitingExisting">0명</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">신규 회원 대기</div>
+                    <div class="stat-value text-green" id="totalWaitingNew">0명</div>
+                </div>
+            </div>
+
+            <!-- Row 2: 현 대기 -->
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-title">현 대기</div>
+                    <div class="stat-value" id="currentWaitingTotal">0명</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">현 기존회원 대기</div>
+                    <div class="stat-value text-blue" id="currentWaitingExisting">0명</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">현 신규회원 대기</div>
+                    <div class="stat-value text-green" id="currentWaitingNew">0명</div>
+                </div>
+            </div>
+
+            <!-- Row 3: 총 출석 -->
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-title">총 출석</div>
+                    <div class="stat-value" id="totalAttendanceTotal">0명</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">기존 회원 출석</div>
+                    <div class="stat-value text-blue" id="totalAttendanceExisting">0명</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">신규 회원 출석</div>
+                    <div class="stat-value text-green" id="totalAttendanceNew">0명</div>
+                </div>
+            </div>
+
+            <!-- 실시간 연결 표시 -->
+
+        </div>
+
+        <!-- 매장별 상세 현황 테이블 -->
+        <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-top: 20px;">
+            <h3 style="margin-bottom: 15px; font-size: 16px; color: #333;">매장별 상세 현황</h3>
+            <table class="users-table">
+                <thead>
+                    <tr>
+                        <th>매장명</th>
+                        <th>대기 접수</th>
+                        <th>출석 완료</th>
+                        <th>상태</th>
+                    </tr>
+                </thead>
+                <tbody id="storeStatusBody">
+                    <!-- 데이터 로드 -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waiting Service - 매장 운영의 혁신</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #1e293b;
+            --accent: #3b82f6;
+            --text-light: #f8fafc;
+            --text-dark: #1e293b;
+            --bg-light: #ffffff;
+            --bg-gray: #f1f5f9;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+
+        body {
+            color: var(--text-dark);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Header & Hero */
+        header {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: white;
+            padding: 1rem 0;
+            position: fixed;
+            width: 100%;
+            z-index: 1000;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 900;
+            background: linear-gradient(to right, #60a5fa, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero {
+            height: 100vh;
+            background: linear-gradient(rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.9)), url('images/main_bg.jpg');
+            background-size: cover;
+            display: flex;
+            align-items: center;
+            text-align: center;
+            color: white;
+            padding-top: 80px;
+        }
+
+        .hero-content h1 {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            font-weight: 900;
+            line-height: 1.2;
+        }
+
+        .hero-content p {
+            font-size: 1.5rem;
+            color: #cbd5e1;
+            margin-bottom: 3rem;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 1rem 2.5rem;
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 1.2rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.4);
+        }
+
+        /* Features Section */
+        .section {
+            padding: 8rem 0;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 5rem;
+        }
+
+        .section-title h2 {
+            font-size: 2.5rem;
+            color: var(--secondary);
+            margin-bottom: 1rem;
+        }
+
+        .section-title p {
+            color: #64748b;
+            font-size: 1.1rem;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+            margin-bottom: 6rem;
+        }
+
+        .feature-grid.reverse {
+            direction: rtl;
+            /* Simple hack for alternating layout, but better to use order property or specific markup */
+        }
+
+        .feature-grid.reverse .feature-content {
+            direction: ltr;
+            /* Reset text direction */
+        }
+
+        .feature-image {
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            transition: transform 0.5s;
+        }
+
+        .feature-image:hover {
+            transform: scale(1.02);
+        }
+
+        .feature-image img {
+            width: 100%;
+            display: block;
+        }
+
+        .feature-content h3 {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            color: var(--secondary);
+        }
+
+        .feature-content p {
+            font-size: 1.1rem;
+            color: #475569;
+            margin-bottom: 1.5rem;
+            line-height: 1.8;
+        }
+
+        .feature-list {
+            list-style: none;
+        }
+
+        .feature-list li {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            font-size: 1.05rem;
+            color: #334155;
+        }
+
+        .feature-list li::before {
+            content: "✓";
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: 24px;
+            height: 24px;
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--primary);
+            border-radius: 50%;
+            margin-right: 15px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--secondary);
+            color: white;
+            padding: 4rem 0;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .hero-content h1 {
+                font-size: 2.5rem;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+                gap: 3rem;
+            }
+
+            .feature-grid.reverse {
+                direction: ltr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="container">
+            <nav>
+                <div class="logo">Waiting Service</div>
+                <!-- <a href="#" class="btn" style="font-size: 0.9rem; padding: 0.5rem 1.5rem;">문의하기</a> -->
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container hero-content" data-aos="fade-up">
+            <h1>고객은 기다림 없이,<br>매장은 멈춤 없이</h1>
+            <p>대기 관리부터 회원 관리까지, 매장 운영의 A to Z를 해결합니다.</p>
+            <a href="#features" class="btn">기능 둘러보기</a>
+        </div>
+    </section>
+
+    <div id="features" class="container">
+
+        <!-- 1. Waiting Manager -->
+        <section class="section">
+            <div class="section-title" data-aos="fade-up">
+                <h2>완벽한 대기 관리</h2>
+                <p>복잡한 대기 현황을 한눈에 파악하고 즉시 대응하세요.</p>
+            </div>
+            <div class="feature-grid">
+                <div class="feature-image" data-aos="fade-right">
+                    <img src="images/waiting_manager.png" alt="대기자 관리 화면">
+                </div>
+                <div class="feature-content" data-aos="fade-left">
+                    <h3>직관적인 대기자 관리</h3>
+                    <p>
+                        한 화면에서 모든 대기 교시와 인원을 실시간으로 관리할 수 있습니다.
+                        드래그 앤 드롭으로 순서를 변경하고, 클릭 한 번으로 호출과 입장을 처리하세요.
+                    </p>
+                    <ul class="feature-list">
+                        <li>실시간 대기 인원 및 교시별 현황 파악</li>
+                        <li>간편한 순서 변경 (Drag & Drop)</li>
+                        <li>카카오톡 알림톡 자동 발송 연동</li>
+                        <li>빈 좌석 관리 및 교시 마감 기능</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. Attendance & Lookup -->
+        <section class="section" style="background-color: #f8fafc; border-radius: 30px; padding: 6rem 2rem;">
+            <div class="feature-grid reverse"> <!-- Reverse Layout -->
+                <div class="feature-image" data-aos="fade-left">
+                    <img src="images/attendance_lookup.png" alt="출석 조회 화면">
+                </div>
+                <div class="feature-content" data-aos="fade-right">
+                    <h3>강력한 회원 및 출석 조회</h3>
+                    <p>
+                        단순 대기 관리를 넘어 고객을 '자산'으로 만듭니다.
+                        회원의 누적 방문 기록과 패턴을 분석하여 단골 고객을 관리하세요.
+                    </p>
+                    <ul class="feature-list">
+                        <li>이름/전화번호로 0.1초 만에 회원 검색</li>
+                        <li>최근 방문일, 누적 출석일 등 상세 데이터 제공</li>
+                        <li>회원별 특이사항 메모 및 등급 관리</li>
+                        <li>기간별 출석 통계 그래프</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. Status Board -->
+        <section class="section">
+            <div class="feature-grid">
+                <div class="feature-image" data-aos="fade-right">
+                    <img src="images/waiting_board.png" alt="대기 현황판 화면">
+                </div>
+                <div class="feature-content" data-aos="fade-left">
+                    <h3>고객을 위한 스마트 대기 현황판</h3>
+                    <p>
+                        기약 없는 기다림은 이제 그만.
+                        고객에게 자신의 순서와 예상 대기 시간을 명확하게 안내하여 컴플레인을 줄이고 만족도를 높입니다.
+                    </p>
+                    <ul class="feature-list">
+                        <li>대화면 TV/모니터에 최적화된 시인성</li>
+                        <li>실시간 호출 알림 (화면 깜빡임 & 음성)</li>
+                        <li>교시별 대기 명단 자동 롤링 디스플레이</li>
+                        <li>매장 로고 및 안내 문구 커스터마이징</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. Settings -->
+        <section class="section" style="background-color: #f1f5f9; border-radius: 30px; padding: 6rem 2rem;">
+            <div class="feature-grid reverse">
+                <div class="feature-image" data-aos="fade-left">
+                    <img src="images/store_settings.png" alt="매장 설정 화면">
+                </div>
+                <div class="feature-content" data-aos="fade-right">
+                    <h3>우리 매장에 딱 맞는 설정</h3>
+                    <p>
+                        매장마다 운영 방식은 다릅니다.
+                        클래스(교시) 시간, 휴게 시간, 알림 메시지까지 디테일하게 설정하여 최적의 운영 환경을 구축하세요.
+                    </p>
+                    <ul class="feature-list">
+                        <li>자유로운 교시(Class) 및 운영 시간 설정</li>
+                        <li>대기 제한 인원 및 자동 마감 설정</li>
+                        <li>브랜드 컬러 및 폰트 크기 조절</li>
+                        <li>데이터 백업 및 복원 기능</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <footer>
+        <div class="container">
+            <h3>Waiting Service</h3>
+            <p>The smartest way to manage your waiting customers.</p>
+            <p style="margin-top: 2rem; opacity: 0.6; font-size: 0.9rem;">&copy; 2025 Antigravity. All rights reserved.
+            </p>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+    <script>
+        AOS.init({
+            duration: 800,
+            offset: 100,
+            once: true
+        });
+    </script>
+</body>
+
+</html>

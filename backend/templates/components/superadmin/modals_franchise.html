@@ -1,0 +1,85 @@
+<!-- Add Franchise Modal -->
+<div id="addFranchiseModal" class="modal-overlay">
+    <div class="modal-content">
+        <i class="fas fa-times close-modal" onclick="closeModal('addFranchiseModal')"></i>
+        <div class="modal-title">프랜차이즈 등록</div>
+        <form id="addFranchiseForm">
+            <div class="input-group">
+                <label class="input-label">프랜차이즈명</label>
+                <input type="text" id="franchiseName" class="toss-input" placeholder="예: 스타벅스 코리아" required>
+            </div>
+            <div class="input-group">
+                <label class="input-label">프랜차이즈 코드</label>
+                <input type="text" id="franchiseCode" class="toss-input" placeholder="예: STARBUCKS" required>
+            </div>
+            <div class="modal-actions" style="margin-top: 40px;">
+                <button type="button" class="toss-btn toss-btn-secondary"
+                    onclick="closeModal('addFranchiseModal')">취소</button>
+                <button type="submit" class="toss-btn toss-btn-primary">등록하기</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Franchise Modal -->
+<div id="editFranchiseModal" class="modal-overlay">
+    <div class="modal-content">
+        <i class="fas fa-times close-modal" onclick="closeModal('editFranchiseModal')"></i>
+        <div class="modal-title">프랜차이즈 수정</div>
+        <form id="editFranchiseForm">
+            <input type="hidden" id="editFranchiseId">
+            <div class="input-group">
+                <label class="input-label">프랜차이즈명</label>
+                <input type="text" id="editFranchiseName" class="toss-input" required>
+            </div>
+            <div class="input-group">
+                <label class="input-label">프랜차이즈 코드</label>
+                <input type="text" id="editFranchiseCode" class="toss-input" readonly
+                    style="background-color: var(--toss-gray-100); cursor: not-allowed;">
+            </div>
+            <div class="modal-actions" style="margin-top: 40px;">
+                <button type="button" class="toss-btn toss-btn-secondary"
+                    onclick="closeModal('editFranchiseModal')">취소</button>
+                <button type="submit" class="toss-btn toss-btn-primary">수정 완료</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Member Management Settings Modal -->
+<div id="memberSettingsModal" class="modal-overlay">
+    <div class="modal-content">
+        <i class="fas fa-times close-modal" onclick="closeModal('memberSettingsModal')"></i>
+        <div class="modal-title">회원 관리 방식 설정</div>
+        <div id="memberSettingsFranchiseName"
+            style="font-size: 14px; color: var(--toss-gray-500); margin-bottom: 24px;"></div>
+        <form id="memberSettingsForm">
+            <input type="hidden" id="memberSettingsFranchiseId">
+            <div class="input-group" style="padding: 16px; background: var(--toss-gray-50); border-radius: 12px;">
+                <label class="input-label" style="margin-bottom: 12px;">관리 유형 선택</label>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="radio" name="memberType" value="common" style="width: 18px; height: 18px;">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 700; font-size: 15px;">통합 관리 (권장)</div>
+                            <div style="font-size: 13px; color: var(--toss-gray-600);">전 매장에서 회원을 공유하고 스탬프를 합산합니다.</div>
+                        </div>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="radio" name="memberType" value="independent" style="width: 18px; height: 18px;">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 700; font-size: 15px;">개별 관리</div>
+                            <div style="font-size: 13px; color: var(--toss-gray-600);">각 매장별로 회원 및 스탬프 데이터가 독립적으로 운영됩니다.
+                            </div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-actions" style="margin-top: 32px;">
+                <button type="button" class="toss-btn toss-btn-secondary"
+                    onclick="closeModal('memberSettingsModal')">취소</button>
+                <button type="submit" class="toss-btn toss-btn-primary">설정 저장</button>
+            </div>
+        </form>
+    </div>
+</div>

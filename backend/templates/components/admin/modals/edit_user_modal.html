@@ -1,0 +1,44 @@
+<div id="editUserModal" class="modal">
+    <div class="modal-content">
+        <h2 class="modal-header">사용자 정보 수정</h2>
+        <form id="editUserForm">
+            <input type="hidden" id="editUserId">
+            <div class="form-group">
+                <label for="editUsername">사용자명 *</label>
+                <input type="text" id="editUsername" required>
+            </div>
+            <div class="form-group">
+                <label for="editPassword">비밀번호</label>
+                <input type="password" id="editPassword" placeholder="변경하지 않으려면 비워두세요">
+                <small style="color: #7f8c8d;">비밀번호를 변경하지 않으려면 비워두세요</small>
+            </div>
+            <div class="form-group">
+                <label for="editUserRole">역할 *</label>
+                <select id="editUserRole" required onchange="toggleEditStoreSelect()">
+                    <option value="">선택하세요</option>
+                    <option value="franchise_admin">프랜차이즈 최종 관리자</option>
+                    <option value="franchise_manager">프랜차이즈 중간 관리자</option>
+                    <option value="store_admin">매장 관리자</option>
+                </select>
+            </div>
+            <div class="form-group" id="editStoreSelectGroup" style="display: none;">
+                <label for="editUserStore">매장 *</label>
+                <select id="editUserStore">
+                    <option value="">선택하세요</option>
+                </select>
+            </div>
+            <!-- Multi-select for Edit Franchise Manager -->
+            <div class="form-group" id="editStoreMultiSelectGroup" style="display: none;">
+                <label>관리 매장 선택 *</label>
+                <div id="editStoreMultiSelectContainer"
+                    style="border: 1px solid #dcdcdc; padding: 10px; max-height: 150px; overflow-y: auto; border-radius: 5px; background: #fff;">
+                    <!-- Checkboxes will be injected here -->
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('editUserModal')">취소</button>
+                <button type="submit" class="btn btn-primary">수정</button>
+            </div>
+        </form>
+    </div>
+</div>

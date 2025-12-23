@@ -1,0 +1,116 @@
+
+> frontend@0.1.0 lint
+> eslint
+
+
+/Users/bongjeonghun/Desktop/antigravity/claud code/waiting/frontend/app/board/page.tsx
+    8:38  error    Unexpected any. Specify a different type          @typescript-eslint/no-explicit-any
+   22:12  warning  'isConnected' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   88:39  error    Unexpected any. Specify a different type          @typescript-eslint/no-explicit-any
+   89:32  error    Unexpected any. Specify a different type          @typescript-eslint/no-explicit-any
+   92:38  error    Unexpected any. Specify a different type          @typescript-eslint/no-explicit-any
+  112:41  error    Unexpected any. Specify a different type          @typescript-eslint/no-explicit-any
+  136:64  error    Unexpected any. Specify a different type          @typescript-eslint/no-explicit-any
+
+/Users/bongjeonghun/Desktop/antigravity/claud code/waiting/frontend/app/login/page.tsx
+  44:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/bongjeonghun/Desktop/antigravity/claud code/waiting/frontend/app/manage/page.tsx
+  18:45  warning  'isConnected' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/bongjeonghun/Desktop/antigravity/claud code/waiting/frontend/app/page.tsx
+   3:56  warning  'CardContent' is defined but never used   @typescript-eslint/no-unused-vars
+  54:21  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  72:21  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/bongjeonghun/Desktop/antigravity/claud code/waiting/frontend/app/reception/page.tsx
+    3:44  warning  'useRef' is defined but never used        @typescript-eslint/no-unused-vars
+    5:10  warning  'Card' is defined but never used          @typescript-eslint/no-unused-vars
+    9:25  warning  'RotateCcw' is defined but never used     @typescript-eslint/no-unused-vars
+   13:56  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   18:77  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   21:86  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   88:25  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  231:63  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/bongjeonghun/Desktop/antigravity/claud code/waiting/frontend/components/board/board-card.tsx
+  4:11  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/bongjeonghun/Desktop/antigravity/claud code/waiting/frontend/components/manage/QuickRegister.tsx
+  32:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  40:84  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  81:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  89:47  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/bongjeonghun/Desktop/antigravity/claud code/waiting/frontend/components/manage/WaitingItem.tsx
+   12:5   warning  'User' is defined but never used                        @typescript-eslint/no-unused-vars
+   62:33  error    Expected a `const` instead of a literal type assertion  @typescript-eslint/prefer-as-const
+   64:31  error    Unexpected any. Specify a different type                @typescript-eslint/no-explicit-any
+   65:37  error    Unexpected any. Specify a different type                @typescript-eslint/no-explicit-any
+   74:18  warning  'e' is defined but never used                           @typescript-eslint/no-unused-vars
+   83:18  warning  'e' is defined but never used                           @typescript-eslint/no-unused-vars
+   95:21  error    Unexpected any. Specify a different type                @typescript-eslint/no-explicit-any
+  105:21  error    Unexpected any. Specify a different type                @typescript-eslint/no-explicit-any
+
+/Users/bongjeonghun/Desktop/antigravity/claud code/waiting/frontend/components/manage/WaitingList.tsx
+  28:40  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-explicit-any
+  33:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/bongjeonghun/Desktop/antigravity/claud code/waiting/frontend/components/manage/WaitingList.tsx:33:13
+  31 |     useEffect(() => {
+  32 |         if (currentClassId && waitingList[currentClassId]) {
+> 33 |             setItems(waitingList[currentClassId]);
+     |             ^^^^^^^^ Avoid calling setState() directly within an effect
+  34 |         } else {
+  35 |             setItems([]);
+  36 |         }  react-hooks/set-state-in-effect
+
+/Users/bongjeonghun/Desktop/antigravity/claud code/waiting/frontend/components/settings/ClassManagement.tsx
+   39:10  warning  'Calendar' is defined but never used                                                                             @typescript-eslint/no-unused-vars
+   41:10  warning  'ko' is defined but never used                                                                                   @typescript-eslint/no-unused-vars
+   81:47  error    Unexpected any. Specify a different type                                                                         @typescript-eslint/no-explicit-any
+  119:8   warning  React Hook useEffect has a missing dependency: 'fetchClasses'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  129:38  error    Unexpected any. Specify a different type                                                                         @typescript-eslint/no-explicit-any
+  154:18  warning  'error' is defined but never used                                                                                @typescript-eslint/no-unused-vars
+  166:25  error    Unexpected any. Specify a different type                                                                         @typescript-eslint/no-explicit-any
+  177:18  warning  'error' is defined but never used                                                                                @typescript-eslint/no-unused-vars
+
+/Users/bongjeonghun/Desktop/antigravity/claud code/waiting/frontend/components/settings/GeneralSettings.tsx
+    9:78  warning  'FormMessage' is defined but never used   @typescript-eslint/no-unused-vars
+   86:50  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  144:31  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/bongjeonghun/Desktop/antigravity/claud code/waiting/frontend/components/ui/calendar.tsx
+   4:10  warning  'ChevronLeft' is defined but never used    @typescript-eslint/no-unused-vars
+   4:23  warning  'ChevronRight' is defined but never used   @typescript-eslint/no-unused-vars
+   6:10  warning  'setMonth' is defined but never used       @typescript-eslint/no-unused-vars
+   6:20  warning  'setYear' is defined but never used        @typescript-eslint/no-unused-vars
+  12:5   warning  'Select' is defined but never used         @typescript-eslint/no-unused-vars
+  13:5   warning  'SelectContent' is defined but never used  @typescript-eslint/no-unused-vars
+  14:5   warning  'SelectItem' is defined but never used     @typescript-eslint/no-unused-vars
+  15:5   warning  'SelectTrigger' is defined but never used  @typescript-eslint/no-unused-vars
+  16:5   warning  'SelectValue' is defined but never used    @typescript-eslint/no-unused-vars
+
+/Users/bongjeonghun/Desktop/antigravity/claud code/waiting/frontend/components/waiting/waiting-item.tsx
+  9:11  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/bongjeonghun/Desktop/antigravity/claud code/waiting/frontend/components/waiting/waiting-list.tsx
+  11:5   warning  'arrayMove' is defined but never used     @typescript-eslint/no-unused-vars
+  19:12  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/bongjeonghun/Desktop/antigravity/claud code/waiting/frontend/lib/store/useWaitingStore.ts
+   50:27  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   51:32  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  108:65  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  160:21  warning  'data' is defined but never used          @typescript-eslint/no-unused-vars
+  167:26  warning  'data' is defined but never used          @typescript-eslint/no-unused-vars
+
+✖ 63 problems (36 errors, 27 warnings)
+  1 error and 0 warnings potentially fixable with the `--fix` option.
+

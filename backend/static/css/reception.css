@@ -1,0 +1,624 @@
+    <style>
+        /* 전체 페이지 레이아웃 - 태블릿 최적화 */
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f5f7fa;
+        }
+
+        .reception-container {
+            width: 95%;
+            max-width: 100%;
+            padding: 10px 15px;
+            box-sizing: border-box;
+            margin: 0 auto;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .reception-header {
+            text-align: center;
+            margin-bottom: 10px;
+            padding-top: 10px;
+        }
+
+        .reception-header h1 {
+            font-size: 80px;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-weight: 800;
+        }
+
+        .reception-header .date {
+            font-size: 38px;
+            color: #2c3e50;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .phone-input-group {
+            margin-bottom: 8px;
+        }
+
+        .phone-input-group label {
+            display: block;
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            text-align: center;
+        }
+
+        .phone-display {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .phone-prefix {
+            font-size: 40px;
+            font-weight: 700;
+            color: #7f8c8d;
+            padding: 15px 0;
+            background: #ecf0f1;
+            border-radius: 12px;
+            text-align: center;
+            grid-column: 1;
+            text-align: center;
+            grid-column: 1;
+            /* display: flex; REMOVED to hide, or just remove content */
+            display: none;
+            /* Hide standard prefix, let JS handle it */
+            align-items: center;
+            justify-content: center;
+        }
+
+        .phone-number {
+            font-size: 72px;
+            font-weight: 900;
+            color: #2c3e50;
+            padding: 18px 0;
+            background: #fff;
+            border: 5px solid #3498db;
+            border-radius: 12px;
+            text-align: center;
+            letter-spacing: 6px;
+            grid-column: 1 / span 3;
+            /* Take full width */
+            min-width: 0;
+        }
+
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 12px;
+        }
+
+        .key {
+            padding: 25px;
+            font-size: 44px;
+            font-weight: 700;
+            background: linear-gradient(145deg, #ffffff, #f8f9fa);
+            border: 2px solid #e8ecef;
+            border-radius: 18px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: #2c3e50;
+            min-height: 85px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12),
+                0 3px 6px rgba(0, 0, 0, 0.08),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .key:hover {
+            background: linear-gradient(145deg, #3498db, #2980b9);
+            color: #fff;
+            border-color: #2980b9;
+            transform: translateY(-4px) scale(1.03);
+            box-shadow: 0 10px 24px rgba(52, 152, 219, 0.35),
+                0 6px 12px rgba(52, 152, 219, 0.25),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .key:active {
+            transform: translateY(-1px) scale(0.98);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15),
+                inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .key.zero {
+            grid-column: 2;
+        }
+
+        .key.backspace {
+            background: linear-gradient(145deg, #e74c3c, #c0392b);
+            color: #fff;
+            border: 2px solid #c0392b;
+            box-shadow: 0 6px 16px rgba(231, 76, 60, 0.35),
+                0 3px 6px rgba(231, 76, 60, 0.25),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .key.backspace:hover {
+            background: linear-gradient(145deg, #c0392b, #a93226);
+            border-color: #a93226;
+            transform: translateY(-4px) scale(1.03);
+            box-shadow: 0 10px 24px rgba(192, 57, 43, 0.45),
+                0 6px 12px rgba(192, 57, 43, 0.35),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.15);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 32px;
+            font-size: 84px;
+            font-weight: 900;
+            background: linear-gradient(145deg, #27ae60, #229954);
+            color: #fff;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            min-height: 120px;
+            box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3),
+                0 2px 4px rgba(39, 174, 96, 0.2);
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            background: linear-gradient(145deg, #229954, #1e8449);
+            transform: translateY(-3px) scale(1.01);
+            box-shadow: 0 8px 20px rgba(39, 174, 96, 0.4),
+                0 4px 8px rgba(39, 174, 96, 0.3);
+        }
+
+        .submit-btn:active:not(:disabled) {
+            transform: translateY(-1px) scale(0.99);
+            box-shadow: 0 2px 8px rgba(39, 174, 96, 0.2);
+        }
+
+        .submit-btn:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        .back-link {
+            display: none;
+        }
+
+        .waiting-status {
+            background: #ecf0f1;
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .waiting-status .label {
+            font-size: 26px;
+            color: #2c3e50;
+            margin-bottom: 6px;
+            font-weight: 800;
+        }
+
+        .waiting-status .count {
+            font-size: 48px;
+            font-weight: 900;
+            color: #2c3e50;
+        }
+
+        .waiting-status.full {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .waiting-status.full .label,
+        .waiting-status.full .count {
+            color: white;
+        }
+
+        .waiting-status.warning {
+            background: #f39c12;
+            color: white;
+        }
+
+        .waiting-status.warning .label,
+        .waiting-status.warning .count {
+            color: white;
+        }
+
+        .keypad-container {
+            position: relative;
+        }
+
+        .closed-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(231, 76, 60, 0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            z-index: 10;
+        }
+
+        .closed-overlay.active {
+            display: flex;
+        }
+
+        .closed-message {
+            text-align: center;
+            color: white;
+        }
+
+        .closed-message .icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .closed-message .text {
+            font-size: 32px;
+            font-weight: 700;
+            line-height: 1.4;
+        }
+
+        /* ========================================
+           태블릿 최적화 미디어 쿼리
+           ======================================== */
+
+        /* 작은 태블릿 세로 모드 (iPad Mini 등) - 768px ~ 834px */
+        @media only screen and (min-width: 768px) and (max-width: 834px) and (orientation: portrait) {
+            .reception-container {
+                width: 98%;
+                max-width: 100%;
+                padding: 10px 5px;
+            }
+
+            .reception-header {
+                padding-top: 5px;
+                margin-bottom: 5px;
+            }
+
+            .reception-header h1 {
+                font-size: 60px;
+            }
+
+            .reception-header .date {
+                font-size: 30px;
+            }
+
+            .phone-number {
+                font-size: 64px;
+            }
+
+            .key {
+                font-size: 44px;
+                min-height: 80px;
+                padding: 15px;
+            }
+
+            .submit-btn {
+                font-size: 60px;
+                min-height: 90px;
+                padding: 20px;
+            }
+
+            .keypad {
+                gap: 10px;
+            }
+        }
+
+        /* 작은 태블릿 가로 모드 */
+        @media only screen and (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
+            .reception-container {
+                width: 99%;
+                max-width: 100%;
+                padding: 5px 10px;
+                min-height: auto;
+                justify-content: flex-start;
+                padding-top: 5px;
+            }
+
+            .reception-header {
+                padding-top: 0;
+                margin-bottom: 5px;
+            }
+
+            .reception-header h1 {
+                font-size: 50px;
+            }
+
+            .reception-header .date {
+                font-size: 26px;
+                margin-bottom: 5px;
+            }
+
+            .phone-number {
+                font-size: 60px;
+                padding: 10px 0;
+            }
+
+            .key {
+                font-size: 40px;
+                min-height: 70px;
+                padding: 10px;
+            }
+
+            .keypad {
+                gap: 10px;
+                margin-bottom: 8px;
+            }
+
+            .submit-btn {
+                font-size: 50px;
+                min-height: 80px;
+                padding: 15px;
+            }
+        }
+
+        /* 표준 태블릿 세로 모드 (iPad 10.2", iPad Air 등) - 810px ~ 1024px */
+        @media only screen and (min-width: 810px) and (max-width: 1024px) and (orientation: portrait) {
+            .reception-container {
+                width: 98%;
+                max-width: 100%;
+                padding: 10px 5px;
+            }
+
+            .reception-header {
+                padding-top: 5px;
+                margin-bottom: 5px;
+            }
+
+            .reception-header h1 {
+                font-size: 65px;
+            }
+
+            .reception-header .date {
+                font-size: 32px;
+            }
+
+            .phone-number {
+                font-size: 68px;
+            }
+
+            .key {
+                font-size: 46px;
+                min-height: 85px;
+            }
+
+            .submit-btn {
+                font-size: 65px;
+                min-height: 100px;
+            }
+
+            .keypad {
+                gap: 12px;
+            }
+        }
+
+        /* 큰 태블릿 세로 모드 (iPad Pro 11", 12.9" 등) - 1024px ~ 1366px */
+        @media only screen and (min-width: 1024px) and (max-width: 1366px) and (orientation: portrait) {
+            .reception-container {
+                width: 98%;
+                max-width: 100%;
+                padding: 15px 10px;
+            }
+
+            .reception-header {
+                padding-top: 10px;
+                margin-bottom: 10px;
+            }
+
+            .reception-header h1 {
+                font-size: 75px;
+            }
+
+            .reception-header .date {
+                font-size: 36px;
+            }
+
+            .phone-number {
+                font-size: 72px;
+            }
+
+            .key {
+                font-size: 50px;
+                min-height: 95px;
+            }
+
+            .submit-btn {
+                font-size: 75px;
+                min-height: 110px;
+            }
+
+            .keypad {
+                gap: 14px;
+            }
+        }
+
+        /* 큰 태블릿 가로 모드 */
+        @media only screen and (min-width: 1024px) and (orientation: landscape) {
+            .reception-container {
+                width: 98%;
+                max-width: 100%;
+                padding: 10px 25px;
+                min-height: auto;
+                justify-content: center;
+            }
+
+            .reception-header {
+                padding-top: 8px;
+                margin-bottom: 8px;
+            }
+
+            .keypad {
+                gap: 15px;
+            }
+        }
+
+        /* 초소형 태블릿 (7인치 등) - 600px ~ 768px */
+        @media only screen and (min-width: 600px) and (max-width: 767px) {
+            .reception-container {
+                max-width: 550px;
+                padding: 12px;
+            }
+
+            .reception-header {
+                padding-top: 15px;
+                margin-bottom: 10px;
+            }
+
+            .reception-header h1 {
+                font-size: 32px;
+            }
+
+            .reception-header .date {
+                font-size: 24px;
+            }
+
+            .phone-number {
+                font-size: 52px;
+                padding: 15px 0;
+            }
+
+            .key {
+                font-size: 36px;
+                min-height: 65px;
+                padding: 18px;
+            }
+
+            .keypad {
+                gap: 12px;
+            }
+
+            .submit-btn {
+                font-size: 24px;
+                min-height: 65px;
+                padding: 16px;
+            }
+
+            .waiting-status .label {
+                font-size: 18px;
+            }
+
+            .waiting-status .count {
+                font-size: 28px;
+            }
+        }
+
+        /* 모바일 (600px 이하) */
+        @media only screen and (max-width: 599px) {
+            .reception-container {
+                padding: 10px;
+                min-height: 100vh;
+            }
+
+            .reception-header {
+                padding-top: 10px;
+                margin-bottom: 8px;
+            }
+
+            .reception-header h1 {
+                font-size: 28px;
+            }
+
+            .reception-header .date {
+                font-size: 20px;
+            }
+
+            .phone-number {
+                font-size: 44px;
+                padding: 12px 0;
+                letter-spacing: 3px;
+            }
+
+            .key {
+                font-size: 32px;
+                min-height: 60px;
+                padding: 15px;
+            }
+
+            .keypad {
+                gap: 10px;
+            }
+
+            .submit-btn {
+                font-size: 22px;
+                min-height: 60px;
+                padding: 14px;
+            }
+
+            .waiting-status {
+                padding: 10px 15px;
+            }
+
+            .waiting-status .label {
+                font-size: 16px;
+            }
+
+            .waiting-status .count {
+                font-size: 24px;
+            }
+        }
+
+        /* 화면 높이가 낮은 경우 (가로 모드 최적화) */
+        @media only screen and (max-height: 700px) and (orientation: landscape) {
+            .reception-container {
+                min-height: auto;
+                padding-top: 10px;
+                padding-bottom: 10px;
+            }
+
+            .reception-header {
+                padding-top: 5px;
+                margin-bottom: 8px;
+            }
+
+            .reception-header h1 {
+                font-size: 30px;
+                margin-bottom: 5px;
+            }
+
+            .reception-header .date {
+                font-size: 22px;
+                margin-bottom: 5px;
+            }
+
+            .phone-number {
+                padding: 12px 0;
+            }
+
+            .key {
+                min-height: 60px;
+                padding: 15px;
+            }
+
+            .keypad {
+                gap: 12px;
+                margin-bottom: 12px;
+            }
+
+            .submit-btn {
+                min-height: 60px;
+                padding: 15px;
+            }
+
+            .waiting-status {
+                padding: 8px 15px;
+                margin-bottom: 10px;
+            }
+        }
+    </style>

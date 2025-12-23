@@ -1,0 +1,43 @@
+<div id="view-stores" class="admin-view">
+    <div class="table-header">
+        <div class="view-controls">
+            <div class="sub-tabs">
+                <button class="sub-tab-btn active" onclick="updateStoreTabs(this, 'all')">전체</button>
+                <button class="sub-tab-btn" onclick="updateStoreTabs(this, 'active')">활성</button>
+                <button class="sub-tab-btn" onclick="updateStoreTabs(this, 'inactive')">비활성</button>
+            </div>
+        </div>
+        <div style="display: flex; gap: 12px; align-items: center;">
+            <select id="storeFranchiseFilter" class="toss-input" style="width: 200px;"
+                onchange="filterStoresByFranchise()">
+                <option value="">전체 프랜차이즈</option>
+            </select>
+            <div class="toss-search-container">
+                <i class="fas fa-search toss-search-icon"></i>
+                <input type="text" class="toss-search-input" placeholder="매장명 또는 코드로 검색..."
+                    onkeyup="filterStores(this.value)">
+            </div>
+            <button class="toss-btn toss-btn-primary" onclick="showAddStoreModalWithFranchiseSelect()">
+                <i class="fas fa-plus"></i> 가맹점 등록
+            </button>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table class="toss-table">
+            <thead>
+                <tr>
+                    <th>매장명</th>
+                    <th>코드</th>
+                    <th>프랜차이즈</th>
+                    <th>최종 활동</th>
+                    <th>상태</th>
+                    <th style="text-align: right;">관리</th>
+                </tr>
+            </thead>
+            <tbody id="storesGrid">
+                <!-- Data populated by JS -->
+            </tbody>
+        </table>
+    </div>
+</div>

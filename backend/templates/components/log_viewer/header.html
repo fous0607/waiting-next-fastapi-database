@@ -1,0 +1,21 @@
+<header>
+    <h1>
+        <i class="fas fa-terminal"></i> System Log Analyzer
+        <span id="liveBadge" class="live-badge">LIVE</span>
+    </h1>
+    <div class="controls">
+        <select id="levelFilter">
+            <option value="">All Levels</option>
+            <option value="INFO">INFO</option>
+            <option value="WARNING">WARNING</option>
+            <option value="ERROR">ERROR</option>
+            <option value="DEBUG">DEBUG</option>
+        </select>
+        <input type="text" id="keywordFilter" placeholder="Search keyword..." style="width: 200px;">
+        <button class="primary" onclick="loadLogs()">Refresh</button>
+        <label
+            style="display: flex; align-items: center; gap: 5px; font-size: 12px; cursor: pointer; user-select: none;">
+            <input type="checkbox" id="autoRefresh" checked> Auto Poll (2s)
+        </label>
+    </div>
+</header>

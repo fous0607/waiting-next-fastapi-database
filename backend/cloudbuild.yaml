@@ -1,0 +1,30 @@
+steps:
+  # 1. Docker 이미지 빌드
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/waiting-service', '.']
+
+  # 2. 이미지를 Container Registry(또는 Artifact Registry)에 푸시
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/waiting-service']
+
+  # 3. Cloud Run으로 배포
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'waiting-service'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/waiting-service'
+      - '--region'
+      - 'asia-northeast3'  # 서울 리전 (필요시 변경: asia-northeast1=도쿄)
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '8080'
+
+images:
+  - 'gcr.io/$PROJECT_ID/waiting-service'
+
+timeout: '1200s'  # 20분 제한

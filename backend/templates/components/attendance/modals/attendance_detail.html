@@ -1,0 +1,114 @@
+<!-- 상세 출석 현황 모달 -->
+<div id="detailAttendanceModal" class="modal">
+    <div class="modal-content" style="max-width: 900px; width: 95%; max-height: 90vh; overflow-y: auto;">
+        <div class="modal-header"
+            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <span style="font-size: 24px; font-weight: bold;">상세 출석 현황</span>
+            <span style="cursor: pointer; font-size: 28px;" onclick="closeDetailModal()">&times;</span>
+        </div>
+
+        <div class="filter-container" style="border-radius: 10px; margin-top: 0; background-color: #f8f9fa;">
+            <select id="detailPeriodType" class="form-control" style="width: 150px;"
+                onchange="handleDetailPeriodChange()">
+                <option value="daily">개점일 (오늘)</option>
+                <option value="weekly">주간 (이번주)</option>
+                <option value="monthly" selected>월간 (이번달)</option>
+                <option value="yearly">연간 (올해)</option>
+                <option value="custom">기간별 (직접선택)</option>
+            </select>
+
+            <div id="detailDateContainer" class="date-picker-wrapper">
+                <input type="text" id="detailBaseDateDisplay" class="form-control date-display" readonly>
+                <svg class="calendar-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <input type="date" id="detailBaseDate" class="date-input-hidden"
+                    onchange="updateDateDisplay(this, 'detailBaseDateDisplay')">
+            </div>
+            <div id="detailCustomDateRange" style="display: none; align-items: center; gap: 5px;">
+                <div class="date-picker-wrapper">
+                    <input type="date" id="detailStartDate" class="form-control">
+                </div>
+                <span>~</span>
+                <div class="date-picker-wrapper">
+                    <input type="date" id="detailEndDate" class="form-control">
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="loadMemberDetailStats()">조회</button>
+        </div>
+
+        <!-- 요약 정보 카드 -->
+        <div class="stats-grid" style="margin-bottom: 20px;">
+            <div class="stat-card">
+                <div class="stat-label">회원 정보</div>
+                <div class="stat-value" id="detailMemberInfo" style="font-size: 20px;">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">기간 내 출석 횟수</div>
+                <div class="stat-value" id="detailAttendanceCount">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">조회 기간</div>
+                <div class="stat-value" id="detailPeriodDate" style="font-size: 16px;">-</div>
+            </div>
+        </div>
+
+        <!-- 캘린더 -->
+        <div class="calendar-container"
+            style="border: 1px solid #e0e0e0; border-radius: 10px; overflow: hidden; margin-bottom: 30px;">
+            <div class="calendar-header"
+                style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #f8f9fa; border-bottom: 1px solid #e0e0e0;">
+                <button class="calendar-nav-btn" onclick="changeDetailMonth(-1)"
+                    style="border: 1px solid #ddd; background: white; padding: 5px 10px; border-radius: 5px; cursor: pointer;">❮
+                    이전달</button>
+                <h4 id="detailCalendarTitle" style="margin: 0; font-size: 18px;">2024년 12월</h4>
+                <button class="calendar-nav-btn" onclick="changeDetailMonth(1)"
+                    style="border: 1px solid #ddd; background: white; padding: 5px 10px; border-radius: 5px; cursor: pointer;">다음달
+                    ❯</button>
+            </div>
+            <div class="calendar-grid"
+                style="display: grid; grid-template-columns: repeat(7, 1fr); text-align: center;">
+                <div class="calendar-day-header sunday"
+                    style="padding: 10px; background: #fff; border-bottom: 1px solid #eee; color: #e74c3c;">일
+                </div>
+                <div class="calendar-day-header"
+                    style="padding: 10px; background: #fff; border-bottom: 1px solid #eee;">월</div>
+                <div class="calendar-day-header"
+                    style="padding: 10px; background: #fff; border-bottom: 1px solid #eee;">화</div>
+                <div class="calendar-day-header"
+                    style="padding: 10px; background: #fff; border-bottom: 1px solid #eee;">수</div>
+                <div class="calendar-day-header"
+                    style="padding: 10px; background: #fff; border-bottom: 1px solid #eee;">목</div>
+                <div class="calendar-day-header"
+                    style="padding: 10px; background: #fff; border-bottom: 1px solid #eee;">금</div>
+                <div class="calendar-day-header saturday"
+                    style="padding: 10px; background: #fff; border-bottom: 1px solid #eee; color: #3498db;">토
+                </div>
+            </div>
+            <div id="detailCalendarBody" class="calendar-grid"
+                style="display: grid; grid-template-columns: repeat(7, 1fr);">
+                <!-- JS로 채움 -->
+            </div>
+        </div>
+
+        <!-- 최근 출석 내역 리스트 -->
+        <div>
+            <h3 style="font-size: 18px; margin-bottom: 15px; color: #333;">최근 출석 내역 (최대 20개)</h3>
+            <div class="data-table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>출석일시</th>
+                            <th>교시</th>
+                        </tr>
+                    </thead>
+                    <tbody id="detailHistoryList">
+                        <!-- JS로 채움 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
