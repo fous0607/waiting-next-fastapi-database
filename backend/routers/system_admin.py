@@ -40,6 +40,29 @@ from auth import require_system_admin, get_password_hash
 
 router = APIRouter()
 
+# --- DB Diagnostic Endpoint ---
+@router.get("/health/db")
+async def check_db_health(db: Session = Depends(get_db)):
+    """데이터베이스 연결 상태 진단"""
+    result = {"status": "ok", "message": "Database connection successful"}
+    try:
+        # 1. Basic Connection Check
+        db.execute(func.now())
+        result["connection_check"] = "pass"
+        
+        # 2. Schema Check (Users table)
+        auth_admin = db.query(User).filter(User.username == "superadmin").first()
+        result["schema_check"] = "pass"
+        result["superadmin_exists"] = bool(auth_admin)
+        
+    except Exception as e:
+        result["status"] = "error"
+        result["error"] = str(e)
+        # Log error to console as well
+        print(f"DB Health Check Failed: {e}")
+        
+    return result
+
 
 @router.get("/franchises", response_model=List[FranchiseSchema])
 async def get_all_franchises(
