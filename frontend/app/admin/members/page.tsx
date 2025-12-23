@@ -32,7 +32,7 @@ interface MemberDetail {
     history: VisitHistory[];
 }
 
-export default function MemberLookupPage() {
+function MemberLookupContent() {
     const [searchQuery, setSearchQuery] = useState('');
     const [searchLoading, setSearchLoading] = useState(false);
     const [searchResults, setSearchResults] = useState<Member[]>([]);
@@ -238,6 +238,14 @@ export default function MemberLookupPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function MemberLookupPage() {
+    return (
+        <React.Suspense fallback={<div className="flex justify-center p-20"><GlobalLoader /></div>}>
+            <MemberLookupContent />
+        </React.Suspense>
     );
 }
 
