@@ -4,7 +4,7 @@ services:
     name: waiting-backend
     env: docker
     region: singapore # or ohio, frankfurt etc.
-    plan: starter # Persistent Disk requires Starter plan or higher usually, individual paid
+    plan: free # Free tier (spins down after inactivity)
     dockerContext: ./backend
     dockerfilePath: ./backend/Dockerfile
     healthCheckPath: /docs
