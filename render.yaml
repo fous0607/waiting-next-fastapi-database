@@ -1,0 +1,42 @@
+services:
+  # Backend Service
+  - type: web
+    name: waiting-backend
+    env: docker
+    region: singapore # or ohio, frankfurt etc.
+    plan: starter # Persistent Disk requires Starter plan or higher usually, individual paid
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
+    healthCheckPath: /docs
+    numReplicas: 1
+    disk:
+      name: waiting-db-disk
+      mountPath: /app/database
+      sizeGB: 1
+    envVars:
+      - key: PYTHONDONTWRITEBYTECODE
+        value: 1
+      - key: PYTHONUNBUFFERED
+        value: 1
+      - key: PORT
+        value: 8000
+
+  # Frontend Service
+  - type: web
+    name: waiting-frontend
+    env: docker
+    region: singapore
+    plan: free
+    dockerContext: ./frontend
+    dockerfilePath: ./frontend/Dockerfile
+    envVars:
+      - key: API_URL
+        fromService:
+          type: web
+          name: waiting-backend
+          property: url # Use public URL or host:port
+      - key: NEXT_PUBLIC_API_URL
+        fromService:
+          type: web
+          name: waiting-backend
+          property: url
