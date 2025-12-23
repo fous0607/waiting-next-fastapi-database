@@ -28,7 +28,6 @@ services:
     dockerContext: ./frontend
     dockerfilePath: ./frontend/Dockerfile
     envVars:
-    envVars:
       - key: API_URL
         value: http://waiting-backend:8000 # Use Render internal service discovery
       - key: NEXT_PUBLIC_API_URL
