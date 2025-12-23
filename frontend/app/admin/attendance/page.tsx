@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { CalendarCheck, Search, Download, Filter, User } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,7 +17,7 @@ interface AttendanceRecord {
     attended_at: string;
 }
 
-export default function AttendanceListPage() {
+function AttendanceListContent() {
     const [loading, setLoading] = useState(true);
     const [records, setRecords] = useState<AttendanceRecord[]>([]);
     const [dateRange, setDateRange] = useState({ start: '', end: '' });
@@ -65,7 +65,7 @@ export default function AttendanceListPage() {
 
             <Card className="border-none shadow-sm overflow-hidden bg-white">
                 <CardHeader className="p-0">
-                    <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                    <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-center bg-slate-50/50 justify-between">
                         <h3 className="text-sm font-bold text-slate-900">출석 명부 ({records.length}건)</h3>
                         <div className="flex items-center gap-2">
                             <Button variant="ghost" size="sm" className="h-8 px-2 text-slate-400">
@@ -94,7 +94,7 @@ export default function AttendanceListPage() {
                                         <th className="px-6 py-4 text-[11px] font-bold text-slate-400 uppercase tracking-wider">출석시각</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-50">
+                                <tbody className="divide-y divide-slate-5">
                                     {records.map((record) => (
                                         <tr key={record.id} className="hover:bg-slate-50/50 transition-colors group">
                                             <td className="px-6 py-4 font-medium text-slate-600 text-sm">{record.business_date}</td>
@@ -132,5 +132,13 @@ export default function AttendanceListPage() {
                 </CardContent>
             </Card>
         </div>
+    );
+}
+
+export default function AttendanceListPage() {
+    return (
+        <Suspense fallback={<div className="flex justify-center py-20"><GlobalLoader message="페이지를 불러오는 중입니다..." /></div>}>
+            <AttendanceListContent />
+        </Suspense>
     );
 }
