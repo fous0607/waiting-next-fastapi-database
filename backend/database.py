@@ -8,7 +8,7 @@ import os
 SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./database/waiting_system.db")
 
 # Fix Render's postgres:// schema to postgresql:// for SQLAlchemy
-if SQLALCHEMY_DATABASE_URL.startswith("postgres://"):
+if SQLALCHEMY_DATABASE_URL and SQLALCHEMY_DATABASE_URL.startswith("postgres://"):
     SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
 # SQLite specific arguments
@@ -33,8 +33,11 @@ if SQLALCHEMY_DATABASE_URL.startswith("sqlite"):
             except OSError as e:
                 print(f"Error creating database directory {db_dir}: {e}")
 
+# Add pool_pre_ping to allow reconnects
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args=connect_args
+    SQLALCHEMY_DATABASE_URL, 
+    connect_args=connect_args,
+    pool_pre_ping=True
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
