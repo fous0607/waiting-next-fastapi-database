@@ -69,7 +69,7 @@ function StatCard({ title, value, unit, trend, icon: Icon, color }: any) {
     );
 }
 
-function StatsContent() {
+function StatsContent(): React.JSX.Element {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [period, setPeriod] = useState<Period>('daily');
