@@ -8,7 +8,6 @@ services:
     dockerContext: ./backend
     dockerfilePath: ./backend/Dockerfile
     healthCheckPath: /docs
-    numReplicas: 1
     # Supabase 사용으로 Disk 제거 (비용 절감)
     envVars:
       - key: DATABASE_URL
