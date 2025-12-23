@@ -11,6 +11,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { startOfYesterday, format, subDays, startOfMonth, endOfMonth, subMonths, isSameDay } from 'date-fns';
 import { ChevronDown } from 'lucide-react';
+import { GlobalLoader } from '@/components/ui/GlobalLoader';
 
 // --- Types ---
 interface ChartData {
