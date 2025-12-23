@@ -12,6 +12,10 @@ services:
     environment:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
+      # PostgreSQL 연결 설정 (ID/PW/Port를 본인 설정에 맞게 변경하세요)
+      # 형식: postgresql://[user]:[password]@[host]:[port]/[db_name]
+      # 예시: postgresql://myuser:mypassword@192.168.0.100:5432/waiting_system
+      - DATABASE_URL=postgresql://user:password@host.docker.internal:5432/waiting_system
     command: uvicorn main:app --host 0.0.0.0 --port 8000
     networks:
       # 2. 서비스 레벨: 사용할 네트워크 지정
