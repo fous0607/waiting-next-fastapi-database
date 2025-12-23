@@ -63,6 +63,39 @@ async def check_db_health(db: Session = Depends(get_db)):
         
     return result
 
+@router.get("/health/auth-debug")
+async def debug_auth(db: Session = Depends(get_db)):
+    """인증 로직 디버깅 (로그인 크래시 원인 분석)"""
+    result = {"status": "ok", "steps": []}
+    try:
+        # 1. Check Library Import
+        result["steps"].append("Checking imports...")
+        import bcrypt
+        import passlib
+        result["steps"].append("Imports OK")
+        
+        # 2. Get User
+        result["steps"].append("Fetching superadmin...")
+        user = db.query(User).filter(User.username == "superadmin").first()
+        if not user:
+            return {"status": "error", "message": "Superadmin not found"}
+        result["steps"].append(f"User found: {user.role}")
+        
+        # 3. Simulate Verify
+        result["steps"].append("Verifying password 'superadmin123'...")
+        from auth import verify_password
+        is_valid = verify_password("superadmin123", user.password_hash)
+        result["steps"].append(f"Password verification result: {is_valid}")
+        result["can_login"] = is_valid
+        
+    except Exception as e:
+        import traceback
+        result["status"] = "error"
+        result["error"] = str(e)
+        result["traceback"] = traceback.format_exc()
+        
+    return result
+
 
 @router.get("/franchises", response_model=List[FranchiseSchema])
 async def get_all_franchises(
