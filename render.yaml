@@ -28,13 +28,8 @@ services:
     dockerContext: ./frontend
     dockerfilePath: ./frontend/Dockerfile
     envVars:
+    envVars:
       - key: API_URL
-        fromService:
-          type: web
-          name: waiting-backend
-          property: url # Use public URL or host:port
+        value: http://waiting-backend:8000 # Use Render internal service discovery
       - key: NEXT_PUBLIC_API_URL
-        fromService:
-          type: web
-          name: waiting-backend
-          property: url
+        value: http://waiting-backend:8000 # Used for SSR/Rewrites internally
