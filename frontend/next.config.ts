@@ -4,10 +4,12 @@ const nextConfig: NextConfig = {
   output: "standalone",
 
   async rewrites() {
-    // In Render, API_URL is set to http://waiting-backend:8000
-    // If running locally, we fallback to localhost:8088
-    const apiUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:8088";
-    console.log(`[Next.js Rewrite] Redirecting /api to: ${apiUrl}`);
+    // In Render, API_URL should be http://waiting-backend:8000
+    const isProd = process.env.NODE_ENV === "production";
+    const defaultUrl = isProd ? "http://waiting-backend:8000" : "http://localhost:8088";
+
+    const apiUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || defaultUrl;
+    console.log(`[Next.js Rewrite] Redirecting /api to: ${apiUrl} (Note: Default for prod is http://waiting-backend:8000)`);
     return [
       {
         source: "/api/:path*",
