@@ -114,10 +114,14 @@ export default function DashboardPage() {
     }
 
     // Default empty state to prevent crash
-    const safeStats = stats || {
+    // Default empty state to prevent crash
+    const safeStats: SystemStats = stats || {
+        total_stores: 0,
+        open_stores: 0,
         total_waiting: 0,
         total_attendance: 0,
-        waiting_time_stats: { avg: 0 },
+        waiting_time_stats: { max: 0, min: 0, avg: 0 },
+        attendance_time_stats: { max: 0, min: 0, avg: 0 },
         store_comparison: [],
         hourly_stats: [],
     };
