@@ -9,11 +9,10 @@ services:
     dockerfilePath: ./backend/Dockerfile
     healthCheckPath: /docs
     numReplicas: 1
-    disk:
-      name: waiting-db-disk
-      mountPath: /app/database
-      sizeGB: 1
+    # Supabase 사용으로 Disk 제거 (비용 절감)
     envVars:
+      - key: DATABASE_URL
+        sync: false # Render 대시보드에서 직접 입력하도록 설정
       - key: PYTHONDONTWRITEBYTECODE
         value: 1
       - key: PYTHONUNBUFFERED
