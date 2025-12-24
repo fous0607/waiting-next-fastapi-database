@@ -98,7 +98,7 @@ function StatsContent(): React.JSX.Element {
             params.append('period', period);
             if (selectedStoreId !== 'all') params.append('store_id', selectedStoreId.toString());
 
-            const response = await api.get(`/franchise/stats/dashboard?${params.toString()}`);
+            const response = await api.get(`/franchise/stats/store-dashboard?${params.toString()}`);
             setStats(response.data);
         } catch (error) {
             console.error('Failed to fetch stats:', error);
