@@ -105,6 +105,7 @@ export function useSSE() {
 
                     switch (message.event) {
                         case 'new_user':
+                            toast.info("새 대기자 등록 알림 수신!");
                         case 'status_changed':
                         case 'order_changed':
                         case 'class_moved':

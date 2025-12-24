@@ -19,6 +19,7 @@ export function ManageHeader() {
                 <h1 className="text-2xl font-bold flex items-center gap-3">
                     <div className="flex items-center gap-2">
                         <span>{storeName || "매장 정보 없음"}</span>
+                        {selectedStoreId && <span className="text-xs px-2 py-0.5 bg-slate-100 rounded text-slate-500 font-mono">ID: {selectedStoreId}</span>}
                     </div>
                     <span>대기자 관리</span>
                     <span className="text-xs text-muted-foreground font-normal">(Next.js v1.0)</span>
