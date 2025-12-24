@@ -40,10 +40,18 @@ export default function DashboardPage() {
   const [showStoreSelector, setShowStoreSelector] = useState(false);
   const [availableStores, setAvailableStores] = useState<any[]>([]);
 
+  // State for business date
+  const [businessDate, setBusinessDate] = useState<string | null>(null);
+
   const checkStatus = async () => {
     try {
       const { data } = await api.get('/daily/check-status');
       setIsOpen(data.is_open);
+      if (data.is_open && data.business_date) {
+        setBusinessDate(data.business_date);
+      } else {
+        setBusinessDate(null);
+      }
     } catch (error) {
       console.error("Failed to check status", error);
     }
@@ -207,6 +215,8 @@ export default function DashboardPage() {
       await api.post('/daily/open');
       toast.success("영업이 시작되었습니다.");
       setIsOpen(true);
+      // Set to today temporarily until refined by checkStatus or reload
+      setBusinessDate(format(new Date(), 'yyyy-MM-dd'));
       setIsOpenModalOpen(false);
     } catch (error) {
       const err = error as any;
@@ -298,7 +308,16 @@ export default function DashboardPage() {
             <h1 className="text-3xl font-bold text-slate-900 mb-2 flex items-center h-10">
               {storeName ? `${storeName} 대시보드` : '매장 대시보드'}
             </h1>
-            <p className="text-slate-500">환영합니다! 원하시는 메뉴를 선택해주세요.</p>
+            {isOpen && businessDate ? (
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-2xl font-bold text-green-600 bg-green-50 px-3 py-1 rounded-lg border border-green-100">
+                  {format(new Date(businessDate), 'yyyy년 MM월 dd일 EEEE', { locale: ko })}
+                </span>
+                <span className="text-sm text-slate-400 font-medium self-end mb-1">영업 중</span>
+              </div>
+            ) : (
+              <p className="text-slate-500">환영합니다! 원하시는 메뉴를 선택해주세요.</p>
+            )}
           </div>
           <div className="flex gap-2">
             {isOpen !== null && (
