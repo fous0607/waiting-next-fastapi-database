@@ -58,10 +58,23 @@
 
                 <div class="nav-group">
                     <div class="nav-group-title">시스템</div>
-                    <a class="nav-item" onclick="toggleDashboard('health')">
-                        <i class="fas fa-heartbeat"></i>
-                        <span>시스템 헬스</span>
-                    </a>
+                    <div class="nav-item-dropdown">
+                        <a class="nav-item" onclick="toggleHealthMenu()">
+                            <i class="fas fa-heartbeat"></i>
+                            <span>시스템 헬스</span>
+                            <i class="fas fa-chevron-down dropdown-arrow" id="healthArrow"></i>
+                        </a>
+                        <div class="dropdown-content" id="healthDropdown">
+                            <a class="nav-sub-item" onclick="toggleDashboard('health')">
+                                <i class="fas fa-server"></i>
+                                <span>서버 상태</span>
+                            </a>
+                            <a class="nav-sub-item" onclick="toggleDashboard('program_monitor')">
+                                <i class="fas fa-desktop"></i>
+                                <span>프로그램 모니터링</span>
+                            </a>
+                        </div>
+                    </div>
                     <a class="nav-item" onclick="toggleDashboard('login')">
                         <i class="fas fa-user-clock"></i>
                         <span>로그인 모니터</span>
@@ -102,6 +115,7 @@
                 <!-- Dashboards (Analytics, Health, Login) -->
                 {% include "components/superadmin/dashboard_analytics.html" %}
                 {% include "components/superadmin/dashboard_health.html" %}
+                {% include "components/superadmin/dashboard_program_monitor.html" %}
                 {% include "components/superadmin/dashboard_login.html" %}
 
                 <!-- Main Section Views -->

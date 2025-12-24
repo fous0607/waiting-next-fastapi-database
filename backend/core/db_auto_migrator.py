@@ -15,7 +15,7 @@ def get_column_type_sql(column: Column, dialect) -> str:
     """
     return column.type.compile(dialect=dialect)
 
-def get_default_value_sql(column: Column):
+def get_default_value_sql(column: Column, dialect):
     """
     Extract the default value from the column definition if possible.
     Returns a SQL-safe string for the DEFAULT clause, or None.
@@ -34,7 +34,9 @@ def get_default_value_sql(column: Column):
                 if isinstance(arg, str):
                     return f"'{arg}'"
                 if isinstance(arg, bool):
-                    return '1' if arg else '0'
+                    if dialect.name == 'sqlite':
+                        return '1' if arg else '0'
+                    return 'TRUE' if arg else 'FALSE'
                 return str(arg)
     
     return None
@@ -78,7 +80,7 @@ def check_and_migrate_table(model: Type[DeclarativeMeta]):
                     sql = f'ALTER TABLE "{table_name}" ADD COLUMN "{col.name}" {col_type}'
                     
                     # Handle Defaults
-                    default_val = get_default_value_sql(col)
+                    default_val = get_default_value_sql(col, engine.dialect)
                     if default_val is not None:
                          sql += f" DEFAULT {default_val}"
                     

@@ -2,6 +2,7 @@ const API_BASE = '/api/system';
 let franchisesData = [];
 let statsData = null;
 let currentAnalyticsPeriod = 'hourly';
+let programMonitorInterval = null;
 
 // 토큰 가져오기
 function getToken() {
@@ -787,6 +788,7 @@ function hideAllViews() {
     const containers = [
         'statsOverviewContainer',
         'healthDashboardContainer',
+        'programMonitorContainer',
         'loginMonitorContainer',
         'analyticsDashboardContainer'
     ];
@@ -794,6 +796,12 @@ function hideAllViews() {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
     });
+
+    // Stop monitoring interval if active
+    if (programMonitorInterval) {
+        clearInterval(programMonitorInterval);
+        programMonitorInterval = null;
+    }
 
     // Hide management views
     document.querySelectorAll('.admin-view').forEach(el => el.classList.remove('active'));
@@ -814,7 +822,23 @@ function updateViewHeader(title) {
 function showDashboard(type) {
     hideAllViews();
 
-    if (type === 'summary') {
+    if (type === 'health') {
+        document.getElementById('healthDashboardContainer').style.display = 'block';
+        document.getElementById('currentViewTitle').textContent = '서버 상태';
+        loadStoreHealth();
+    } else if (type === 'program_monitor') {
+        document.getElementById('programMonitorContainer').style.display = 'block';
+        document.getElementById('currentViewTitle').textContent = '프로그램 모니터링';
+        loadProgramMonitoring();
+        // Start auto-refresh
+        if (!programMonitorInterval) {
+            programMonitorInterval = setInterval(loadProgramMonitoring, 5000);
+        }
+    } else if (type === 'login') {
+        document.getElementById('loginMonitorContainer').style.display = 'block';
+        document.getElementById('currentViewTitle').textContent = '사용자 로그인 모니터링';
+        loadLoginMonitor();
+    } else if (type === 'summary') {
         document.getElementById('statsOverviewContainer').style.display = 'block';
         updateViewHeader('종합 현황');
         const navItem = document.querySelector('.nav-item[onclick*="showDashboard(\'summary\')"]');
@@ -2150,4 +2174,147 @@ function renderLoginMonitor() {
 
 function getRoleNameText(role) {
     return getRoleName(role);
+}
+
+// --- Program Monitoring Logic ---
+
+function toggleHealthMenu() {
+    const dropdown = document.getElementById('healthDropdown');
+    const arrow = document.getElementById('healthArrow');
+    if (dropdown) dropdown.classList.toggle('show');
+    if (arrow) arrow.classList.toggle('rotated');
+}
+
+async function loadProgramMonitoring() {
+    const grid = document.getElementById('programFranchisesGrid');
+    if (!grid) return;
+
+    try {
+        // 1. Fetch current SSE status for all stores
+        const sseResponse = await fetch('/api/system/sse/status', {
+            headers: getHeaders()
+        });
+        if (!sseResponse.ok) throw new Error('SSE status fetch failed');
+        const sseData = await sseResponse.json();
+
+        // 2. Fetch all franchises and stores to group data
+        const storeResponse = await fetch('/api/system/franchises?include_stores=true', {
+            headers: getHeaders()
+        });
+        if (!storeResponse.ok) throw new Error('Store list fetch failed');
+        const franchises = await storeResponse.json();
+
+        renderProgramMonitoring(franchises, sseData);
+    } catch (error) {
+        console.error('Program Monitoring Load Error:', error);
+        grid.innerHTML = `<div style="text-align: center; padding: 40px; color: var(--toss-red);">
+            <i class="fas fa-exclamation-triangle" style="font-size: 32px; margin-bottom: 16px;"></i>
+            <p>데이터를 불러오지 못했습니다.</p>
+        </div>`;
+    }
+}
+
+function renderProgramMonitoring(franchises, sseData) {
+    const grid = document.getElementById('programFranchisesGrid');
+    if (!grid) return;
+
+    if (franchises.length === 0) {
+        grid.innerHTML = '<div class="no-connections">등록된 프랜차이즈가 없습니다.</div>';
+        return;
+    }
+
+    grid.innerHTML = franchises.map(franchise => {
+        const stores = franchise.stores || [];
+        if (stores.length === 0) return '';
+
+        return `
+            <div class="franchise-monitor-section">
+                <div class="franchise-monitor-header">
+                    <i class="fas fa-building" style="color: var(--toss-blue);"></i>
+                    <span class="franchise-monitor-title">${franchise.name}</span>
+                    <span style="font-size: 13px; color: var(--toss-gray-400); margin-left: auto;">${stores.length}개 매장</span>
+                </div>
+                <div class="stores-monitor-grid">
+                    ${stores.map(store => {
+            const connections = sseData[store.id] || [];
+            const isActive = connections.length > 0;
+            return `
+                            <div class="store-monitor-card ${isActive ? 'active' : ''}">
+                                <div class="store-monitor-name">
+                                    <span>${store.name}</span>
+                                    ${isActive ? '<span class="status-pill active" style="font-size: 10px;">연결됨</span>' : ''}
+                                </div>
+                                <div class="connection-list">
+                                    ${connections.length === 0 ? '<div class="no-connections" style="padding: 10px;">연결된 기기 없음</div>' :
+                    connections.map(conn => `
+                                            <div class="connection-item">
+                                                <div class="connection-icon ${getRoleClass(conn.role)}">
+                                                    ${getRoleIcon(conn.role)}
+                                                </div>
+                                                <div class="connection-info">
+                                                    <span class="connection-role">${getRoleLabelText(conn.role)}</span>
+                                                    <span class="connection-details">${conn.ip} • ${new Date(conn.connected_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                                </div>
+                                                <div class="force-disconnect-btn" onclick="adminForceDisconnect('${store.id}', '${conn.id}')">
+                                                    <i class="fas fa-power-off"></i>
+                                                </div>
+                                            </div>
+                                        `).join('')
+                }
+                                </div>
+                            </div>
+                        `;
+        }).join('')}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function getRoleIcon(role) {
+    switch (role) {
+        case 'admin': return '<i class="fas fa-shield-alt"></i>';
+        case 'board': return '<i class="fas fa-desktop"></i>';
+        case 'reception': return '<i class="fas fa-mobile-alt"></i>';
+        default: return '<i class="fas fa-question"></i>';
+    }
+}
+
+function getRoleClass(role) {
+    switch (role) {
+        case 'admin': return 'role-admin';
+        case 'board': return 'role-board';
+        case 'reception': return 'role-reception';
+        default: return 'role-unknown';
+    }
+}
+
+function getRoleLabelText(role) {
+    switch (role) {
+        case 'admin': return '관리자';
+        case 'board': return '현황판';
+        case 'reception': return '접수대';
+        default: return role;
+    }
+}
+
+async function adminForceDisconnect(storeId, connectionId) {
+    if (!confirm('해당 기기의 연결을 강제로 해제하시겠습니까?\n기기는 즉시 재연결을 시도하게 됩니다.')) return;
+
+    try {
+        const response = await fetch(`/api/system/sse/disconnect/${connectionId}?store_id=${storeId}`, {
+            method: 'POST',
+            headers: getHeaders()
+        });
+
+        if (response.ok) {
+            showNotification('연결 해제 명령을 보냈습니다.', '✅');
+            loadProgramMonitoring();
+        } else {
+            showNotification('명령 전송 실패', '❌');
+        }
+    } catch (e) {
+        console.error(e);
+        showNotification('오류 발생', '❌');
+    }
 }

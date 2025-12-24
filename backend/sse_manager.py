@@ -138,6 +138,22 @@ class SSEConnectionManager:
             for conn in self.active_connections[store_id].values()
         ]
 
+    def get_all_status(self) -> Dict[str, List[dict]]:
+        """모든 매장의 현재 연결 상태 조회 (Superadmin용)"""
+        result = {}
+        for store_id, connections in self.active_connections.items():
+            result[store_id] = [
+                {
+                    "id": conn.id,
+                    "role": conn.role,
+                    "ip": conn.ip,
+                    "user_agent": conn.user_agent,
+                    "connected_at": conn.connected_at
+                }
+                for conn in connections.values()
+            ]
+        return result
+
     async def force_disconnect(self, store_id: str, connection_id: str):
         """특정 연결 강제 종료 (Reconnect 유도)"""
         if store_id in self.active_connections and connection_id in self.active_connections[store_id]:

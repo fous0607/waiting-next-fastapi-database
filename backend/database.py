@@ -40,6 +40,15 @@ engine = create_engine(
     pool_pre_ping=True
 )
 
+# Ensure PostgreSQL sessions use Asia/Seoul timezone
+if SQLALCHEMY_DATABASE_URL.startswith("postgresql"):
+    from sqlalchemy import event
+    @event.listens_for(engine, "connect")
+    def set_timezone(dbapi_connection, connection_record):
+        cursor = dbapi_connection.cursor()
+        cursor.execute("SET timezone TO 'Asia/Seoul'")
+        cursor.close()
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()

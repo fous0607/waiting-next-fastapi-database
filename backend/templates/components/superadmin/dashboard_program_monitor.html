@@ -1,0 +1,181 @@
+<div id="programMonitorContainer" style="display: none; margin-top: 24px;">
+    <div class="table-header">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div
+                style="width: 40px; height: 40px; border-radius: 12px; background: var(--toss-blue-soft); color: var(--toss-blue); display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-desktop" style="font-size: 20px;"></i>
+            </div>
+            <div>
+                <h3 style="margin: 0; font-size: 20px; font-weight: 800; color: var(--toss-gray-900);">프로그램 연결 모니터링</h3>
+                <p style="margin: 4px 0 0 0; font-size: 13px; color: var(--toss-gray-500);">전체 매장의 실시간 통신(SSE) 연결 상태를
+                    실시간으로 확인합니다.</p>
+            </div>
+        </div>
+        <div class="view-controls" style="margin-bottom: 0;">
+            <button class="toss-btn toss-btn-secondary" onclick="loadProgramMonitoring()">
+                <i class="fas fa-sync-alt"></i>
+                <span style="margin-left: 6px;">새로고침</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Franchise Grouping Container -->
+    <div id="programFranchisesGrid" class="program-monitoring-grid" style="margin-top: 24px;">
+        <!-- Data populated by JS (Franchise Sections) -->
+        <div style="text-align: center; padding: 100px; color: var(--toss-gray-400); width: 100%;">
+            <i class="fas fa-spinner fa-spin" style="font-size: 32px; margin-bottom: 16px;"></i>
+            <p>연결 상태를 불러오는 중입니다...</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .program-monitoring-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 32px;
+    }
+
+    .franchise-monitor-section {
+        background: white;
+        border-radius: 20px;
+        padding: 24px;
+        border: 1px solid var(--toss-gray-100);
+    }
+
+    .franchise-monitor-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--toss-gray-100);
+    }
+
+    .franchise-monitor-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--toss-gray-900);
+    }
+
+    .stores-monitor-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 20px;
+    }
+
+    .store-monitor-card {
+        background: var(--toss-gray-50);
+        border-radius: 16px;
+        padding: 16px;
+        border: 1px solid transparent;
+        transition: all 0.2s ease;
+    }
+
+    .store-monitor-card:hover {
+        border-color: var(--toss-blue-light);
+        background: white;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .store-monitor-card.active {
+        background: white;
+        border-color: var(--toss-blue-soft);
+    }
+
+    .store-monitor-name {
+        font-weight: 700;
+        font-size: 15px;
+        margin-bottom: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .connection-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .connection-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 12px;
+        background: white;
+        border-radius: 10px;
+        border: 1px solid var(--toss-gray-100);
+        font-size: 13px;
+    }
+
+    .connection-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+    }
+
+    .role-admin {
+        background: #f3e8ff;
+        color: #9333ea;
+    }
+
+    .role-board {
+        background: #dbeafe;
+        color: #2563eb;
+    }
+
+    .role-reception {
+        background: #dcfce7;
+        color: #16a34a;
+    }
+
+    .role-unknown {
+        background: #f1f5f9;
+        color: #64748b;
+    }
+
+    .connection-info {
+        flex: 1;
+        overflow: hidden;
+    }
+
+    .connection-role {
+        font-weight: 600;
+        display: block;
+    }
+
+    .connection-details {
+        font-size: 11px;
+        color: var(--toss-gray-400);
+        display: block;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .force-disconnect-btn {
+        opacity: 0;
+        transition: opacity 0.2s;
+        color: var(--toss-gray-300);
+        cursor: pointer;
+    }
+
+    .connection-item:hover .force-disconnect-btn {
+        opacity: 1;
+        color: var(--toss-red);
+    }
+
+    .no-connections {
+        text-align: center;
+        padding: 20px;
+        color: var(--toss-gray-400);
+        font-size: 13px;
+        background: var(--toss-gray-100);
+        border-radius: 12px;
+    }
+</style>

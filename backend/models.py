@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, Date, Time, Table, Float
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, Date, Time, Table, Float, func
 from sqlalchemy.orm import relationship
 from database import Base
 from datetime import datetime, date
@@ -24,8 +24,8 @@ class Franchise(Base):
     code = Column(String, unique=True, nullable=False, index=True)  # 프랜차이즈 코드
     member_type = Column(String, default="store")  # store: 매장별 관리, franchise: 프랜차이즈 통합 관리
     is_active = Column(Boolean, default=True)  # 활성화 여부
-    created_at = Column(DateTime, default=datetime.now)
-    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
 
     # 관계 설정
     stores = relationship("Store", back_populates="franchise")
@@ -39,7 +39,7 @@ class Holiday(Base):
     store_id = Column(Integer, ForeignKey("store.id"), nullable=False, index=True)
     date = Column(Date, nullable=False, index=True)  # 공휴일 날짜
     name = Column(String, nullable=False)  # 공휴일 명칭 (예: 크리스마스, 임시공휴일)
-    created_at = Column(DateTime, default=datetime.now)
+    created_at = Column(DateTime, default=func.now())
 
     # 관계 설정
     store = relationship("Store", back_populates="holidays")
@@ -54,8 +54,8 @@ class Store(Base):
     code = Column(String, unique=True, nullable=False, index=True)  # 매장 코드
     is_active = Column(Boolean, default=True)  # 활성화 여부
     last_heartbeat = Column(DateTime, nullable=True)  # 마지막 활동 시간 (Health check)
-    created_at = Column(DateTime, default=datetime.now)
-    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
 
     # 관계 설정
     franchise = relationship("Franchise", back_populates="stores")
@@ -82,8 +82,8 @@ class User(Base):
     store_id = Column(Integer, ForeignKey("store.id"), nullable=True, index=True)  # 매장 관리자인 경우 relative
     is_active = Column(Boolean, default=True)  # 활성화 여부
     last_login = Column(DateTime, nullable=True)  # 마지막 로그인 시간
-    created_at = Column(DateTime, default=datetime.now)
-    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
 
     # 관계 설정
     franchise = relationship("Franchise", back_populates="users", foreign_keys=[franchise_id])
@@ -176,8 +176,8 @@ class StoreSettings(Base):
     show_program_notices = Column(Boolean, default=True)  # 프로그램 공지 표시 여부
 
 
-    created_at = Column(DateTime, default=datetime.now)
-    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
 
     # 관계 설정
     store = relationship("Store", back_populates="store_settings")
@@ -195,7 +195,7 @@ class DailyClosing(Base):
     total_waiting = Column(Integer, default=0)  # 총 대기 수
     total_attended = Column(Integer, default=0)  # 총 출석 수
     total_cancelled = Column(Integer, default=0)  # 총 취소 수
-    created_at = Column(DateTime, default=datetime.now)
+    created_at = Column(DateTime, default=func.now())
 
     # 관계 설정
     store = relationship("Store", back_populates="daily_closings")
@@ -214,8 +214,8 @@ class ClassInfo(Base):
     is_active = Column(Boolean, default=True)  # 활성화 여부
     weekday_schedule = Column(String, default='{"mon":true,"tue":true,"wed":true,"thu":true,"fri":true,"sat":true,"sun":true}')  # 요일 스케줄 (JSON)
     class_type = Column(String, default='all')  # 클래스 타입: weekday(평일), weekend(주말), all(전체)
-    created_at = Column(DateTime, default=datetime.now)
-    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
 
     # 관계 설정
     store = relationship("Store", back_populates="classes")
@@ -230,8 +230,8 @@ class Member(Base):
     name = Column(String, nullable=False)
     phone = Column(String, nullable=False, index=True)  # unique 제거 (매장별/프랜차이즈별 로직으로 처리)
     barcode = Column(String, unique=True, nullable=True, index=True)  # 바코드 (유일 코드)
-    created_at = Column(DateTime, default=datetime.now)
-    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
 
     # 관계 설정
     store = relationship("Store", back_populates="members")
@@ -257,15 +257,15 @@ class WaitingList(Base):
 
     status = Column(String, default="waiting", index=True)  # waiting, attended, cancelled, no_show
 
-    registered_at = Column(DateTime, default=datetime.now)  # 접수 시간
+    registered_at = Column(DateTime, default=func.now())  # 접수 시간
     attended_at = Column(DateTime, index=True)  # 출석 시간
     cancelled_at = Column(DateTime)  # 취소 시간
 
     call_count = Column(Integer, default=0)  # 호출 횟수
     last_called_at = Column(DateTime)  # 마지막 호출 시간
 
-    created_at = Column(DateTime, default=datetime.now)
-    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
 
     # 관계 설정
     store = relationship("Store", back_populates="waiting_list")
@@ -280,8 +280,8 @@ class ClassClosure(Base):
     store_id = Column(Integer, ForeignKey("store.id"), nullable=False, index=True)  # 매장 ID
     business_date = Column(Date, nullable=False, index=True)  # 영업일
     class_id = Column(Integer, ForeignKey("class_info.id"), nullable=False)  # 교시 ID
-    closed_at = Column(DateTime, default=datetime.now)  # 마감 시간
-    created_at = Column(DateTime, default=datetime.now)
+    closed_at = Column(DateTime, default=func.now())  # 마감 시간
+    created_at = Column(DateTime, default=func.now())
 
 class WaitingHistory(Base):
     """대기 이력 (통계용)"""
@@ -299,7 +299,7 @@ class WaitingHistory(Base):
     registered_at = Column(DateTime)
     completed_at = Column(DateTime)
     waiting_time_minutes = Column(Integer)  # 대기 시간 (분)
-    created_at = Column(DateTime, default=datetime.now)
+    created_at = Column(DateTime, default=func.now())
 
 class AuditLog(Base):
     """시스템 감사 로그 (변경 이력)"""
@@ -314,7 +314,7 @@ class AuditLog(Base):
     old_value = Column(String, nullable=True)  # JSON String
     new_value = Column(String, nullable=True)  # JSON String
     ip_address = Column(String, nullable=True)
-    created_at = Column(DateTime, default=datetime.now, index=True)
+    created_at = Column(DateTime, default=func.now(), index=True)
 
     # Relationships
     store = relationship("Store")
@@ -329,7 +329,7 @@ class SettingsSnapshot(Base):
     created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     settings = Column(String, nullable=False)  # JSON String of all settings
     description = Column(String, nullable=True)
-    created_at = Column(DateTime, default=datetime.now)
+    created_at = Column(DateTime, default=func.now())
 
 class Notice(Base):
     """공지사항"""
@@ -340,8 +340,8 @@ class Notice(Base):
     content = Column(String, nullable=False)  # HTML or Text
     target_type = Column(String, default="all")  # all, selected, franchise, program
     is_active = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=datetime.now)
-    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     
     author_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     franchise_id = Column(Integer, ForeignKey("franchise.id"), nullable=True, index=True)  # 프랜차이즈 공지용
@@ -366,7 +366,7 @@ class NoticeAttachment(Base):
     stored_filename = Column(String, nullable=False)  # 저장된 파일명 (UUID)
     file_size = Column(Integer, nullable=False)  # 파일 크기 (bytes)
     file_type = Column(String, nullable=False)  # MIME type
-    created_at = Column(DateTime, default=datetime.now)
+    created_at = Column(DateTime, default=func.now())
 
     # Relationships
     notice = relationship("Notice", back_populates="attachments")
