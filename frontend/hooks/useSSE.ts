@@ -65,9 +65,15 @@ export function useSSE() {
 
             // Direct Backend URL (Bypass Proxy) for Tablet Stability
             // Must strictly match the working logic in BoardPage/ReceptionPage
-            let backendUrl = '/api/sse/stream';
-            // Use relative path to avoid Mixed Content errors and leverage Nginx proxy
-            if (typeof window !== 'undefined') {
+            // Direct Backend URL (Bypass Proxy) for Tablet Stability & Vercel Timeouts
+            // Must use the full URL to avoid Vercel proxying which kills long-lived connections
+            let backendUrl = process.env.NEXT_PUBLIC_API_URL
+                ? `${process.env.NEXT_PUBLIC_API_URL}/api/sse/stream`
+                : '/api/sse/stream';
+
+            // If running on client and no env var, try to determine if we should use direct path
+            if (typeof window !== 'undefined' && !process.env.NEXT_PUBLIC_API_URL) {
+                // Fallback to relative path if no Env var is set (development or proxy setup)
                 backendUrl = '/api/sse/stream';
             }
 
