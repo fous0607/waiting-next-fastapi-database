@@ -67,6 +67,29 @@ export default function BoardPage() {
     }, []);
 
     const [isConnected, setIsConnected] = useState(false);
+    const [storeSettings, setStoreSettings] = useState<any>(null);
+
+    // Load store settings for font customization
+    useEffect(() => {
+        const loadStoreSettings = async () => {
+            try {
+                const { data: settings } = await api.get('/store/');
+                setStoreSettings(settings);
+
+                // Apply font settings to CSS variables
+                if (settings.board_font_family) {
+                    document.documentElement.style.setProperty('--board-font-family', `"${settings.board_font_family}", sans-serif`);
+                }
+                if (settings.board_font_size) {
+                    document.documentElement.style.setProperty('--board-font-size', settings.board_font_size);
+                }
+            } catch (error) {
+                console.error('Failed to load store settings:', error);
+            }
+        };
+
+        loadStoreSettings();
+    }, []);
 
     // Initial load only - SSE will handle all subsequent updates
     useEffect(() => {

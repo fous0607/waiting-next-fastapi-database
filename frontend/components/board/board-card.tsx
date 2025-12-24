@@ -22,7 +22,7 @@ export function BoardCard({ item }: BoardCardProps) {
             }`}>
             <div className="flex items-center gap-3">
                 <div className="flex flex-col items-center justify-center min-w-[50px]">
-                    <span className="text-4xl font-black text-slate-700 leading-none">{item.class_order}</span>
+                    <span className="font-black text-slate-700 leading-none" style={{ fontSize: 'var(--board-font-size)', fontFamily: 'var(--board-font-family)' }}>{item.class_order}</span>
                 </div>
             </div>
 
@@ -35,7 +35,7 @@ export function BoardCard({ item }: BoardCardProps) {
             )}
 
             <div className="flex flex-col items-end max-w-[70%] z-10">
-                <span className="text-3xl font-bold truncate text-slate-800">{item.display_name}</span>
+                <span className="font-bold truncate text-slate-800" style={{ fontSize: 'var(--board-font-size)', fontFamily: 'var(--board-font-family)' }}>{item.display_name}</span>
             </div>
         </Card>
     );

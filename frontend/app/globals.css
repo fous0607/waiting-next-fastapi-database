@@ -79,6 +79,10 @@
   --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
   --sidebar-border: oklch(0.92 0.004 286.32);
   --sidebar-ring: oklch(0.705 0.015 286.067);
+
+  /* Board font customization */
+  --board-font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+  --board-font-size: 24px;
 }
 
 .dark {
@@ -148,6 +152,7 @@
   --border: #fed7aa;
   --input: #fed7aa;
 }
+
 /* Tiptap Editor Styles */
 .ProseMirror {
   outline: none;
