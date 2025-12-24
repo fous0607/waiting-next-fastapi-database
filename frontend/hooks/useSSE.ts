@@ -63,15 +63,6 @@ export function useSSE() {
             const token = localStorage.getItem('access_token');
             console.log(`[SSE] Connecting to stream for store: ${storeId}...`);
 
-            // Direct Backend URL (Bypass Proxy) for Tablet Stability
-            // Must strictly match the working logic in BoardPage/ReceptionPage
-            // Direct Backend URL (Bypass Proxy) for Tablet Stability & Vercel Timeouts
-            // Hardcoded to ensure HTTPS connection as per user requirement (bypassing potentially stale Env Vars)
-            // FORCE_DEPLOY: Trigger Vercel update
-            let backendUrl = 'https://waitingnext.posagent.kr/api/sse/stream';
-
-            console.log(`[SSE] Backend URL forced to: ${backendUrl}`);
-
             // Build URL with proper encoding
             const params = new URLSearchParams();
             params.append('store_id', storeId!); // asserted not null
@@ -80,7 +71,9 @@ export function useSSE() {
                 params.append('token', token);
             }
 
-            const url = `${backendUrl}?${params.toString()}`;
+            // Vercel Proxy Strategy (Matching Board Page)
+            // Use relative path to avoid Mixed Content errors and leverage Next.js rewrites
+            const url = `/api/sse/stream?${params.toString()}`;
             console.log(`[SSE] URL: ${url}`);
 
             const es = new EventSource(url);
