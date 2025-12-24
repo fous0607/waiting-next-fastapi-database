@@ -66,16 +66,10 @@ export function useSSE() {
             // Direct Backend URL (Bypass Proxy) for Tablet Stability
             // Must strictly match the working logic in BoardPage/ReceptionPage
             // Direct Backend URL (Bypass Proxy) for Tablet Stability & Vercel Timeouts
-            // Must use the full URL to avoid Vercel proxying which kills long-lived connections
-            let backendUrl = process.env.NEXT_PUBLIC_API_URL
-                ? `${process.env.NEXT_PUBLIC_API_URL}/api/sse/stream`
-                : '/api/sse/stream';
+            // Hardcoded to ensure HTTPS connection as per user requirement (bypassing potentially stale Env Vars)
+            let backendUrl = 'https://waitingnext.posagent.kr/api/sse/stream';
 
-            // If running on client and no env var, try to determine if we should use direct path
-            if (typeof window !== 'undefined' && !process.env.NEXT_PUBLIC_API_URL) {
-                // Fallback to relative path if no Env var is set (development or proxy setup)
-                backendUrl = '/api/sse/stream';
-            }
+            console.log(`[SSE] Backend URL forced to: ${backendUrl}`);
 
             // Build URL with proper encoding
             const params = new URLSearchParams();
