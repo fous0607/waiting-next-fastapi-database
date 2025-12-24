@@ -24,6 +24,8 @@ export default function DashboardPage() {
   const router = useRouter();
   const [storeName, setStoreName] = useState('');
   const [storeCode, setStoreCode] = useState(''); // Store code state
+  const [storeId, setStoreId] = useState(''); // Store ID state for links
+
   const [isOpen, setIsOpen] = useState<boolean | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
@@ -62,6 +64,7 @@ export default function DashboardPage() {
     localStorage.setItem('selected_store_code', store.code);
     setStoreName(store.name);
     setStoreCode(store.code);
+    setStoreId(store.id.toString());
     setShowStoreSelector(false);
     // Reload page to fetch store-specific data
     window.location.reload();
@@ -85,6 +88,7 @@ export default function DashboardPage() {
         setStoreName(storedName);
       }
       if (storedCode) setStoreCode(storedCode);
+      if (storedId) setStoreId(storedId);
 
       // 2. For franchise admins/managers, check if store is selected
       if (userRole === 'franchise_admin' || userRole === 'franchise_manager') {
@@ -126,7 +130,9 @@ export default function DashboardPage() {
             localStorage.setItem('selected_store_code', code);
           }
           if (id) {
-            localStorage.setItem('selected_store_id', id.toString());
+            const idStr = id.toString();
+            setStoreId(idStr);
+            localStorage.setItem('selected_store_id', idStr);
           }
         }
       } catch (error) {
@@ -243,7 +249,7 @@ export default function DashboardPage() {
       title: "대기자 관리",
       description: "대기 현황 확인 및 호출 관리",
       icon: Users,
-      href: "/manage",
+      href: storeId ? `/manage?store=${storeId}` : "/manage",
       color: "bg-purple-100 text-purple-600"
     },
     {
