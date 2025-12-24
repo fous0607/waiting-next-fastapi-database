@@ -126,16 +126,6 @@ function AdminSidebar() {
                     </div>
                 </div>
 
-                {/* Home Button */}
-                <Link
-                    href="/"
-                    className="flex items-center w-full px-3 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 group mb-4 bg-blue-50 text-blue-700 hover:bg-blue-100"
-                >
-                    <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                    </svg>
-                    메인 대시보드
-                </Link>
 
                 <nav className="space-y-6">
                     {/* Stats Section */}
@@ -224,25 +214,27 @@ function AdminSidebar() {
             </div>
 
             <div className="p-4 border-t border-slate-100 bg-slate-50/50">
-                <div className="flex items-center justify-between px-2">
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xs ring-2 ring-white shadow-sm">
-                            A
+                <div className="flex flex-col gap-3">
+                    <div className="flex items-center justify-between px-2">
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xs ring-2 ring-white shadow-sm">
+                                A
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-xs font-semibold text-slate-900 truncate">{username}</p>
+                                <p className="text-[10px] text-slate-500 truncate">매장 관리자</p>
+                            </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                            <p className="text-xs font-semibold text-slate-900 truncate">{username}</p>
-                            <p className="text-[10px] text-slate-500 truncate">매장 관리자</p>
-                        </div>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-slate-400 hover:text-red-600 hover:bg-red-50"
+                            onClick={handleLogout}
+                            title="로그아웃"
+                        >
+                            <LogOut className="w-4 h-4" />
+                        </Button>
                     </div>
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-slate-400 hover:text-red-600 hover:bg-red-50"
-                        onClick={handleLogout}
-                        title="로그아웃"
-                    >
-                        <LogOut className="w-4 h-4" />
-                    </Button>
                 </div>
             </div>
         </aside>
@@ -262,8 +254,19 @@ export default function AdminLayout({
             </React.Suspense>
 
             {/* Main Content */}
+            {/* Main Content */}
             <main className="flex-1 overflow-x-hidden">
-                <div className="p-8 max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="flex justify-end p-4">
+                    <Link href="/">
+                        <Button variant="outline" className="gap-2 bg-white text-slate-600 hover:text-indigo-600 hover:bg-slate-50 border-slate-200">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                            </svg>
+                            메인 대시보드
+                        </Button>
+                    </Link>
+                </div>
+                <div className="px-8 pb-8 max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
                     {children}
                 </div>
             </main>
