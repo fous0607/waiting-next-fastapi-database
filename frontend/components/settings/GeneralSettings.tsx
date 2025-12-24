@@ -78,6 +78,7 @@ const settingsSchema = z.object({
     enable_reception_desk: z.boolean().default(true),
 
     admin_password: z.string().optional(), // For verification if needed, usually just loaded
+    registration_message: z.string().default("처음 방문하셨네요!\n성함을 입력해 주세요."),
 });
 
 type SettingsFormValues = z.infer<typeof settingsSchema>;
@@ -128,6 +129,7 @@ export function GeneralSettings() {
             enable_waiting_voice_alert: false,
             enable_waiting_board: true,
             enable_reception_desk: true,
+            registration_message: "처음 방문하셨네요!\n성함을 입력해 주세요.",
         },
     });
 
