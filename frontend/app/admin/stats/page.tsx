@@ -11,7 +11,25 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { startOfYesterday, format, subDays, startOfMonth, endOfMonth, subMonths, isSameDay } from 'date-fns';
 import { ChevronDown, BarChart3, TrendingUp, DollarSign, Users, UserPlus, Search } from 'lucide-react';
-import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
+import { Bar } from 'react-chartjs-2';
+import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    Title,
+    Tooltip,
+    Legend,
+} from 'chart.js';
+
+ChartJS.register(
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    Title,
+    Tooltip,
+    Legend
+);
 import { GlobalLoader } from '@/components/ui/GlobalLoader';
 
 // --- Types ---
@@ -140,19 +158,19 @@ function StatsContent(): React.JSX.Element {
                     {/* Key Metrics Cards */}
                     <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         <StatCard
-                            title="전체 매출"
-                            value={stats.total_revenue?.toLocaleString() || '0'}
-                            unit="원"
+                            title="총 방문자"
+                            value={stats.total_waiting?.toLocaleString() || '0'}
+                            unit="명"
                             trend={+12.5}
-                            icon={DollarSign}
+                            icon={Users}
                             color="blue"
                         />
                         <StatCard
-                            title="총 방문자"
-                            value={stats.total_visitors?.toLocaleString() || '0'}
+                            title="총 출석"
+                            value={stats.total_attendance?.toLocaleString() || '0'}
                             unit="명"
                             trend={+8.2}
-                            icon={Users}
+                            icon={UserPlus}
                             color="emerald"
                         />
                         <StatCard
@@ -173,29 +191,44 @@ function StatsContent(): React.JSX.Element {
                         />
                     </div>
 
-                    {/* Revenue Chart */}
+                    {/* Hourly Stats Chart */}
                     <Card className="border-none shadow-sm lg:col-span-2">
                         <CardHeader>
-                            <CardTitle className="text-lg font-bold text-slate-800">매출 추이</CardTitle>
+                            <CardTitle className="text-lg font-bold text-slate-800">시간대별 대기 현황</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            {stats.chart_data && stats.chart_data.length > 0 ? (
+                            {stats.hourly_stats && stats.hourly_stats.length > 0 ? (
                                 <div className="h-[300px] w-full">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <AreaChart data={stats.chart_data}>
-                                            <defs>
-                                                <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.1} />
-                                                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                                                </linearGradient>
-                                            </defs>
-                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                                            <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
-                                            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
-                                            <Tooltip />
-                                            <Area type="monotone" dataKey="revenue" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#colorRevenue)" />
-                                        </AreaChart>
-                                    </ResponsiveContainer>
+                                    <Bar
+                                        data={{
+                                            labels: stats.hourly_stats.map((s: any) => `${s.hour || s.label}시`),
+                                            datasets: [
+                                                {
+                                                    label: '대기 접수',
+                                                    data: stats.hourly_stats.map((s: any) => s.waiting_count || 0),
+                                                    backgroundColor: 'rgba(59, 130, 246, 0.6)',
+                                                    borderColor: 'rgb(59, 130, 246)',
+                                                    borderWidth: 1,
+                                                },
+                                                {
+                                                    label: '입장 완료',
+                                                    data: stats.hourly_stats.map((s: any) => s.attendance_count || 0),
+                                                    backgroundColor: 'rgba(34, 197, 94, 0.6)',
+                                                    borderColor: 'rgb(34, 197, 94)',
+                                                    borderWidth: 1,
+                                                }
+                                            ]
+                                        }}
+                                        options={{
+                                            responsive: true,
+                                            maintainAspectRatio: false,
+                                            scales: {
+                                                y: {
+                                                    beginAtZero: true
+                                                }
+                                            }
+                                        }}
+                                    />
                                 </div>
                             ) : (
                                 <div className="h-[300px] flex items-center justify-center text-slate-400">
