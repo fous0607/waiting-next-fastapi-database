@@ -37,6 +37,7 @@ const settingsSchema = z.object({
     max_waiting_limit: z.coerce.number().min(0).default(50),
     block_last_class_registration: z.boolean().default(false),
     auto_register_member: z.boolean().default(false),
+    require_member_registration: z.boolean().default(false),
 
     // Attendance
     attendance_count_type: z.enum(['days', 'monthly']).default('days'),
@@ -102,6 +103,7 @@ export function GeneralSettings() {
             max_waiting_limit: 50,
             block_last_class_registration: false,
             auto_register_member: false,
+            require_member_registration: false,
             attendance_count_type: 'days',
             attendance_lookback_days: 30,
             show_waiting_number: true,
@@ -528,6 +530,33 @@ export function GeneralSettings() {
                                                 <FormItem>
                                                     <FormLabel>음성 안내 메시지 (옵션)</FormLabel>
                                                     <FormControl><Input placeholder="예: {클래스명} 대기 접수 되었습니다." {...field} value={field.value ?? ''} /></FormControl>
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control}
+                                            name="require_member_registration"
+                                            render={({ field }) => (
+                                                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 bg-blue-50/30">
+                                                    <FormControl>
+                                                        <Checkbox checked={field.value as boolean} onCheckedChange={field.onChange} />
+                                                    </FormControl>
+                                                    <div className="space-y-1 leading-none">
+                                                        <FormLabel className="text-blue-700 font-bold">신규고객 자동 회원가입 사용</FormLabel>
+                                                        <FormDescription>
+                                                            처음 방문한 고객의 핸드폰 번호 입력 시, 이름 입력 화면을 띄워 회원으로 자동 등록합니다.
+                                                        </FormDescription>
+                                                    </div>
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control}
+                                            name="auto_register_member"
+                                            render={({ field }) => (
+                                                <FormItem className="flex flex-row items-center space-x-2 space-y-0 opacity-60">
+                                                    <FormControl><Checkbox checked={field.value as boolean} onCheckedChange={field.onChange} /></FormControl>
+                                                    <FormLabel className='font-normal text-xs text-slate-500'>[고급] 이름 입력 없이 번호만으로 자동 등록 (비활성 권장)</FormLabel>
                                                 </FormItem>
                                             )}
                                         />

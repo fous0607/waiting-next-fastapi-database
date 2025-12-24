@@ -28,6 +28,8 @@ export default function ReceptionPage() {
     const [storeName, setStoreName] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [keypadStyle, setKeypadStyle] = useState('modern');
+    const [storeSettings, setStoreSettings] = useState<any>(null);
+    const [memberName, setMemberName] = useState('');
 
     // Result Modal State
     const [resultDialog, setResultDialog] = useState<{ open: boolean, data: any }>({ open: false, data: null });
@@ -37,6 +39,9 @@ export default function ReceptionPage() {
 
     // Error Modal State
     const [errorDialog, setErrorDialog] = useState<{ open: boolean, message: string }>({ open: false, message: '' });
+
+    // Registration Modal State (New Member)
+    const [registrationDialog, setRegistrationDialog] = useState<{ open: boolean, phone: string }>({ open: false, phone: '' });
 
     const loadStatus = useCallback(async () => {
         try {
@@ -52,8 +57,11 @@ export default function ReceptionPage() {
             const storeData = Array.isArray(storeRes.data) ? storeRes.data[0] : storeRes.data;
             setStoreName(storeData?.name || storeData?.store_name || '매장 정보 없음');
 
-            if (storeData?.keypad_style) {
-                setKeypadStyle(storeData.keypad_style);
+            if (storeData) {
+                setStoreSettings(storeData);
+                if (storeData.keypad_style) {
+                    setKeypadStyle(storeData.keypad_style);
+                }
             }
 
         } catch (error) {
@@ -225,13 +233,18 @@ export default function ReceptionPage() {
         return formatted;
     };
 
-    const processRegistration = async (targetPhone: string) => {
+    const processRegistration = async (targetPhone: string, name?: string) => {
         setIsSubmitting(true);
         try {
-            const { data } = await api.post('/waiting/register', { phone: targetPhone });
+            const payload: any = { phone: targetPhone };
+            if (name) payload.name = name;
+
+            const { data } = await api.post('/waiting/register', payload);
             setResultDialog({ open: true, data });
             setPhoneNumber('');
+            setMemberName(''); // Clear member name
             setSelectionDialog({ open: false, members: [] }); // Close selection if open
+            setRegistrationDialog({ open: false, phone: '' }); // Close registration if open
             loadStatus();
 
             setTimeout(() => {
@@ -306,7 +319,24 @@ export default function ReceptionPage() {
             return;
         }
 
-        await processRegistration(targetPhone);
+        // 3. New Member Check
+        if (storeSettings?.require_member_registration) {
+            try {
+                // Check if member already exists
+                await api.get(`/members/phone/${targetPhone}`);
+                // If exists (no error), proceed normally
+                await processRegistration(targetPhone);
+            } catch (error: any) {
+                if (error.response?.status === 404) {
+                    // Not found -> Show registration screen
+                    setRegistrationDialog({ open: true, phone: targetPhone });
+                } else {
+                    toast.error("회원 조회 중 오류가 발생했습니다.");
+                }
+            }
+        } else {
+            await processRegistration(targetPhone);
+        }
     };
 
     // Helper to get styles based on configuration
@@ -517,6 +547,60 @@ export default function ReceptionPage() {
                     >
                         확인
                     </Button>
+                </DialogContent>
+            </Dialog>
+            {/* Member Registration Modal (Forced) */}
+            <Dialog open={registrationDialog.open} onOpenChange={(open) => {
+                if (!open) {
+                    setRegistrationDialog(prev => ({ ...prev, open }));
+                    setMemberName('');
+                }
+            }}>
+                <DialogContent className="sm:max-w-md text-center py-10">
+                    <DialogHeader>
+                        <div className="mx-auto w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-4">
+                            <Check className="w-10 h-10" />
+                        </div>
+                        <DialogTitle className="text-center text-3xl font-bold mb-2">신규 회원 등록</DialogTitle>
+                        <DialogDescription className="text-center text-xl text-slate-600 mb-6 font-normal">
+                            처음 방문하셨네요!<br />성함을 입력해 주세요.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="py-2 mb-6">
+                        <input
+                            type="text"
+                            placeholder="이름 입력 (예: 홍길동)"
+                            value={memberName}
+                            onChange={(e) => setMemberName(e.target.value)}
+                            className="w-full h-20 text-3xl px-6 rounded-2xl border-2 border-blue-200 focus:border-blue-500 focus:outline-none transition-all text-center"
+                            autoFocus
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' && memberName.trim()) {
+                                    processRegistration(registrationDialog.phone, memberName);
+                                }
+                            }}
+                        />
+                    </div>
+
+                    <div className="flex gap-4">
+                        <Button
+                            variant="outline"
+                            className="flex-1 h-20 text-2xl rounded-2xl"
+                            size="lg"
+                            onClick={() => setRegistrationDialog({ open: false, phone: '' })}
+                        >
+                            취소
+                        </Button>
+                        <Button
+                            className="flex-[2] h-20 text-3xl rounded-2xl bg-blue-600 hover:bg-blue-700"
+                            size="lg"
+                            disabled={!memberName.trim() || isSubmitting}
+                            onClick={() => processRegistration(registrationDialog.phone, memberName)}
+                        >
+                            {isSubmitting ? '저장 중...' : '등록 완료'}
+                        </Button>
+                    </div>
                 </DialogContent>
             </Dialog>
         </div>

@@ -13,6 +13,8 @@ class StoreSettingsBase(BaseModel):
     use_max_waiting_limit: bool = True
     block_last_class_registration: bool = False
     auto_register_member: bool = False
+    require_member_registration: bool = False
+    registration_message: str = "처음 방문하셨네요!\n성함을 입력해 주세요."
     business_day_start: int = 5  # 영업일 기준 시간 (0~23)
     auto_closing: bool = True  # 영업일 변경 시 자동 마감 및 리셋 여부
     closing_action: str = "reset"
@@ -88,6 +90,8 @@ class StoreSettingsUpdate(BaseModel):
     use_max_waiting_limit: Optional[bool] = None
     block_last_class_registration: Optional[bool] = None
     auto_register_member: Optional[bool] = None
+    require_member_registration: Optional[bool] = None
+    registration_message: Optional[str] = None
     business_day_start: Optional[int] = 0
     auto_closing: Optional[bool] = True
     closing_action: Optional[str] = "reset"

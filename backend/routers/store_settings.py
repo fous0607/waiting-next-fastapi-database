@@ -70,7 +70,9 @@ async def get_store_settings(
             defer(StoreSettings.theme),
             defer(StoreSettings.default_class_minute),
             defer(StoreSettings.default_break_minute),
-            defer(StoreSettings.default_max_capacity)
+            defer(StoreSettings.default_max_capacity),
+            defer(StoreSettings.require_member_registration),
+            defer(StoreSettings.registration_message)
         ).filter(
             StoreSettings.store_id == current_store.id
         ).first()
@@ -99,6 +101,8 @@ async def get_store_settings(
             settings.default_class_minute = 50
             settings.default_break_minute = 10
             settings.default_max_capacity = 10
+            settings.require_member_registration = False
+            settings.registration_message = "처음 방문하셨네요!\n성함을 입력해 주세요."
 
     if not settings:
         # 기본 설정 생성
@@ -362,6 +366,7 @@ async def clone_store_settings(
         "use_max_waiting_limit": source_settings.use_max_waiting_limit,
         "block_last_class_registration": source_settings.block_last_class_registration,
         "auto_register_member": source_settings.auto_register_member,
+        "require_member_registration": source_settings.require_member_registration,
         "business_day_start": source_settings.business_day_start,
         "auto_closing": source_settings.auto_closing,
         "closing_action": source_settings.closing_action,

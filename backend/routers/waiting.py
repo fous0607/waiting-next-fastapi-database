@@ -286,8 +286,13 @@ async def register_waiting(
 
     is_new_member = (member is None)
 
-    # 자동 회원가입 로직
-    if not member and settings and settings.auto_register_member:
+    # 자동 회원가입 로직 (auto_register_member 또는 require_member_registration이 활성화된 경우)
+    should_auto_register = False
+    if settings:
+        should_auto_register = getattr(settings, 'auto_register_member', False) or \
+                              getattr(settings, 'require_member_registration', False)
+
+    if not member and should_auto_register:
         # 이름이 없는 경우 핸드폰 번호 뒷자리 사용
         member_name = waiting.name if waiting.name else waiting.phone[-4:]
         
