@@ -123,14 +123,7 @@ function StatsContent(): React.JSX.Element {
     return (
         <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h2 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-                        <BarChart3 className="w-7 h-7 text-blue-500" />
-                        통계 대시보드
-                    </h2>
-                </div>
-
+            <div className="flex flex-col md:flex-row md:items-center justify-end gap-4">
                 <div className="flex flex-wrap items-center gap-3">
                     <div className="flex items-center gap-3 bg-white p-1.5 rounded-2xl border border-slate-200 shadow-sm">
                         <DateRangeSelector onRangeChange={handleRangeChange} />
