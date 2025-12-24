@@ -419,6 +419,9 @@ export function GeneralSettings() {
                                                             <SelectItem value="24px">24px (보통)</SelectItem>
                                                             <SelectItem value="32px">32px (큼)</SelectItem>
                                                             <SelectItem value="40px">40px (매우 큼)</SelectItem>
+                                                            <SelectItem value="50px">50px (매우 매우 큼)</SelectItem>
+                                                            <SelectItem value="60px">60px (초대형 1)</SelectItem>
+                                                            <SelectItem value="70px">70px (초대형 2)</SelectItem>
                                                         </SelectContent>
                                                     </Select>
                                                 </FormItem>
