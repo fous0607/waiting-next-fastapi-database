@@ -119,9 +119,10 @@ export default function DashboardPage() {
         if (storeData) {
           const name = storeData.store_name || storeData.name;
           const code = storeData.store_code || storeData.code; // Get code
-          // CRITICAL FIX: The endpoint returns StoreSettings, where .id is the SETTINGS ID.
-          // We must use .store_id if available to get the actual STORE ID.
-          const realStoreId = storeData.store_id || storeData.id;
+          // CRITICAL FIX: The endpoint returns StoreSettings, where .id is the SETTINGS ID (e.g. 7).
+          // We must ONLY use .store_id (e.g. 12). DO NOT fallback to .id.
+          // If store_id is missing (old backend), it's better to keep existing localStorage value than to overwrite with wrong ID.
+          const realStoreId = storeData.store_id;
 
           if (name) {
             setStoreName(name);
