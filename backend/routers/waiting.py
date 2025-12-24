@@ -442,7 +442,7 @@ async def register_waiting(
                 "display_name": name if name else waiting.phone[-4:]
             },
             franchise_id=target_franchise_id,
-            target_role=None # Broadcast to ALL roles (admin, board, reception) to ensure delivery
+            target_role='admin' # Optimization: Send only to admin here. Board/Reception happen below.
         )
 
         # 2. 대기현황판(Board)에게 전송
