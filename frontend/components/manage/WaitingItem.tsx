@@ -19,11 +19,10 @@ import {
     GripVertical
 } from "lucide-react";
 import {
-    DropdownMenu,
-    DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import {
     Dialog,
     DialogContent,
@@ -53,6 +52,8 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
 
     const { classes, fetchWaitingList } = useWaitingStore();
     const [isMoveDialogOpen, setIsMoveDialogOpen] = useState(false);
+    const [isNameDialogOpen, setIsNameDialogOpen] = useState(false);
+    const [newName, setNewName] = useState(item.name || "");
 
     const style = {
         transform: CSS.Transform.toString(transform),
@@ -218,17 +219,9 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                                     <DropdownMenuItem onSelect={() => setIsMoveDialogOpen(true)}>
                                         <ArrowRightLeft className="w-4 h-4 mr-2" /> 교시 이동
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={async () => {
-                                        const name = prompt("본인 확인을 위해 성함을 입력해 주세요.", item.name || "");
-                                        if (name !== null) {
-                                            try {
-                                                await api.put(`/board/${item.id}/name`, { name });
-                                                toast.success("이름이 등록되었습니다.");
-                                                if (item.class_id) fetchWaitingList(item.class_id);
-                                            } catch (e) {
-                                                toast.error("이름 등록 실패");
-                                            }
-                                        }
+                                    <DropdownMenuItem onSelect={() => {
+                                        setNewName(item.name || "");
+                                        setIsNameDialogOpen(true);
                                     }}>
                                         <CheckCircle className="w-4 h-4 mr-2" /> 이름 등록
                                     </DropdownMenuItem>
@@ -265,6 +258,50 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                                 </Button>
                             ))
                         )}
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={isNameDialogOpen} onOpenChange={setIsNameDialogOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>이름 등록</DialogTitle>
+                        <DialogDescription>
+                            본인 확인을 위해 성함을 입력해 주세요.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="flex flex-col gap-4 py-4">
+                        <Input
+                            placeholder="성함 입력"
+                            value={newName}
+                            onChange={(e) => setNewName(e.target.value)}
+                            onKeyDown={async (e) => {
+                                if (e.key === 'Enter') {
+                                    try {
+                                        await api.put(`/board/${item.id}/name`, { name: newName });
+                                        toast.success("이름이 등록되었습니다.");
+                                        setIsNameDialogOpen(false);
+                                        if (item.class_id) fetchWaitingList(item.class_id);
+                                    } catch (err) {
+                                        toast.error("이름 등록 실패");
+                                    }
+                                }
+                            }}
+                            autoFocus
+                        />
+                        <div className="flex justify-end gap-2">
+                            <Button variant="outline" onClick={() => setIsNameDialogOpen(false)}>취소</Button>
+                            <Button onClick={async () => {
+                                try {
+                                    await api.put(`/board/${item.id}/name`, { name: newName });
+                                    toast.success("이름이 등록되었습니다.");
+                                    setIsNameDialogOpen(false);
+                                    if (item.class_id) fetchWaitingList(item.class_id);
+                                } catch (err) {
+                                    toast.error("이름 등록 실패");
+                                }
+                            }}>저장</Button>
+                        </div>
                     </div>
                 </DialogContent>
             </Dialog>
