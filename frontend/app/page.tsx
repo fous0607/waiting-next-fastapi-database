@@ -283,7 +283,7 @@ export default function DashboardPage() {
       title: "데이터 분석",
       description: "매장 대기 및 출석 통계 분석",
       icon: BarChart3,
-      href: "/analytics",
+      href: "/admin/stats",
       color: "bg-orange-100 text-orange-600"
     }
   ];
