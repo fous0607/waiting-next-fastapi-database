@@ -153,6 +153,7 @@ class StoreSettingsUpdate(BaseModel):
 
 class StoreSettings(StoreSettingsBase):
     id: int
+    store_id: int  # Critical for frontend ID matching
     created_at: datetime
     updated_at: datetime
     store_code: Optional[str] = None  # Added for frontend convenience
