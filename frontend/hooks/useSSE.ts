@@ -1,5 +1,6 @@
 
 import { useEffect, useRef, useCallback } from 'react';
+import { toast } from 'sonner';
 import { useWaitingStore } from '../lib/store/useWaitingStore';
 
 export function useSSE() {
@@ -48,7 +49,11 @@ export function useSSE() {
 
         if (!storeId) {
             console.log('[SSE] No store ID found, skipping connection');
+            // Only toast if we've waited a bit vs initial render
+            // toast.error("SSE 연결 실패: 매장 정보를 찾을 수 없습니다."); 
             return;
+        } else {
+            // toast.info(`SSE 연결 시도 (Store: ${storeId})...`);
         }
 
         let reconnectTimeout: NodeJS.Timeout;
@@ -82,6 +87,7 @@ export function useSSE() {
             es.onopen = () => {
                 console.log('[SSE] Connection opened successfully');
                 setConnected(true);
+                toast.success(`실시간 연결 성공 (Store: ${storeId})`);
             };
 
             es.onmessage = (event) => {

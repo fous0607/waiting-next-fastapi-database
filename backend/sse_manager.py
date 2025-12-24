@@ -105,6 +105,13 @@ class SSEConnectionManager:
         if franchise_id:
             await self.broadcast_to_franchise(franchise_id, event_type, data, store_id)
 
+        # DEBUG: Log State
+        if store_id in self.active_connections:
+            roles = [c.role for c in self.active_connections[store_id].values()]
+            print(f"[SSEManager] Broadcast complete. Active roles in store {store_id}: {roles}")
+        else:
+            print(f"[SSEManager] No active connections for store {store_id}")
+
     def get_store_status(self, store_id: str) -> List[dict]:
         """매장의 현재 연결 상태 조회"""
         if store_id not in self.active_connections:
