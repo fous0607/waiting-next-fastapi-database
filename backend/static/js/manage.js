@@ -254,7 +254,7 @@ function initSSE() {
     if (eventSource) eventSource.close();
     const storeId = localStorage.getItem('selected_store_id') || 'default';
     console.log(`SSE 연결 시도: Store ID = ${storeId}`);
-    eventSource = new EventSource(`/api/sse/stream?store_id=${storeId}`);
+    eventSource = new EventSource(`/api/sse/stream?store_id=${storeId}&role=admin`);
     eventSource.onopen = () => { console.log('SSE 연결됨'); updateConnectionStatus('connected'); };
     eventSource.onmessage = (event) => {
         try {
@@ -811,7 +811,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 // Adding new item also calls addNewWaitingItem which I defined in handleSSEMessage implicitly?
 // No, line 367 in Step 1831 was define addNewWaitingItem. I missed including it here.
 async function addNewWaitingItem(data) {
-    if (currentClassId !== data.class_id) return;
+    if (currentClassId != data.class_id) return;
     try {
         console.log('[DEBUG] addNewWaitingItem called for:', data);
         const response = await fetch(`/api/waiting/${data.waiting_id}`, { headers: getHeaders() });
