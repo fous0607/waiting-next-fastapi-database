@@ -217,23 +217,29 @@ function StatsContent(): React.JSX.Element {
                             <CardTitle className="text-lg font-bold text-slate-800">매출 추이</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="h-[300px] w-full">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <AreaChart data={stats.chart_data || []}>
-                                        <defs>
-                                            <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.1} />
-                                                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                                            </linearGradient>
-                                        </defs>
-                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                                        <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
-                                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
-                                        <Tooltip />
-                                        <Area type="monotone" dataKey="revenue" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#colorRevenue)" />
-                                    </AreaChart>
-                                </ResponsiveContainer>
-                            </div>
+                            {stats.chart_data && stats.chart_data.length > 0 ? (
+                                <div className="h-[300px] w-full">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <AreaChart data={stats.chart_data}>
+                                            <defs>
+                                                <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.1} />
+                                                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                                                </linearGradient>
+                                            </defs>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                                            <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
+                                            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
+                                            <Tooltip />
+                                            <Area type="monotone" dataKey="revenue" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#colorRevenue)" />
+                                        </AreaChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            ) : (
+                                <div className="h-[300px] flex items-center justify-center text-slate-400">
+                                    <p>데이터가 없습니다.</p>
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
 
