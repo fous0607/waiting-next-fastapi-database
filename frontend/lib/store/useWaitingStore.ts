@@ -191,17 +191,20 @@ export const useWaitingStore = create<WaitingState>((set, get) => ({
         }
     },
 
-    handleNewUser: () => {
-        get().fetchClasses();
-        if (get().currentClassId) {
-            get().fetchWaitingList(get().currentClassId!);
+    handleNewUser: async () => {
+        await get().fetchClasses();
+        // Re-check currentClassId from fresh state after fetchClasses might have auto-selected one
+        const freshState = get();
+        if (freshState.currentClassId) {
+            await get().fetchWaitingList(freshState.currentClassId!);
         }
     },
 
-    handleStatusChange: () => {
-        get().fetchClasses();
-        if (get().currentClassId) {
-            get().fetchWaitingList(get().currentClassId!);
+    handleStatusChange: async () => {
+        await get().fetchClasses();
+        const freshState = get();
+        if (freshState.currentClassId) {
+            await get().fetchWaitingList(freshState.currentClassId!);
         }
     },
 
