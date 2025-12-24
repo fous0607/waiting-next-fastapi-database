@@ -212,6 +212,36 @@
             <h3 style="margin-bottom: 20px; color: #2c3e50;">대기현황판 표시 설정</h3>
 
             <div class="form-group">
+                <label>현황판 폰트</label>
+                <select id="boardFontFamily" class="form-control" style="width: 300px;">
+                    <option value="Noto Sans">Noto Sans</option>
+                    <option value="Nanum Gothic">Nanum Gothic</option>
+                    <option value="Malgun Gothic">Malgun Gothic</option>
+                    <option value="Spoqa Han Sans Neo">Spoqa Han Sans Neo</option>
+                    <option value="AppleSDGothicNeo">AppleSDGothicNeo</option>
+                </select>
+                <small style="color:#7f8c8d;">
+                    대기현황판에서 사용할 폰트를 선택합니다.
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label>현황판 글자 크기</label>
+                <select id="boardFontSize" class="form-control" style="width: 300px;">
+                    <option value="18px">18px (매우 작음)</option>
+                    <option value="20px">20px (작음)</option>
+                    <option value="24px">24px (보통)</option>
+                    <option value="28px">28px (큼)</option>
+                    <option value="32px">32px (매우 큼)</option>
+                    <option value="36px">36px (초대형)</option>
+                    <option value="40px">40px (매우 큼)</option>
+                </select>
+                <small style="color:#7f8c8d;">
+                    대기현황판 전시 시 적용할 애니메이션
+                </small>
+            </div>
+
+            <div class="form-group">
                 <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
                     <input type="checkbox" id="showWaitingNumber" style="width: 20px; height: 20px; cursor: pointer;">
                     <span>대기번호 표시</span>
