@@ -56,6 +56,9 @@ interface WaitingState {
     handleClassClosed: (classId: number) => void;
     handleClassReopened: (classId: number) => void;
 
+    handleClassReopened: (classId: number) => void;
+    refreshAll: () => Promise<void>; // Consolidated refresh action
+
     // Admin Actions
     closeClass: (classId: number) => Promise<void>;
     reorderWaitingList: (classId: number, fromIndex: number, toIndex: number) => void;
@@ -211,6 +214,15 @@ export const useWaitingStore = create<WaitingState>((set, get) => ({
     handleOrderChange: () => {
         if (get().currentClassId) {
             get().fetchWaitingList(get().currentClassId!);
+        }
+    },
+
+    refreshAll: async () => {
+        // Optimized refresh: Fetch classes once, then fetch waiting list for current class once
+        await get().fetchClasses();
+        const freshState = get();
+        if (freshState.currentClassId) {
+            await get().fetchWaitingList(freshState.currentClassId!);
         }
     },
 

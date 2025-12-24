@@ -6,14 +6,13 @@ import { useWaitingStore } from '../lib/store/useWaitingStore';
 export function useSSE() {
     const eventSourceRef = useRef<EventSource | null>(null);
     const {
-        setConnected,
-        handleNewUser,
-        handleStatusChange,
-        handleOrderChange,
-        handleClassClosed,
-        handleClassReopened,
-        selectedStoreId
-    } = useWaitingStore();
+        const {
+            setConnected,
+            refreshAll, // Use optimized refresh
+            handleClassClosed,
+            handleClassReopened,
+            selectedStoreId
+        } = useWaitingStore();
 
     // Debounce refs
     const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -26,13 +25,11 @@ export function useSSE() {
 
         debounceTimerRef.current = setTimeout(() => {
             console.log('[SSE] Debounced refresh triggered');
-            // Trigger base refresh actions
-            handleNewUser();
-            handleStatusChange();
-            handleOrderChange();
+            // Optimized: Single consolidated refresh instead of multiple individual calls
+            refreshAll();
             debounceTimerRef.current = null;
         }, 500); // 500ms debounce
-    }, [handleNewUser, handleStatusChange, handleOrderChange]); // Dependencies
+    }, [refreshAll]); // Dependencies
 
     useEffect(() => {
         // Robust Store ID Resolution
