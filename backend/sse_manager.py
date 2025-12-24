@@ -57,6 +57,16 @@ class SSEConnectionManager:
             connected_at=datetime.now().isoformat()
         )
         
+        # Remove duplicate connections from same IP + role before adding new one
+        duplicates_to_remove = []
+        for conn_id, conn in self.active_connections[store_id].items():
+            if conn.ip == client_ip and conn.role == role:
+                duplicates_to_remove.append(conn_id)
+                print(f"[SSEManager] Removing duplicate connection: store={store_id}, role={role}, ip={client_ip}, old_id={conn_id}")
+        
+        for dup_id in duplicates_to_remove:
+            del self.active_connections[store_id][dup_id]
+        
         self.active_connections[store_id][connection.id] = connection
         print(f"[SSEManager] Connected: store={store_id}, role={role}, ip={client_ip}, id={connection.id}")
         return queue, connection.id
