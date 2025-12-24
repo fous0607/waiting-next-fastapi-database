@@ -118,12 +118,13 @@ export const useWaitingStore = create<WaitingState>((set, get) => ({
     fetchClasses: async () => {
         try {
             console.log("Fetching classes...");
+            const timestamp = Date.now();
             // 1. Fetch Closed Classes
-            const closedRes = await api.get('/board/closed-classes');
+            const closedRes = await api.get(`/board/closed-classes?_t=${timestamp}`);
             const closedIds = new Set<number>(closedRes.data.closed_class_ids);
 
             // 2. Fetch Classes with counts
-            const res = await api.get('/waiting/list/by-class');
+            const res = await api.get(`/waiting/list/by-class?_t=${timestamp}`);
             console.log("Classes response:", res.data);
 
             if (!res.data || res.data.length === 0) {
@@ -178,7 +179,7 @@ export const useWaitingStore = create<WaitingState>((set, get) => ({
 
     fetchWaitingList: async (classId) => {
         try {
-            const res = await api.get(`/waiting/list?status=waiting&class_id=${classId}`);
+            const res = await api.get(`/waiting/list?status=waiting&class_id=${classId}&_t=${Date.now()}`);
             set((state) => ({
                 waitingList: {
                     ...state.waitingList,
