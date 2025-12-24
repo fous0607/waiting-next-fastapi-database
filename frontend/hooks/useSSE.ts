@@ -67,6 +67,7 @@ export function useSSE() {
             // Must strictly match the working logic in BoardPage/ReceptionPage
             // Direct Backend URL (Bypass Proxy) for Tablet Stability & Vercel Timeouts
             // Hardcoded to ensure HTTPS connection as per user requirement (bypassing potentially stale Env Vars)
+            // FORCE_DEPLOY: Trigger Vercel update
             let backendUrl = 'https://waitingnext.posagent.kr/api/sse/stream';
 
             console.log(`[SSE] Backend URL forced to: ${backendUrl}`);
