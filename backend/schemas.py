@@ -360,6 +360,9 @@ class WaitingOrderUpdate(BaseModel):
 class WaitingClassUpdate(BaseModel):
     target_class_id: int
 
+class WaitingNameUpdate(BaseModel):
+    name: str
+
 class BatchAttendance(BaseModel):
     class_id: int
 

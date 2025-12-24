@@ -15,7 +15,8 @@ from schemas import (
     BatchAttendance,
     WaitingBoard,
     WaitingBoardItem,
-    EmptySeatInsert
+    EmptySeatInsert,
+    WaitingNameUpdate
 )
 from sse_manager import sse_manager
 from utils import get_today_date
@@ -387,6 +388,51 @@ async def update_waiting_status(
         )
 
     return {"message": f"상태가 {status_update.status}(으)로 변경되었습니다."}
+
+@router.put("/{waiting_id}/name")
+async def update_waiting_name(
+    waiting_id: int,
+    name_update: WaitingNameUpdate,
+    db: Session = Depends(get_db),
+    current_store: Store = Depends(get_current_store)
+):
+    """
+    대기자 이름 변경
+    - WaitingList의 이름을 변경하고 연결된 Member가 있는 경우 함께 변경
+    """
+    from models import Member
+    
+    waiting = db.query(WaitingList).filter(
+        WaitingList.id == waiting_id,
+        WaitingList.store_id == current_store.id
+    ).first()
+
+    if not waiting:
+        raise HTTPException(status_code=404, detail="대기자를 찾을 수 없습니다.")
+
+    old_name = waiting.name
+    waiting.name = name_update.name
+
+    # 연결된 회원이 있는 경우 회원 이름도 함께 변경
+    if waiting.member_id:
+        member = db.query(Member).filter(Member.id == waiting.member_id).first()
+        if member:
+            member.name = name_update.name
+
+    db.commit()
+
+    # SSE 브로드캐스트
+    await sse_manager.broadcast(
+        store_id=str(current_store.id),
+        event_type="name_updated",
+        data={
+            "waiting_id": waiting_id,
+            "name": name_update.name,
+            "display_name": name_update.name
+        }
+    )
+
+    return {"message": f"이름이 '{name_update.name}'(으)로 변경되었습니다."}
 
 @router.post("/{waiting_id}/call")
 async def call_waiting(

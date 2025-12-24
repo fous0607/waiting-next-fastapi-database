@@ -218,6 +218,20 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                                     <DropdownMenuItem onSelect={() => setIsMoveDialogOpen(true)}>
                                         <ArrowRightLeft className="w-4 h-4 mr-2" /> 교시 이동
                                     </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={async () => {
+                                        const name = prompt("본인 확인을 위해 성함을 입력해 주세요.", item.name || "");
+                                        if (name !== null) {
+                                            try {
+                                                await api.put(`/board/${item.id}/name`, { name });
+                                                toast.success("이름이 등록되었습니다.");
+                                                if (item.class_id) fetchWaitingList(item.class_id);
+                                            } catch (e) {
+                                                toast.error("이름 등록 실패");
+                                            }
+                                        }
+                                    }}>
+                                        <CheckCircle className="w-4 h-4 mr-2" /> 이름 등록
+                                    </DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         </div>
