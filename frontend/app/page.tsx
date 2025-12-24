@@ -18,6 +18,8 @@ import api from "@/lib/api";
 import { GlobalLoader } from "@/components/ui/GlobalLoader";
 import { toast } from "sonner";
 import NoticeWidget from "@/components/notice/NoticeWidget";
+import { format } from 'date-fns';
+import { ko } from 'date-fns/locale';
 
 
 export default function DashboardPage() {
@@ -383,9 +385,18 @@ export default function DashboardPage() {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>영업 개점</DialogTitle>
-              <DialogDescription>
-                새로운 영업일을 시작하시겠습니까?<br />
-                대기 번호가 1번부터 초기화됩니다.
+              <DialogDescription className="pt-4">
+                <div className="text-center space-y-4">
+                  <div className="py-2 bg-slate-50 rounded-xl border border-slate-100">
+                    <p className="text-2xl font-bold text-green-600">
+                      {format(new Date(), 'yyyy년 MM월 dd일 EEEE', { locale: ko })}
+                    </p>
+                  </div>
+                  <p className="leading-relaxed">
+                    위 날짜로 새로운 영업을 시작하시겠습니까?<br />
+                    <span className="text-xs text-slate-400">대기 번호가 1번부터 초기화됩니다.</span>
+                  </p>
+                </div>
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
