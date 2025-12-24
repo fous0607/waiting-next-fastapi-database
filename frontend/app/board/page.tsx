@@ -171,7 +171,49 @@ export default function BoardPage() {
         };
     }, [debouncedReload]); // Changed dependency to debouncedReload
 
-    // Page rotation removed - display all items without pagination
+    // Page Rotation Timer - respects store settings
+    useEffect(() => {
+        if (!data) return;
+
+        const pageSize = data.waiting_board_page_size || 12;
+        const interval = (data.waiting_board_rotation_interval || 5) * 1000;
+
+        const intervalId = setInterval(() => {
+            setPageIndices((prev) => {
+                const next = { ...prev };
+
+                // Group current items to check lengths
+                const currentGroups: Record<string, any[]> = {};
+                data.classes.forEach((cls) => { currentGroups[cls.id] = []; });
+                data.waiting_list.forEach((item) => {
+                    if (currentGroups[item.class_id]) currentGroups[item.class_id].push(item);
+                });
+
+                let hasChanges = false;
+                data.classes.forEach((cls) => {
+                    const items = currentGroups[cls.id] || [];
+                    if (items.length > pageSize) {
+                        const totalPages = Math.ceil(items.length / pageSize);
+                        const currentPage = prev[cls.id] || 0;
+                        const nextPage = (currentPage + 1) % totalPages;
+
+                        if (nextPage !== currentPage) {
+                            next[cls.id] = nextPage;
+                            hasChanges = true;
+                        }
+                    } else if (prev[cls.id] !== 0) {
+                        // Reset to page 0 if items reduced
+                        next[cls.id] = 0;
+                        hasChanges = true;
+                    }
+                });
+
+                return hasChanges ? next : prev;
+            });
+        }, interval);
+
+        return () => clearInterval(intervalId);
+    }, [data]);
 
     if (isLoading && !data) return <div className="h-screen w-screen flex items-center justify-center text-2xl">로딩 중...</div>;
     if (!data) return <div className="h-screen w-screen flex items-center justify-center text-2xl">데이터가 없습니다.</div>;
