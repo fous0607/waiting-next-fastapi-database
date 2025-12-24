@@ -94,6 +94,7 @@ class SSEConnectionManager:
                     
                 try:
                     await conn.queue.put(message)
+                    print(f"[SSEManager] Sent '{event_type}' to {conn.role} ({conn.ip})")
                 except Exception:
                     disconnected_ids.append(conn.id)
             
