@@ -421,7 +421,26 @@ async def update_waiting_name(
 
     db.commit()
 
-    # SSE 브로드캐스트
+    # SSE 브로드캐스트 분리 전송
+    settings = db.query(StoreSettings).options(
+        defer(StoreSettings.enable_franchise_monitoring)
+    ).filter(StoreSettings.store_id == current_store.id).first()
+    
+    franchise_id = str(current_store.franchise_id) if current_store.franchise_id else None
+    target_franchise_id = None
+    
+    # 프랜차이즈 모니터링 체크
+    monitoring_enabled = True
+    if settings:
+        try:
+            monitoring_enabled = settings.enable_franchise_monitoring
+        except:
+            monitoring_enabled = True
+            
+    if monitoring_enabled:
+        target_franchise_id = franchise_id
+
+    # 1. 관리자(Admin)에게는 무조건 전송
     await sse_manager.broadcast(
         store_id=str(current_store.id),
         event_type="name_updated",
@@ -429,8 +448,43 @@ async def update_waiting_name(
             "waiting_id": waiting_id,
             "name": name_update.name,
             "display_name": name_update.name
-        }
+        },
+        franchise_id=target_franchise_id,
+        target_role='admin'
     )
+
+    # 2. 대기현황판(Board)에게 전송
+    should_broadcast_board = True
+    should_broadcast_reception = True
+    
+    if settings:
+        should_broadcast_board = getattr(settings, 'enable_waiting_board', True) 
+        should_broadcast_reception = getattr(settings, 'enable_reception_desk', True)
+
+    common_data = {
+        "waiting_id": waiting_id,
+        "name": name_update.name,
+        "display_name": name_update.name
+    }
+
+    if should_broadcast_board:
+        await sse_manager.broadcast(
+            store_id=str(current_store.id),
+            event_type="name_updated",
+            data=common_data,
+            franchise_id=None,
+            target_role='board'
+        )
+
+    # 3. 접수대(Reception)에게 전송
+    if should_broadcast_reception:
+        await sse_manager.broadcast(
+            store_id=str(current_store.id),
+            event_type="name_updated",
+            data=common_data,
+            franchise_id=None,
+            target_role='reception'
+        )
 
     return {"message": f"이름이 '{name_update.name}'(으)로 변경되었습니다."}
 

@@ -138,6 +138,7 @@ export default function BoardPage() {
                         case 'class_reopened':
                         case 'user_called':
                         case 'batch_attendance':
+                        case 'name_updated':
                             debouncedReload();
                             break;
                         default:
