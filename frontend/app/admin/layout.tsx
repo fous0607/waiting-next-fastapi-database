@@ -105,6 +105,12 @@ function AdminSidebar() {
             href: '/admin/inactive',
             active: pathname === '/admin/inactive',
         },
+        {
+            title: '신규 회원 조회',
+            icon: Users,
+            href: '/admin/members/new',
+            active: pathname === '/admin/members/new',
+        },
     ];
 
     return (

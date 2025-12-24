@@ -245,6 +245,24 @@ class StatsService:
         }
 
 
+        from datetime import datetime
+        # 4. New Members & Retention (Real Data)
+        # -------------------------------------------------------------------
+        new_members_count = db.query(Member).filter(
+            Member.store_id.in_(target_store_ids),
+            Member.created_at >= datetime.combine(start_date, datetime.min.time()),
+            Member.created_at <= datetime.combine(end_date, datetime.max.time())
+        ).count()
+
+        unique_visiting_members = len(set(w.member_id for w in all_waitings if w.member_id))
+        visited_returning = unique_visiting_members - new_members_count
+        if visited_returning < 0: visited_returning = 0
+        
+        retention_rate = (visited_returning / unique_visiting_members * 100) if unique_visiting_members > 0 else 0.0
+
+        # Calculate Total Revenue (Mocked for now since not in DB)
+        total_revenue = sum(s['total_sales'] for s in store_comparison)
+
         return {
             "total_stores": total_stores,
             "open_stores": open_stores,
@@ -257,6 +275,10 @@ class StatsService:
             "store_comparison": store_comparison,
             "payment_stats": payment_stats,
             "channel_stats": channel_stats,
+            "total_revenue": total_revenue,
+            "total_visitors": total_waiting,  # total_waiting is visitors approx
+            "new_members": new_members_count,
+            "retention_rate": round(retention_rate, 1),
             "top_churn_members": []
         }
 

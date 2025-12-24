@@ -144,9 +144,25 @@ export function GeneralSettings() {
                     waiting_board_page_size: data.waiting_board_page_size || 12,
                     waiting_board_rotation_interval: data.waiting_board_rotation_interval || 5,
                     business_day_start: data.business_day_start ?? 5,
-                    waiting_manager_max_width: data.waiting_manager_max_width || null, // Ensure null if 0 or undefined
+                    waiting_manager_max_width: data.waiting_manager_max_width || null,
                     manager_button_size: data.manager_button_size || 'medium',
                     waiting_list_box_size: data.waiting_list_box_size || 'medium',
+
+                    // Prevent uncontrolled to controlled warnings for all checkboxes
+                    auto_register_member: data.auto_register_member ?? false,
+                    require_member_registration: data.require_member_registration ?? false,
+                    show_member_name_in_waiting_modal: data.show_member_name_in_waiting_modal ?? true,
+                    show_new_member_text_in_waiting_modal: data.show_new_member_text_in_waiting_modal ?? true,
+                    enable_waiting_voice_alert: data.enable_waiting_voice_alert ?? false,
+                    enable_waiting_board: data.enable_waiting_board ?? true,
+                    enable_reception_desk: data.enable_reception_desk ?? true,
+                    auto_closing: data.auto_closing ?? true,
+                    use_max_waiting_limit: data.use_max_waiting_limit ?? true,
+                    block_last_class_registration: data.block_last_class_registration ?? false,
+                    show_waiting_number: data.show_waiting_number ?? true,
+                    mask_customer_name: data.mask_customer_name ?? false,
+                    show_order_number: data.show_order_number ?? true,
+                    registration_message: data.registration_message || "처음 방문하셨네요!\n성함을 입력해 주세요.",
                 });
 
                 // Set initial theme
@@ -238,7 +254,7 @@ export function GeneralSettings() {
                                     render={({ field }) => (
                                         <FormItem>
                                             <FormLabel>테마</FormLabel>
-                                            <Select onValueChange={field.onChange} defaultValue={field.value as string}>
+                                            <Select onValueChange={field.onChange} value={field.value as string || ''}>
                                                 <FormControl>
                                                     <SelectTrigger>
                                                         <SelectValue placeholder="테마 선택" />
@@ -289,7 +305,7 @@ export function GeneralSettings() {
                                             render={({ field }) => (
                                                 <FormItem>
                                                     <FormLabel>대기자 리스트 방향</FormLabel>
-                                                    <Select onValueChange={field.onChange} defaultValue={field.value as string}>
+                                                    <Select onValueChange={field.onChange} value={field.value as string || ''}>
                                                         <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                                                         <SelectContent>
                                                             <SelectItem value="vertical">세로 방향</SelectItem>
@@ -305,7 +321,7 @@ export function GeneralSettings() {
                                             render={({ field }) => (
                                                 <FormItem>
                                                     <FormLabel>대기관리자 버튼 크기</FormLabel>
-                                                    <Select onValueChange={field.onChange} defaultValue={field.value as string}>
+                                                    <Select onValueChange={field.onChange} value={field.value as string || ''}>
                                                         <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                                                         <SelectContent>
                                                             <SelectItem value="xsmall">더 작게</SelectItem>
@@ -349,7 +365,7 @@ export function GeneralSettings() {
                                             render={({ field }) => (
                                                 <FormItem>
                                                     <FormLabel>페이지 전환 효과</FormLabel>
-                                                    <Select onValueChange={field.onChange} defaultValue={field.value as string}>
+                                                    <Select onValueChange={field.onChange} value={field.value as string || ''}>
                                                         <FormControl>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder="효과 선택" />
@@ -377,7 +393,7 @@ export function GeneralSettings() {
                                             render={({ field }) => (
                                                 <FormItem>
                                                     <FormLabel>현황판 폰트</FormLabel>
-                                                    <Select onValueChange={field.onChange} defaultValue={field.value as string}>
+                                                    <Select onValueChange={field.onChange} value={field.value as string || ''}>
                                                         <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                                                         <SelectContent>
                                                             <SelectItem value="Nanum Gothic">나눔고딕</SelectItem>
@@ -394,7 +410,7 @@ export function GeneralSettings() {
                                             render={({ field }) => (
                                                 <FormItem>
                                                     <FormLabel>현황판 글자 크기</FormLabel>
-                                                    <Select onValueChange={field.onChange} defaultValue={field.value as string}>
+                                                    <Select onValueChange={field.onChange} value={field.value as string || ''}>
                                                         <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                                                         <SelectContent>
                                                             <SelectItem value="20px">20px (작음)</SelectItem>
@@ -432,7 +448,7 @@ export function GeneralSettings() {
                                             render={({ field }) => (
                                                 <FormItem>
                                                     <FormLabel>개점 설정</FormLabel>
-                                                    <Select onValueChange={field.onChange} defaultValue={field.value as string}>
+                                                    <Select onValueChange={field.onChange} value={field.value as string || ''}>
                                                         <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                                                         <SelectContent>
                                                             <SelectItem value="strict">1일 1회만 개점 (엄격)</SelectItem>
@@ -449,7 +465,7 @@ export function GeneralSettings() {
                                             name="auto_closing"
                                             render={({ field }) => (
                                                 <FormItem className="flex flex-row items-start space-x-2 space-y-0 p-2">
-                                                    <FormControl><Checkbox checked={field.value as boolean} onCheckedChange={field.onChange} /></FormControl>
+                                                    <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
                                                     <FormLabel className='font-normal'>자동 마감 및 리셋 사용</FormLabel>
                                                 </FormItem>
                                             )}
@@ -459,7 +475,7 @@ export function GeneralSettings() {
                                             name="block_last_class_registration"
                                             render={({ field }) => (
                                                 <FormItem className="flex flex-row items-start space-x-2 space-y-0 p-2">
-                                                    <FormControl><Checkbox checked={field.value as boolean} onCheckedChange={field.onChange} /></FormControl>
+                                                    <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
                                                     <FormLabel className='font-normal'>마지막 교시 정원초과 시 차단</FormLabel>
                                                 </FormItem>
                                             )}
@@ -489,7 +505,7 @@ export function GeneralSettings() {
                                             render={({ field }) => (
                                                 <FormItem>
                                                     <FormLabel>키패드 스타일</FormLabel>
-                                                    <Select onValueChange={field.onChange} defaultValue={field.value as string}>
+                                                    <Select onValueChange={field.onChange} value={field.value as string || ''}>
                                                         <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                                                         <SelectContent>
                                                             <SelectItem value="modern">Modern</SelectItem>
@@ -508,8 +524,18 @@ export function GeneralSettings() {
                                             name="show_member_name_in_waiting_modal"
                                             render={({ field }) => (
                                                 <FormItem className="flex flex-row items-center space-x-2 space-y-0">
-                                                    <FormControl><Checkbox checked={field.value as boolean} onCheckedChange={field.onChange} /></FormControl>
+                                                    <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
                                                     <FormLabel className='font-normal'>완료 모달에 회원 이름 표시</FormLabel>
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control}
+                                            name="show_new_member_text_in_waiting_modal"
+                                            render={({ field }) => (
+                                                <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                                                    <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
+                                                    <FormLabel className='font-normal'>완료 모달에 신규회원 안내 문구 표시</FormLabel>
                                                 </FormItem>
                                             )}
                                         />
@@ -518,7 +544,7 @@ export function GeneralSettings() {
                                             name="enable_waiting_voice_alert"
                                             render={({ field }) => (
                                                 <FormItem className="flex flex-row items-center space-x-2 space-y-0">
-                                                    <FormControl><Checkbox checked={field.value as boolean} onCheckedChange={field.onChange} /></FormControl>
+                                                    <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
                                                     <FormLabel className='font-normal'>음성 안내 사용</FormLabel>
                                                 </FormItem>
                                             )}
@@ -539,7 +565,7 @@ export function GeneralSettings() {
                                             render={({ field }) => (
                                                 <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 bg-blue-50/30">
                                                     <FormControl>
-                                                        <Checkbox checked={field.value as boolean} onCheckedChange={field.onChange} />
+                                                        <Checkbox checked={!!field.value} onCheckedChange={field.onChange} />
                                                     </FormControl>
                                                     <div className="space-y-1 leading-none">
                                                         <FormLabel className="text-blue-700 font-bold">신규고객 자동 회원가입 사용</FormLabel>
@@ -550,12 +576,32 @@ export function GeneralSettings() {
                                                 </FormItem>
                                             )}
                                         />
+                                        {form.watch('require_member_registration') && (
+                                            <FormField
+                                                control={form.control}
+                                                name="registration_message"
+                                                render={({ field }) => (
+                                                    <FormItem className="pl-4">
+                                                        <FormLabel className="text-xs font-semibold text-blue-600">신규회원 등록 안내 문구</FormLabel>
+                                                        <FormControl>
+                                                            <textarea
+                                                                className="flex min-h-[60px] w-full rounded-md border border-blue-100 bg-blue-50/10 px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-400 disabled:cursor-not-allowed disabled:opacity-50"
+                                                                placeholder="예: 처음 방문하셨네요!\n성함을 입력해 주세요."
+                                                                {...field}
+                                                                value={field.value || ''}
+                                                            />
+                                                        </FormControl>
+                                                        <FormDescription className="text-[10px]">이름 입력 화면에 표시될 커스텀 메시지입니다. (\n으로 줄바꿈 가능)</FormDescription>
+                                                    </FormItem>
+                                                )}
+                                            />
+                                        )}
                                         <FormField
                                             control={form.control}
                                             name="auto_register_member"
                                             render={({ field }) => (
                                                 <FormItem className="flex flex-row items-center space-x-2 space-y-0 opacity-60">
-                                                    <FormControl><Checkbox checked={field.value as boolean} onCheckedChange={field.onChange} /></FormControl>
+                                                    <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
                                                     <FormLabel className='font-normal text-xs text-slate-500'>[고급] 이름 입력 없이 번호만으로 자동 등록 (비활성 권장)</FormLabel>
                                                 </FormItem>
                                             )}
@@ -575,7 +621,7 @@ export function GeneralSettings() {
                                             render={({ field }) => (
                                                 <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm">
                                                     <FormControl>
-                                                        <Checkbox checked={field.value as boolean} onCheckedChange={field.onChange} />
+                                                        <Checkbox checked={!!field.value} onCheckedChange={field.onChange} />
                                                     </FormControl>
                                                     <div className="space-y-1 leading-none">
                                                         <FormLabel>대기현황판 사용</FormLabel>
@@ -590,7 +636,7 @@ export function GeneralSettings() {
                                             render={({ field }) => (
                                                 <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm">
                                                     <FormControl>
-                                                        <Checkbox checked={field.value as boolean} onCheckedChange={field.onChange} />
+                                                        <Checkbox checked={!!field.value} onCheckedChange={field.onChange} />
                                                     </FormControl>
                                                     <div className="space-y-1 leading-none">
                                                         <FormLabel>대기접수 데스크 사용</FormLabel>

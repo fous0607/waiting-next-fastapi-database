@@ -739,6 +739,22 @@ async def get_store_analytics_dashboard(
     # If period != hourly, we might crash client if we force string into int.
     # I should update the schema `HourlyStat` to allow string or add `label` field.
     
+    # 신규 회원 수 계산
+    new_members_cnt = db.query(Member).filter(
+        Member.store_id == store_id,
+        Member.created_at >= datetime.combine(start_date, datetime.min.time()),
+        Member.created_at <= datetime.combine(end_date, datetime.max.time())
+    ).count()
+
+    # 재방문율 가계산 (기간 방문자 중 신규 제외)
+    unique_visiting_members = len(set(w.member_id for w in waitings if w.member_id))
+    visited_returning = unique_visiting_members - new_members_cnt
+    if visited_returning < 0: visited_returning = 0
+    retention_rate = (visited_returning / unique_visiting_members * 100) if unique_visiting_members > 0 else 0.0
+
+    # 매출 가계산 (출석 인원 * 평균 객단가 15,000원 가정)
+    total_revenue = total_attendance_cnt * 15000
+
     # Construct response
     return schemas.AnalyticsDashboard(
         total_stores=1,
@@ -747,8 +763,12 @@ async def get_store_analytics_dashboard(
         total_attendance=total_attendance_cnt,
         waiting_time_stats=w_stats,
         attendance_time_stats=a_stats,
-        hourly_stats=trends_list, # Pydantic will validate this! I must update Schema.
+        hourly_stats=trends_list,
         store_stats=store_stats_list,
+        new_members=new_members_cnt,
+        total_revenue=total_revenue,
+        total_visitors=total_waiting_cnt,
+        retention_rate=round(retention_rate, 1),
         top_churn_members=[] 
     )
 
@@ -802,6 +822,34 @@ async def get_member_visit_history(
         "last_visit": last_visit.isoformat() if last_visit else None,
         "history": history_list
     }
+
+
+@router.get("/new-members")
+async def get_store_new_members(
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
+    current_store: Store = Depends(get_current_store),
+    db: Session = Depends(get_db)
+):
+    """지정 기간 내 가입한 신규 회원 리스트 조회"""
+    query = db.query(Member).filter(Member.store_id == current_store.id)
+    
+    if start_date:
+        query = query.filter(Member.created_at >= datetime.combine(start_date, datetime.min.time()))
+    if end_date:
+        query = query.filter(Member.created_at <= datetime.combine(end_date, datetime.max.time()))
+        
+    new_members = query.order_by(desc(Member.created_at)).all()
+    
+    return [
+        {
+            "id": m.id,
+            "name": m.name,
+            "phone": m.phone,
+            "created_at": m.created_at.strftime("%Y.%m.%d %H:%M"),
+            "store_name": current_store.name
+        } for m in new_members
+    ]
 
 
 @router.get("/attendance-ranking")

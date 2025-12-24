@@ -518,7 +518,14 @@ export default function ReceptionPage() {
                         </div>
                         <DialogTitle className="text-center text-4xl font-bold mb-4">접수 완료</DialogTitle>
                         <DialogDescription className="text-center text-2xl text-slate-600 mb-8 font-normal leading-relaxed">
-                            <span className="block text-5xl text-blue-600 font-black mb-4 mt-2">{resultDialog.data?.class_name} {resultDialog.data?.class_order}번째</span>
+                            <span className="block text-5xl text-blue-600 font-black mb-4 mt-2">
+                                {resultDialog.data?.class_name} {resultDialog.data?.class_order}번째
+                                {resultDialog.data?.is_new_member && storeSettings?.show_new_member_text_in_waiting_modal && (
+                                    <span className="ml-2 inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-base font-bold text-blue-700 align-middle">
+                                        신규고객
+                                    </span>
+                                )}
+                            </span>
                             대기 접수가 완료되었습니다.
                         </DialogDescription>
                     </DialogHeader>
@@ -562,8 +569,8 @@ export default function ReceptionPage() {
                             <Check className="w-10 h-10" />
                         </div>
                         <DialogTitle className="text-center text-3xl font-bold mb-2">신규 회원 등록</DialogTitle>
-                        <DialogDescription className="text-center text-xl text-slate-600 mb-6 font-normal">
-                            처음 방문하셨네요!<br />성함을 입력해 주세요.
+                        <DialogDescription className="text-center text-xl text-slate-600 mb-6 font-normal whitespace-pre-line">
+                            {storeSettings?.registration_message || "처음 방문하셨네요!\n성함을 입력해 주세요."}
                         </DialogDescription>
                     </DialogHeader>
 

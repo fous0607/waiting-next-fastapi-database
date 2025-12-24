@@ -529,6 +529,12 @@ class AnalyticsDashboard(BaseModel):
     hourly_stats: List[HourlyStat]
     store_stats: List[StoreOperationStat]
     
+    # KPI fields
+    total_revenue: int = 0
+    total_visitors: int = 0
+    new_members: int = 0
+    retention_rate: float = 0.0
+    
     # New fields for Enhanced Dashboard
     store_comparison: List[StoreComparisonStat] = []
     payment_stats: Optional[ChartData] = None
