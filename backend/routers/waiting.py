@@ -445,34 +445,43 @@ async def register_waiting(
             target_role='admin'
         )
 
-        # 2. 대기현황판(Board)에게는 설정이 켜져 있을 때만 전송
+        # 2. 대기현황판(Board)에게 전송
         should_broadcast_board = True
+        should_broadcast_reception = True
+        
         if settings:
-            use_board = getattr(settings, 'enable_waiting_board', True) 
-            use_desk = getattr(settings, 'enable_reception_desk', True)
-            
-            if not use_board and not use_desk:
-                should_broadcast_board = False
-                logger.debug(f"Skipping new_user broadcast to BOARD/RECEPTION (Board: disabled, Reception: disabled): store_id={current_store.id}")
+            should_broadcast_board = getattr(settings, 'enable_waiting_board', True) 
+            should_broadcast_reception = getattr(settings, 'enable_reception_desk', True)
+
+        common_data = {
+            "id": new_waiting.id,
+            "waiting_id": new_waiting.id,
+            "waiting_number": waiting_number,
+            "class_id": target_class.id,
+            "class_name": target_class.class_name,
+            "class_order": class_order,
+            "name": name,
+            "phone": waiting.phone,
+            "display_name": name if name else waiting.phone[-4:]
+        }
 
         if should_broadcast_board:
             await sse_manager.broadcast(
                 store_id=str(current_store.id),
                 event_type="new_user",
-                data={
-                    "id": new_waiting.id,
-                    "waiting_id": new_waiting.id,
-                    "waiting_number": waiting_number,
-                    "class_id": target_class.id,
-                    "class_name": target_class.class_name,
-                    "class_order": class_order,
-                    "name": name,
-                    "phone": waiting.phone,
-                    "display_name": name if name else waiting.phone[-4:]
-                },
-                # 프랜차이즈 전파는 admin/board 구분 없이 일단 보냄 (필요시 franchise 로직도 수정 가능하지만 일단 유지)
+                data=common_data,
                 franchise_id=None, 
                 target_role='board'
+            )
+            
+        # 3. 접수대(Reception)에게 전송
+        if should_broadcast_reception:
+            await sse_manager.broadcast(
+                store_id=str(current_store.id),
+                event_type="new_user",
+                data=common_data,
+                franchise_id=None, 
+                target_role='reception'
             )
             
     except Exception as e:

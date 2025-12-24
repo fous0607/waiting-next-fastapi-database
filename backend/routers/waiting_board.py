@@ -353,26 +353,37 @@ async def update_waiting_status(
         target_role='admin'
     )
 
-    # 2. 대기현황판(Board)에게는 설정이 켜져 있을 때만 전송
+    # 2. 대기현황판(Board)에게 전송
     should_broadcast_board = True
+    should_broadcast_reception = True
+    
     if settings:
-        use_board = getattr(settings, 'enable_waiting_board', True) 
-        use_desk = getattr(settings, 'enable_reception_desk', True)
-        if not use_board and not use_desk:
-            should_broadcast_board = False
-            logger.debug(f"Skipping status_changed broadcast to BOARD/RECEPTION (Board: disabled, Reception: disabled): store_id={current_store.id}")
+        should_broadcast_board = getattr(settings, 'enable_waiting_board', True) 
+        should_broadcast_reception = getattr(settings, 'enable_reception_desk', True)
+
+    common_data = {
+        "waiting_id": waiting_id,
+        "status": status_update.status,
+        "waiting_number": waiting.waiting_number
+    }
 
     if should_broadcast_board:
         await sse_manager.broadcast(
             store_id=str(current_store.id),
             event_type="status_changed",
-            data={
-                "waiting_id": waiting_id,
-                "status": status_update.status,
-                "waiting_number": waiting.waiting_number
-            },
+            data=common_data,
             franchise_id=None,
             target_role='board'
+        )
+
+    # 3. 접수대(Reception)에게 전송
+    if should_broadcast_reception:
+        await sse_manager.broadcast(
+            store_id=str(current_store.id),
+            event_type="status_changed",
+            data=common_data,
+            franchise_id=None,
+            target_role='reception'
         )
 
     return {"message": f"상태가 {status_update.status}(으)로 변경되었습니다."}
@@ -430,26 +441,37 @@ async def call_waiting(
         target_role='admin'
     )
 
-    # 2. 대기현황판(Board) 전송 (설정 확인)
+    # 2. 대기현황판(Board) 전송
     should_broadcast_board = True
+    should_broadcast_reception = True
+    
     if settings:
-        use_board = getattr(settings, 'enable_waiting_board', True) 
-        use_desk = getattr(settings, 'enable_reception_desk', True)
-        if not use_board and not use_desk:
-            should_broadcast_board = False
-            logger.debug(f"Skipping user_called broadcast to BOARD/RECEPTION (Board: disabled, Reception: disabled): store_id={current_store.id}")
+        should_broadcast_board = getattr(settings, 'enable_waiting_board', True) 
+        should_broadcast_reception = getattr(settings, 'enable_reception_desk', True)
+
+    common_data = {
+        "waiting_id": waiting_id,
+        "waiting_number": waiting.waiting_number,
+        "call_count": waiting.call_count
+    }
 
     if should_broadcast_board:
         await sse_manager.broadcast(
             store_id=str(current_store.id),
             event_type="user_called",
-            data={
-                "waiting_id": waiting_id,
-                "waiting_number": waiting.waiting_number,
-                "call_count": waiting.call_count
-            },
+            data=common_data,
             franchise_id=None,
             target_role='board'
+        )
+
+    # 3. 접수대(Reception) 전송
+    if should_broadcast_reception:
+        await sse_manager.broadcast(
+            store_id=str(current_store.id),
+            event_type="user_called",
+            data=common_data,
+            franchise_id=None,
+            target_role='reception'
         )
 
     return {
@@ -556,26 +578,38 @@ async def swap_waiting_order(
             target_role='admin'
         )
         
-        # 2. 대기현황판(Board) 전송 - 설정 체크
+        # 2. 대기현황판(Board) 전송
         should_broadcast_board = True
+        should_broadcast_reception = True
+        
         if settings:
-            use_board = getattr(settings, 'enable_waiting_board', True) 
-            use_desk = getattr(settings, 'enable_reception_desk', True)
-            if not use_board and not use_desk:
-                should_broadcast_board = False
-                logger.debug(f"Skipping order_changed broadcast to BOARD/RECEPTION (Board: disabled, Reception: disabled): store_id={current_store.id}")
+            should_broadcast_board = getattr(settings, 'enable_waiting_board', True) 
+            should_broadcast_reception = getattr(settings, 'enable_reception_desk', True)
+
+        common_data = {
+            "waiting_id": waiting_id,
+            "target_id": target_id
+        }
 
         if should_broadcast_board:
             logger.info(f"[SWAP] Broadcasting order_changed to BOARD: store_id={current_store.id}")
             await sse_manager.broadcast(
                 store_id=str(current_store.id),
                 event_type="order_changed",
-                data={
-                    "waiting_id": waiting_id,
-                    "target_id": target_id
-                },
+                data=common_data,
                 franchise_id=None,
                 target_role='board'
+            )
+
+        # 3. 접수대(Reception) 전송
+        if should_broadcast_reception:
+            logger.info(f"[SWAP] Broadcasting order_changed to RECEPTION: store_id={current_store.id}")
+            await sse_manager.broadcast(
+                store_id=str(current_store.id),
+                event_type="order_changed",
+                data=common_data,
+                franchise_id=None,
+                target_role='reception'
             )
     except Exception as e:
         logger.error(f"[SWAP] Failed to broadcast SSE: {e}")
@@ -668,25 +702,36 @@ async def change_waiting_order(
         target_role='admin'
     )
 
-    # 2. 대기현황판(Board) 전송 (설정 확인)
+    # 2. 대기현황판(Board) 전송
     should_broadcast_board = True
+    should_broadcast_reception = True
+    
     if settings:
-        use_board = getattr(settings, 'enable_waiting_board', True) 
-        use_desk = getattr(settings, 'enable_reception_desk', True)
-        if not use_board and not use_desk:
-            should_broadcast_board = False
-            logger.debug(f"Skipping order_changed broadcast to BOARD/RECEPTION (Board: disabled, Reception: disabled): store_id={current_store.id}")
+        should_broadcast_board = getattr(settings, 'enable_waiting_board', True) 
+        should_broadcast_reception = getattr(settings, 'enable_reception_desk', True)
+
+    common_data = {
+        "waiting_id": waiting_id,
+        "direction": order_update.direction
+    }
 
     if should_broadcast_board:
         await sse_manager.broadcast(
             store_id=str(current_store.id),
             event_type="order_changed",
-            data={
-                "waiting_id": waiting_id,
-                "direction": order_update.direction
-            },
+            data=common_data,
             franchise_id=None,
             target_role='board'
+        )
+
+    # 3. 접수대(Reception) 전송
+    if should_broadcast_reception:
+        await sse_manager.broadcast(
+            store_id=str(current_store.id),
+            event_type="order_changed",
+            data=common_data,
+            franchise_id=None,
+            target_role='reception'
         )
 
     return {"message": "순서가 변경되었습니다."}
@@ -797,27 +842,38 @@ async def move_to_another_class(
         target_role='admin'
     )
     
-    # 2. 대기현황판(Board) 전송 (설정 확인)
+    # 2. 대기현황판(Board) 전송
     should_broadcast_board = True
+    should_broadcast_reception = True
+    
     if settings:
-        use_board = getattr(settings, 'enable_waiting_board', True) 
-        use_desk = getattr(settings, 'enable_reception_desk', True)
-        if not use_board and not use_desk:
-            should_broadcast_board = False
-            logger.debug(f"Skipping class_moved broadcast to BOARD/RECEPTION (Board: disabled, Reception: disabled): store_id={current_store.id}")
+        should_broadcast_board = getattr(settings, 'enable_waiting_board', True) 
+        should_broadcast_reception = getattr(settings, 'enable_reception_desk', True)
+
+    common_data = {
+        "waiting_id": waiting_id,
+        "old_class_id": old_class_id,
+        "new_class_id": target_class.id,
+        "new_class_name": target_class.class_name
+    }
 
     if should_broadcast_board:
         await sse_manager.broadcast(
             store_id=str(current_store.id),
             event_type="class_moved",
-            data={
-                "waiting_id": waiting_id,
-                "old_class_id": old_class_id,
-                "new_class_id": target_class.id,
-                "new_class_name": target_class.class_name
-            },
+            data=common_data,
             franchise_id=None,
             target_role='board'
+        )
+
+    # 3. 접수대(Reception) 전송
+    if should_broadcast_reception:
+        await sse_manager.broadcast(
+            store_id=str(current_store.id),
+            event_type="class_moved",
+            data=common_data,
+            franchise_id=None,
+            target_role='reception'
         )
 
     return {"message": f"{target_class.class_name}(으)로 이동되었습니다."}
@@ -941,24 +997,37 @@ async def batch_attendance(
     
     # 2. 대기현황판(Board) 전송 (설정 확인)
     should_broadcast_board = True
+    # 2. 대기현황판(Board)에게 전송
+    should_broadcast_board = True
+    should_broadcast_reception = True
+    
     if settings:
-        use_board = getattr(settings, 'enable_waiting_board', True) 
-        use_desk = getattr(settings, 'enable_reception_desk', True)
-        if not use_board and not use_desk:
-            should_broadcast_board = False
-            logger.debug(f"Skipping class_closed broadcast to BOARD/RECEPTION (Board: disabled, Reception: disabled): store_id={current_store.id}")
+        should_broadcast_board = getattr(settings, 'enable_waiting_board', True) 
+        should_broadcast_reception = getattr(settings, 'enable_reception_desk', True)
+
+    common_data = {
+        "class_id": batch.class_id,
+        "class_name": class_info.class_name,
+        "waiting_count": waiting_count
+    }
 
     if should_broadcast_board:
         await sse_manager.broadcast(
             store_id=str(current_store.id),
             event_type="class_closed",
-            data={
-                "class_id": batch.class_id,
-                "class_name": class_info.class_name,
-                "waiting_count": waiting_count
-            },
+            data=common_data,
             franchise_id=None,
             target_role='board'
+        )
+
+    # 3. 접수대(Reception)에게 전송
+    if should_broadcast_reception:
+        await sse_manager.broadcast(
+            store_id=str(current_store.id),
+            event_type="class_closed",
+            data=common_data,
+            franchise_id=None,
+            target_role='reception'
         )
     
     # [2] batch_attendance 이벤트 브로드캐스트 (출석현황 업데이트용)
@@ -977,20 +1046,36 @@ async def batch_attendance(
     )
     
     # 2. 대기현황판(Board) 전송
-    # Note: Using the same should_broadcast_board flag
-    if not should_broadcast_board:
-        logger.debug(f"Skipping batch_attendance broadcast to BOARD/RECEPTION (Board: disabled, Reception: disabled): store_id={current_store.id}")
-    else:
+    should_broadcast_board = True
+    should_broadcast_reception = True
+    
+    if settings:
+        should_broadcast_board = getattr(settings, 'enable_waiting_board', True) 
+        should_broadcast_reception = getattr(settings, 'enable_reception_desk', True)
+
+    common_data = {
+        "class_id": batch.class_id,
+        "class_name": class_info.class_name,
+        "count": waiting_count
+    }
+
+    if should_broadcast_board:
         await sse_manager.broadcast(
             store_id=str(current_store.id),
             event_type="batch_attendance",
-            data={
-                "class_id": batch.class_id,
-                "class_name": class_info.class_name,
-                "count": waiting_count
-            },
+            data=common_data,
             franchise_id=None,
             target_role='board'
+        )
+
+    # 3. 접수대(Reception) 전송
+    if should_broadcast_reception:
+        await sse_manager.broadcast(
+            store_id=str(current_store.id),
+            event_type="batch_attendance",
+            data=common_data,
+            franchise_id=None,
+            target_role='reception'
         )
 
     return {
@@ -1037,11 +1122,10 @@ async def unclose_class(
     settings = db.query(StoreSettings).options(
         defer(StoreSettings.enable_franchise_monitoring)
     ).filter(StoreSettings.store_id == current_store.id).first()
+    
     franchise_id = str(current_store.franchise_id) if current_store.franchise_id else None
     
-    if settings and hasattr(settings, 'enable_franchise_monitoring') and not settings.enable_franchise_monitoring:
-        franchise_id = None
-
+    # 1. Admin
     await sse_manager.broadcast(
         store_id=str(current_store.id),
         event_type="class_reopened",
@@ -1049,8 +1133,41 @@ async def unclose_class(
             "class_id": class_id,
             "class_name": class_info.class_name
         },
-        franchise_id=franchise_id
+        franchise_id=franchise_id,
+        target_role='admin'
     )
+    
+    # 2. Board & Reception
+    should_broadcast_board = True
+    should_broadcast_reception = True
+    
+    if settings:
+        should_broadcast_board = getattr(settings, 'enable_waiting_board', True) 
+        should_broadcast_reception = getattr(settings, 'enable_reception_desk', True)
+        
+    if should_broadcast_board:
+        await sse_manager.broadcast(
+            store_id=str(current_store.id),
+            event_type="class_reopened",
+            data={
+                "class_id": class_id,
+                "class_name": class_info.class_name
+            },
+            franchise_id=None,
+            target_role='board'
+        )
+        
+    if should_broadcast_reception:
+        await sse_manager.broadcast(
+            store_id=str(current_store.id),
+            event_type="class_reopened",
+            data={
+                "class_id": class_id,
+                "class_name": class_info.class_name
+            },
+            franchise_id=None,
+            target_role='reception'
+        )
 
     return {
         "message": f"{class_info.class_name}의 마감이 해제되었습니다."

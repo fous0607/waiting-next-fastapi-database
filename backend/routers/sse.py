@@ -20,6 +20,8 @@ async def sse_stream(
     - role: 클라이언트 역할 (트래픽 분리용)
     """
     queue = None
+    connection_id = None
+    resolved_id = None
     
     # 1. 시스템 로그 채널
     if channel == "system":
@@ -31,7 +33,7 @@ async def sse_stream(
             
     # 2. 매장 이벤트 채널 (기존)
     elif store_id:
-        print(f"[SSE] Store Connection Request: store_id={store_id}, role={role}")
+        print(f"[SSE] Store Connection Request: store_id={store_id}, role={role}, ip={request.client.host if request.client else 'Unknown'}")
         
         # store_id가 코드(S001 등)일 수 있으므로 ID로 변환 시도
         resolved_id = store_id
@@ -51,10 +53,11 @@ async def sse_stream(
         except Exception as e:
             print(f"[SSE] Store ID resolution failed: {e}")
 
-        queue = await sse_manager.connect(resolved_id, role)
+        # Update: connect returns (queue, connection_id)
+        queue, connection_id = await sse_manager.connect(resolved_id, role, request)
         
         async def cleanup():
-            sse_manager.disconnect(resolved_id, queue, role)
+            sse_manager.disconnect(resolved_id, connection_id)
             
     else:
         # 유효하지 않은 요청
@@ -62,7 +65,7 @@ async def sse_stream(
 
     # SSE 응답 생성
     response = StreamingResponse(
-        event_generator(queue),
+        event_generator(queue, resolved_id, connection_id),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",

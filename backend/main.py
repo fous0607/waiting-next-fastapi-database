@@ -43,7 +43,8 @@ from routers import (
     snapshots, # New Snapshots Router
     holidays, # New Holidays Router
     notices, # New Notices Router
-    file_upload # File Upload Router
+    file_upload, # File Upload Router
+    system # System/SSE Monitoring Router
 )
 from core.logger import logger
 import time
@@ -137,6 +138,7 @@ app.include_router(snapshots.router, prefix="/api/store/snapshots", tags=["Confi
 app.include_router(holidays.router, prefix="/api/holidays", tags=["Holiday Management"])
 app.include_router(notices.router)
 app.include_router(file_upload.router, prefix="/api/files", tags=["File Upload"])
+app.include_router(system.router, prefix="/api/system", tags=["System Monitoring"])
 
 @app.get("/")
 async def main_page(request: Request):

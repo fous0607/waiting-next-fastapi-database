@@ -16,15 +16,13 @@ api.interceptors.request.use(
         // 1. Dynamic baseURL determination
         if (!config.baseURL) {
             const isClient = typeof window !== 'undefined';
-            console.log(`[API Interceptor] Env Check: isClient=${isClient}, typeof window=${typeof window}`);
 
             if (isClient) {
-                config.baseURL = '/api'; // Client-side: Relative path
-                console.log('[API Interceptor] Selected Client BaseURL: /api');
+                // Browser: Always use relative path to route through Next.js rewrites
+                config.baseURL = '/api';
             } else {
-                // Server-side: Docker internal URL
+                // Server-side (SSR): Use internal Docker URL
                 config.baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://backend:8000/api';
-                console.log(`[API Interceptor] Selected Server BaseURL: ${config.baseURL}`);
             }
         }
 

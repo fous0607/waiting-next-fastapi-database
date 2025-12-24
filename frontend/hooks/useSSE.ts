@@ -94,6 +94,12 @@ export function useSSE() {
             es.onmessage = (event) => {
                 try {
                     const message = JSON.parse(event.data);
+
+                    // Debug: Log EVERYTHING except ping
+                    if (message.event !== 'ping') {
+                        console.log('[SSE Debug] Raw Event:', message);
+                    }
+
                     if (message.event === 'ping') return;
 
                     console.log('[SSE] Event received:', message.event, message.data);

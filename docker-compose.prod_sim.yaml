@@ -1,0 +1,37 @@
+version: '3'
+
+services:
+  backend:
+    build: ./backend
+    container_name: waiting_backend_prod_sim
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+      # Local Simulation using SQLite to avoid needing Supabase credentials locally
+      # This verifies valid path and protocol handling
+      - DATABASE_URL=sqlite:///./database/waiting_system.db
+    volumes:
+      - ./backend/database:/app/database
+    networks:
+      - waiting-net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: waiting_frontend_prod_sim
+    ports:
+      - "3000:3000"
+    environment:
+      # Simulate Render's internal networking
+      - API_URL=http://backend:8000
+    depends_on:
+      - backend
+    networks:
+      - waiting-net
+
+networks:
+  waiting-net:
+    driver: bridge

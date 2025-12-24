@@ -2,15 +2,19 @@
 
 import { useWaitingStore } from "@/lib/store/useWaitingStore";
 import Link from "next/link";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Activity } from "lucide-react";
 import { ModeToggle } from "@/components/mode-toggle";
+import { SSEMonitor } from "./SSEMonitor";
 
 export function ManageHeader() {
-    const { storeName, businessDate, isConnected } = useWaitingStore();
+    const { storeName, businessDate, isConnected, selectedStoreId } = useWaitingStore();
+    const [showMonitor, setShowMonitor] = useState(false);
 
     return (
         <div className="flex justify-between items-center py-4 mb-2 border-b">
+            <SSEMonitor open={showMonitor} onOpenChange={setShowMonitor} storeId={selectedStoreId || undefined} />
             <div>
                 <h1 className="text-2xl font-bold flex items-center gap-3">
                     <div className="flex items-center gap-2">
@@ -31,6 +35,9 @@ export function ManageHeader() {
                     <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-600' : 'bg-red-600'}`} />
                     {isConnected ? '연결됨' : '연결 끊김'}
                 </div>
+                <Button variant="ghost" size="icon" onClick={() => setShowMonitor(true)} className="text-slate-500 hover:text-slate-900" title="연결 모니터링">
+                    <Activity className="w-5 h-5" />
+                </Button>
                 <ModeToggle />
                 <Link href="/">
                     <Button variant="outline">

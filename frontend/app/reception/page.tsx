@@ -135,7 +135,7 @@ export default function ReceptionPage() {
             const token = localStorage.getItem('access_token');
             const params = new URLSearchParams();
             params.append('store_id', storeId);
-            params.append('role', 'board'); // Explicitly set role as board
+            params.append('role', 'reception'); // Explicitly set role as reception
             if (token) {
                 params.append('token', token);
             }
