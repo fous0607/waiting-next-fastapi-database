@@ -239,6 +239,9 @@ export default function DashboardPage() {
     } finally {
       localStorage.removeItem('access_token');
       localStorage.removeItem('user_role');
+      localStorage.removeItem('selected_store_id');
+      localStorage.removeItem('selected_store_name');
+      localStorage.removeItem('selected_store_code');
       router.push('/login');
       // No need to set false as we redirect
     }
