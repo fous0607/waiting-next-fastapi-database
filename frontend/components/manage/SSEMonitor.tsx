@@ -4,9 +4,6 @@ import { Button } from '@/components/ui/button';
 import { RefreshCw, Monitor, Power, Smartphone, Shield, HelpCircle } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'sonner';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ConnectionInfo {
     id: string;
@@ -109,7 +106,7 @@ export function SSEMonitor({ open, onOpenChange, storeId }: SSEMonitorProps) {
                         <div className="col-span-3">접속 시간</div>
                         <div className="col-span-2">관리</div>
                     </div>
-                    <ScrollArea className="h-[300px]">
+                    <div className="h-[300px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200">
                         {connections.length === 0 ? (
                             <div className="flex flex-col items-center justify-center h-full py-10 text-slate-400">
                                 <Monitor className="w-10 h-10 mb-2 opacity-20" />
@@ -133,29 +130,21 @@ export function SSEMonitor({ open, onOpenChange, storeId }: SSEMonitorProps) {
                                             {new Date(conn.connected_at).toLocaleTimeString()}
                                         </div>
                                         <div className="col-span-2 text-center">
-                                            <TooltipProvider>
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            className="h-8 w-8 p-0 text-slate-400 hover:text-red-600 hover:bg-red-50"
-                                                            onClick={() => handleDisconnect(conn.id)}
-                                                        >
-                                                            <Power className="w-4 h-4" />
-                                                        </Button>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>
-                                                        <p>강제 재연결</p>
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            </TooltipProvider>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-8 w-8 p-0 text-slate-400 hover:text-red-600 hover:bg-red-50"
+                                                onClick={() => handleDisconnect(conn.id)}
+                                                title="강제 재연결"
+                                            >
+                                                <Power className="w-4 h-4" />
+                                            </Button>
                                         </div>
                                     </div>
                                 ))}
                             </div>
                         )}
-                    </ScrollArea>
+                    </div>
                 </div>
 
                 <div className="flex justify-end mt-2">
