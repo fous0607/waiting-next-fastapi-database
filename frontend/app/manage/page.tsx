@@ -18,14 +18,23 @@ function ManageContent() {
     const { fetchStoreStatus, fetchClasses, setStoreId, isLoading, isConnected } = useWaitingStore();
 
     useEffect(() => {
-        const storeId = searchParams.get('store');
-        if (storeId) {
-            setStoreId(storeId);
-        }
-        // Fetch Store Info and Classes
-        fetchStoreStatus();
-        fetchClasses();
-    }, [searchParams, fetchStoreStatus, fetchClasses]);
+        const init = async () => {
+            const storeId = searchParams.get('store');
+            if (storeId) {
+                // If param exists, set it immediately (sync) so subsequent API calls work
+                setStoreId(storeId);
+                await fetchStoreStatus();
+                fetchClasses();
+            } else {
+                // If param missing, we MUST wait for status to resolve/recover the ID first
+                await fetchStoreStatus();
+                // After status fetch, check if we recovered an ID in store/localStorage
+                // fetchClasses reads from localStorage via API interceptor, so it should be safe now
+                fetchClasses();
+            }
+        };
+        init();
+    }, [searchParams, setStoreId, fetchStoreStatus, fetchClasses]);
 
     // Polling fallback when SSE is disconnected
     useEffect(() => {
