@@ -119,7 +119,9 @@ export default function DashboardPage() {
         if (storeData) {
           const name = storeData.store_name || storeData.name;
           const code = storeData.store_code || storeData.code; // Get code
-          const id = storeData.id;
+          // CRITICAL FIX: The endpoint returns StoreSettings, where .id is the SETTINGS ID.
+          // We must use .store_id if available to get the actual STORE ID.
+          const realStoreId = storeData.store_id || storeData.id;
 
           if (name) {
             setStoreName(name);
@@ -129,8 +131,8 @@ export default function DashboardPage() {
             setStoreCode(code);
             localStorage.setItem('selected_store_code', code);
           }
-          if (id) {
-            const idStr = id.toString();
+          if (realStoreId) {
+            const idStr = realStoreId.toString();
             setStoreId(idStr);
             localStorage.setItem('selected_store_id', idStr);
           }
