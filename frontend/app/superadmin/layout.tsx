@@ -14,6 +14,7 @@ import {
     BarChart3,
     Home,
     LogOut,
+    Monitor,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
