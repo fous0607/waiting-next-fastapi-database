@@ -56,7 +56,7 @@ interface WaitingState {
     handleClassClosed: (classId: number) => void;
     handleClassReopened: (classId: number) => void;
 
-    handleClassReopened: (classId: number) => void;
+
     refreshAll: () => Promise<void>; // Consolidated refresh action
 
     // Admin Actions
