@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Search, User, Phone, Calendar, Clock, ArrowRight, History } from 'lucide-react';
+import { Search, User, Phone, Calendar, Clock, ArrowRight, History, Edit2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,6 +9,14 @@ import { GlobalLoader } from '@/components/ui/GlobalLoader';
 import api from '@/lib/api';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 interface Member {
     id: number;
@@ -39,6 +47,10 @@ function MemberLookupContent() {
     const [selectedMember, setSelectedMember] = useState<MemberDetail | null>(null);
     const [detailLoading, setDetailLoading] = useState(false);
 
+    const [isEditNameOpen, setIsEditNameOpen] = useState(false);
+    const [editingName, setEditingName] = useState('');
+    const [isUpdating, setIsUpdating] = useState(false);
+
     const handleSearch = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
         if (!searchQuery.trim()) return;
@@ -46,8 +58,6 @@ function MemberLookupContent() {
         setSearchLoading(true);
         setSelectedMember(null);
         try {
-            // Reusing existing member search endpoint if available, or fetch all and filter
-            // Actually, let's check statistics.py for suitable endpoints or use general members endpoint
             const response = await api.get(`/members?search=${searchQuery}`);
             setSearchResults(response.data);
         } catch (error) {
@@ -60,14 +70,46 @@ function MemberLookupContent() {
     const fetchMemberDetail = async (member: Member) => {
         setDetailLoading(true);
         try {
-            // We need a specific endpoint for member visit history
-            // For now, let's fetch from a proposed new endpoint or filter waiting list
             const response = await api.get(`/franchise/stats/member-history/${member.id}`);
             setSelectedMember(response.data);
         } catch (error) {
             console.error('Failed to fetch details:', error);
         } finally {
             setDetailLoading(false);
+        }
+    };
+
+    const handleNameClick = () => {
+        if (selectedMember) {
+            setEditingName(selectedMember.member.name);
+            setIsEditNameOpen(true);
+        }
+    };
+
+    const handleUpdateName = async () => {
+        if (!selectedMember || !editingName.trim()) return;
+
+        setIsUpdating(true);
+        try {
+            await api.put(`/members/${selectedMember.member.id}`, { name: editingName });
+
+            // Update local state
+            setSelectedMember(prev => prev ? {
+                ...prev,
+                member: { ...prev.member, name: editingName }
+            } : null);
+
+            // Update search results list if the updated member is in it
+            setSearchResults(prev => prev.map(m =>
+                m.id === selectedMember.member.id ? { ...m, name: editingName } : m
+            ));
+
+            setIsEditNameOpen(false);
+        } catch (error) {
+            console.error('Failed to update name:', error);
+            // Optionally add toast error here
+        } finally {
+            setIsUpdating(false);
         }
     };
 
@@ -159,7 +201,14 @@ function MemberLookupContent() {
                                             <User className="w-8 h-8 text-white" />
                                         </div>
                                         <div>
-                                            <h3 className="text-2xl font-bold">{selectedMember.member.name}</h3>
+                                            <div
+                                                className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+                                                onClick={handleNameClick}
+                                                title="이름 수정"
+                                            >
+                                                <h3 className="text-2xl font-bold">{selectedMember.member.name}</h3>
+                                                <Edit2 className="w-4 h-4 text-slate-400" />
+                                            </div>
                                             <div className="flex items-center gap-3 mt-1 text-slate-400 font-medium text-sm">
                                                 <span className="flex items-center gap-1"><Phone className="w-3.5 h-3.5" /> {selectedMember.member.phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3')}</span>
                                             </div>
@@ -237,6 +286,31 @@ function MemberLookupContent() {
                     )}
                 </div>
             </div>
+
+            <Dialog open={isEditNameOpen} onOpenChange={setIsEditNameOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>회원 이름 수정</DialogTitle>
+                    </DialogHeader>
+                    <div className="py-4 space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="name">이름</Label>
+                            <Input
+                                id="name"
+                                value={editingName}
+                                onChange={(e) => setEditingName(e.target.value)}
+                                placeholder="이름을 입력하세요"
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsEditNameOpen(false)}>취소</Button>
+                        <Button onClick={handleUpdateName} disabled={isUpdating}>
+                            {isUpdating ? '수정 중...' : '확인'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
