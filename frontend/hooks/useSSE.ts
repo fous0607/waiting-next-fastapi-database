@@ -6,13 +6,13 @@ import { useWaitingStore } from '../lib/store/useWaitingStore';
 export function useSSE() {
     const eventSourceRef = useRef<EventSource | null>(null);
     const {
-        const {
-            setConnected,
-            refreshAll, // Use optimized refresh
-            handleClassClosed,
-            handleClassReopened,
-            selectedStoreId
-        } = useWaitingStore();
+
+        setConnected,
+        refreshAll, // Use optimized refresh
+        handleClassClosed,
+        handleClassReopened,
+        selectedStoreId
+    } = useWaitingStore();
 
     // Debounce refs
     const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
