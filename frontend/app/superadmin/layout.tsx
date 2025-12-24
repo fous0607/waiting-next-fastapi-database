@@ -97,8 +97,8 @@ export default function SuperAdminLayout({
                     href: '/superadmin/notices',
                 },
                 {
-                    title: '시스템 헬스',
-                    icon: Activity,
+                    title: '프로그램 모니터링',
+                    icon: Monitor,
                     href: '/superadmin/health',
                 },
             ],
