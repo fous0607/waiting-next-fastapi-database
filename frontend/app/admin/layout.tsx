@@ -27,6 +27,26 @@ function AdminSidebar() {
 
     const [isMemberMenuOpen, setIsMemberMenuOpen] = useState(true);
     const [isStatsMenuOpen, setIsStatsMenuOpen] = useState(true);
+    const [storeName, setStoreName] = useState('매장');
+    const [username, setUsername] = useState('사용자');
+
+    React.useEffect(() => {
+        const fetchUserAndStore = async () => {
+            try {
+                const { data: user } = await api.get('/auth/me');
+                setUsername(user.username || '사용자');
+
+                const storeId = localStorage.getItem('selected_store_id');
+                if (storeId) {
+                    const { data: store } = await api.get(`/stores/${storeId}`);
+                    setStoreName(store.name || '매장');
+                }
+            } catch (error) {
+                console.error('Failed to fetch user/store info:', error);
+            }
+        };
+        fetchUserAndStore();
+    }, []);
 
     const handleLogout = async () => {
         try {
@@ -95,8 +115,8 @@ function AdminSidebar() {
                         <BarChart3 className="w-6 h-6 text-orange-600" />
                     </div>
                     <div>
-                        <h1 className="font-bold text-slate-900 tracking-tight">프랜차이즈 관리</h1>
-                        <p className="text-[11px] text-slate-500 font-medium">관리자 전용</p>
+                        <h1 className="font-bold text-slate-900 tracking-tight">{storeName}</h1>
+                        <p className="text-[11px] text-slate-500 font-medium">매장 관리</p>
                     </div>
                 </div>
 
@@ -193,8 +213,8 @@ function AdminSidebar() {
                             A
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-xs font-semibold text-slate-900 truncate">Admin</p>
-                            <p className="text-[10px] text-slate-500 truncate">Franchise Admin</p>
+                            <p className="text-xs font-semibold text-slate-900 truncate">{username}</p>
+                            <p className="text-[10px] text-slate-500 truncate">매장 관리자</p>
                         </div>
                     </div>
                     <Button
