@@ -69,7 +69,7 @@ function ManageContent() {
 
             <div className="mt-4 flex-1 flex flex-col min-h-0">
                 <ClassTabs />
-                <div className="flex-1 overflow-y-auto no-scrollbar mt-2 border rounded-md">
+                <div className="flex-1 overflow-y-auto no-scrollbar mt-1 border rounded-md">
                     <WaitingList />
                 </div>
             </div>

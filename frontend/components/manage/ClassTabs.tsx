@@ -30,7 +30,7 @@ export function ClassTabs() {
                 size="icon"
                 onClick={toggleHideClosedClasses}
                 className={cn(
-                    "flex-shrink-0 h-[4.5rem] w-12 rounded-lg border-dashed mr-2",
+                    "flex-shrink-0 h-[52px] w-12 rounded-lg border-dashed mr-2",
                     !hideClosedClasses ? "text-primary border-primary bg-primary/5" : "text-muted-foreground"
                 )}
                 title={hideClosedClasses ? "마감된 교시 보이기" : "마감된 교시 숨기기"}

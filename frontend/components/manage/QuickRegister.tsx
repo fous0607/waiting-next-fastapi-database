@@ -161,7 +161,7 @@ export function QuickRegister() {
                             onChange={handleInputChange}
                             onKeyDown={handleKeyDown}
                             disabled={isLoading}
-                            className="bg-white text-xl font-semibold tracking-wider"
+                            className="bg-white text-2xl font-bold tracking-wider"
                         />
                         <Button onClick={() => handleRegister()} disabled={isLoading}>
                             {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "대기 등록"}

@@ -121,7 +121,7 @@ export function WaitingList() {
                 items={items.map(i => i.id)}
                 strategy={verticalListSortingStrategy}
             >
-                <div className="flex flex-wrap gap-2 pb-20">
+                <div className="flex flex-wrap gap-2 p-3 pb-20">
                     {items.map((item, index) => (
                         <div key={item.id} className="w-full sm:w-[calc(50%-0.5rem)] md:w-[calc(33.333%-0.67rem)] lg:w-[calc(25%-0.5rem)]">
                             <WaitingItem item={item} index={index} />
