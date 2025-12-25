@@ -207,7 +207,7 @@ export default function ReceptionPage() {
             if (reconnectTimeout) clearTimeout(reconnectTimeout);
             setIsConnected(false);
         };
-    }, [loadStatus, debouncedLoadStatus]);
+    }, [loadStatus, debouncedLoadStatus, storeSettings]);
 
     // Audio Context for Keypad Sounds
     const audioContextRef = useRef<AudioContext | null>(null);
