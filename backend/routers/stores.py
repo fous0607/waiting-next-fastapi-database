@@ -53,8 +53,8 @@ async def get_stores(
             Store.id.in_(managed_ids)
         ).order_by(Store.created_at.desc()).all()
 
-    # franchise_admin과 store_admin은 자신의 프랜차이즈 매장만 조회
-    elif current_user.role in ['franchise_admin', 'store_admin']:
+    # franchise_admin과 store_admin(및 전용 단말기)은 자신의 프랜차이즈 매장만 조회
+    elif current_user.role in ['franchise_admin', 'store_admin', 'store_reception', 'store_board']:
         if not current_user.franchise_id:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -196,7 +196,7 @@ async def get_store(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="접근 권한이 없습니다"
             )
-    elif current_user.role == 'store_admin':
+    elif current_user.role in ['store_admin', 'store_reception', 'store_board']:
         if current_user.store_id != store_id:
              raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,

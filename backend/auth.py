@@ -174,7 +174,7 @@ async def get_current_store(
     - franchise_manager: 관리 권한이 있는 매장 중에서만 선택 가능
     - store_admin: 자신의 매장 자동 반환
     """
-    if current_user.role == "store_admin":
+    if current_user.role in ["store_admin", "store_reception", "store_board"]:
         if not current_user.store_id:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -299,7 +299,7 @@ def require_store_access(store_id: int):
              return current_user
 
         # store_admin은 자신의 매장만 접근 가능
-        if current_user.role == "store_admin":
+        if current_user.role in ["store_admin", "store_reception", "store_board"]:
             if current_user.store_id != store_id:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
