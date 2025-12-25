@@ -203,9 +203,9 @@ export default function ReceptionPage() {
     // Audio Context for Keypad Sounds
     const audioContextRef = useRef<AudioContext | null>(null);
 
-    const playKeypadSound = useCallback((type: string = 'beep') => {
+    const playKeypadSound = useCallback((key: string = '0', actionType: 'number' | 'action' = 'number') => {
         // 기본값은 true (설정이 없거나 명시적으로 false일 때만 비활성화)
-        console.log('[Keypad Sound] enabled:', storeSettings?.keypad_sound_enabled, 'type:', storeSettings?.keypad_sound_type || type);
+        console.log('[Keypad Sound] enabled:', storeSettings?.keypad_sound_enabled, 'type:', storeSettings?.keypad_sound_type, 'key:', key);
         if (storeSettings?.keypad_sound_enabled === false) return;
 
         try {
@@ -213,41 +213,123 @@ export default function ReceptionPage() {
                 audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
             }
             const ctx = audioContextRef.current;
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-
             const now = ctx.currentTime;
 
-            // Sound Profiles
-            const soundType = storeSettings?.keypad_sound_type || type;
+            const soundType = storeSettings?.keypad_sound_type || 'keyboard';
 
-            if (soundType === 'click') {
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(150, now);
-                osc.frequency.exponentialRampToValueAtTime(40, now + 0.05);
-                gain.gain.setValueAtTime(0.1, now);
+            // 키보드 타입별 사운드 프로파일
+            if (soundType === 'mechanical') {
+                // 기계식 키보드 사운드 - 각 키마다 약간씩 다른 주파수
+                const baseFreq = actionType === 'action' ? 200 : 300 + (parseInt(key) || 0) * 20;
+                const randomVariation = (Math.random() - 0.5) * 30; // ±15Hz 랜덤
+
+                const osc1 = ctx.createOscillator();
+                const osc2 = ctx.createOscillator();
+                const gain = ctx.createGain();
+                const filter = ctx.createBiquadFilter();
+
+                osc1.type = 'square';
+                osc2.type = 'sawtooth';
+                filter.type = 'lowpass';
+                filter.frequency.value = 2000;
+
+                osc1.connect(filter);
+                osc2.connect(filter);
+                filter.connect(gain);
+                gain.connect(ctx.destination);
+
+                // 다층 주파수로 풍부한 소리
+                osc1.frequency.setValueAtTime(baseFreq + randomVariation, now);
+                osc2.frequency.setValueAtTime(baseFreq * 1.5 + randomVariation, now);
+
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.08, now + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.06);
+
+                osc1.start(now);
+                osc2.start(now);
+                osc1.stop(now + 0.06);
+                osc2.stop(now + 0.06);
+
+            } else if (soundType === 'smooth') {
+                // 부드러운 멤브레인 키보드 사운드
+                const baseFreq = actionType === 'action' ? 180 : 250 + (parseInt(key) || 0) * 15;
+                const randomVariation = (Math.random() - 0.5) * 20;
+
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                const filter = ctx.createBiquadFilter();
+
+                osc.type = 'sine';
+                filter.type = 'lowpass';
+                filter.frequency.value = 1500;
+                filter.Q.value = 2;
+
+                osc.connect(filter);
+                filter.connect(gain);
+                gain.connect(ctx.destination);
+
+                osc.frequency.setValueAtTime(baseFreq + randomVariation, now);
+                osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.7, now + 0.05);
+
+                gain.gain.setValueAtTime(0.12, now);
                 gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+
                 osc.start(now);
                 osc.stop(now + 0.05);
-            } else if (soundType === 'ping') {
+
+            } else if (soundType === 'classic') {
+                // 클래식 타자기 스타일
+                const baseFreq = actionType === 'action' ? 120 : 180 + (parseInt(key) || 0) * 10;
+                const randomVariation = (Math.random() - 0.5) * 15;
+
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                const filter = ctx.createBiquadFilter();
+
                 osc.type = 'triangle';
-                osc.frequency.setValueAtTime(880, now);
-                osc.frequency.exponentialRampToValueAtTime(440, now + 0.1);
+                filter.type = 'bandpass';
+                filter.frequency.value = 800;
+                filter.Q.value = 5;
+
+                osc.connect(filter);
+                filter.connect(gain);
+                gain.connect(ctx.destination);
+
+                osc.frequency.setValueAtTime(baseFreq + randomVariation, now);
+
                 gain.gain.setValueAtTime(0.2, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                gain.gain.linearRampToValueAtTime(0.05, now + 0.01);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.04);
+
                 osc.start(now);
-                osc.stop(now + 0.1);
-            } else { // default 'beep'
+                osc.stop(now + 0.04);
+
+            } else {
+                // 기본 keyboard 사운드 - 현대적이고 선명한 클릭
+                const baseFreq = actionType === 'action' ? 250 : 350 + (parseInt(key) || 0) * 25;
+                const randomVariation = (Math.random() - 0.5) * 25;
+
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                const filter = ctx.createBiquadFilter();
+
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(1200, now);
-                osc.frequency.exponentialRampToValueAtTime(800, now + 0.08);
-                gain.gain.setValueAtTime(0.1, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+                filter.type = 'highpass';
+                filter.frequency.value = 200;
+
+                osc.connect(filter);
+                filter.connect(gain);
+                gain.connect(ctx.destination);
+
+                osc.frequency.setValueAtTime(baseFreq + randomVariation, now);
+                osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.6, now + 0.04);
+
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.04);
+
                 osc.start(now);
-                osc.stop(now + 0.08);
+                osc.stop(now + 0.04);
             }
         } catch (e) {
             console.warn('Audio feedback failed:', e);
@@ -261,24 +343,40 @@ export default function ReceptionPage() {
         // Cancel previous speech
         window.speechSynthesis.cancel();
 
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'ko-KR';
-        utterance.rate = storeSettings?.waiting_voice_rate || 1.0;
-        utterance.pitch = storeSettings?.waiting_voice_pitch || 1.0;
+        // + 딜레이 파싱: + = 0.5초, ++ = 1초
+        const parts = text.split(/(\\+\\+|\\+)/);
+        let currentTime = 0;
 
-        // Optionally select voice if configured (currently not UI exposed but in schema)
-        if (storeSettings?.waiting_voice_name) {
-            const voices = window.speechSynthesis.getVoices();
-            const voice = voices.find(v => v.name === storeSettings.waiting_voice_name);
-            if (voice) utterance.voice = voice;
-        }
+        parts.forEach((part, index) => {
+            if (part === '+') {
+                currentTime += 500; // 0.5초 딜레이
+            } else if (part === '++') {
+                currentTime += 1000; // 1초 딜레이
+            } else if (part.trim()) {
+                setTimeout(() => {
+                    const utterance = new SpeechSynthesisUtterance(part.trim());
+                    utterance.lang = 'ko-KR';
+                    utterance.rate = storeSettings?.waiting_voice_rate || 1.0;
+                    utterance.pitch = storeSettings?.waiting_voice_pitch || 1.0;
 
-        window.speechSynthesis.speak(utterance);
+                    if (storeSettings?.waiting_voice_name) {
+                        const voices = window.speechSynthesis.getVoices();
+                        const voice = voices.find(v => v.name === storeSettings.waiting_voice_name);
+                        if (voice) utterance.voice = voice;
+                    }
+
+                    window.speechSynthesis.speak(utterance);
+                }, currentTime);
+
+                // 다음 파트를 위한 예상 발화 시간 추가 (텍스트 길이 기반)
+                currentTime += part.length * 100; // 대략적인 발화 시간
+            }
+        });
     }, [storeSettings]);
 
     const handleNumberClick = (num: string) => {
         if (phoneNumber.length >= 11) return;
-        playKeypadSound();
+        playKeypadSound(num, 'number');
         setPhoneNumber(prev => {
             const newVal = prev + num;
             return newVal;
@@ -286,12 +384,12 @@ export default function ReceptionPage() {
     };
 
     const handleBackspace = () => {
-        playKeypadSound('click');
+        playKeypadSound('back', 'action');
         setPhoneNumber(prev => prev.slice(0, -1));
     };
 
     const handleClear = () => {
-        playKeypadSound('click');
+        playKeypadSound('clear', 'action');
         setPhoneNumber('');
     };
 
@@ -368,7 +466,7 @@ export default function ReceptionPage() {
 
     const handleSubmit = async () => {
         if (!phoneNumber) return;
-        playKeypadSound('ping'); // Special sound for submit
+        playKeypadSound('submit', 'action'); // Special sound for submit
 
         // 1. 4-Digit Logic (Member Lookup)
         if (phoneNumber.length === 4) {

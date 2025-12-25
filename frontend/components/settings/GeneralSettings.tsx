@@ -66,7 +66,7 @@ const settingsSchema = z.object({
     keypad_style: z.string().default("modern"),
     keypad_font_size: z.string().default("large"),
     keypad_sound_enabled: z.boolean().default(true),
-    keypad_sound_type: z.enum(['beep', 'click', 'ping']).default('beep'),
+    keypad_sound_type: z.enum(['keyboard', 'mechanical', 'smooth', 'classic']).default('keyboard'),
 
     // Modal & Audio
     waiting_modal_timeout: z.coerce.number().min(1).default(5),
@@ -126,7 +126,7 @@ export function GeneralSettings() {
             keypad_style: "modern",
             keypad_font_size: "large",
             keypad_sound_enabled: true,
-            keypad_sound_type: "beep",
+            keypad_sound_type: "keyboard",
             waiting_modal_timeout: 5,
             show_member_name_in_waiting_modal: true,
             show_new_member_text_in_waiting_modal: true,
@@ -535,11 +535,15 @@ export function GeneralSettings() {
                                                     <Select onValueChange={field.onChange} value={field.value as string || ''}>
                                                         <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                                                         <SelectContent>
-                                                            <SelectItem value="beep">Beep (비프음)</SelectItem>
-                                                            <SelectItem value="click">Click (클릭음)</SelectItem>
-                                                            <SelectItem value="ping">Ping (탁구)</SelectItem>
+                                                            <SelectItem value="keyboard">Keyboard (현대적)</SelectItem>
+                                                            <SelectItem value="mechanical">Mechanical (기계식)</SelectItem>
+                                                            <SelectItem value="smooth">Smooth (부드러운)</SelectItem>
+                                                            <SelectItem value="classic">Classic (타자기)</SelectItem>
                                                         </SelectContent>
                                                     </Select>
+                                                    <FormDescription className="text-xs">
+                                                        각 키마다 다른 소리로 실제 키보드 타이핑 느낌을 제공합니다
+                                                    </FormDescription>
                                                 </FormItem>
                                             )}
                                         />
