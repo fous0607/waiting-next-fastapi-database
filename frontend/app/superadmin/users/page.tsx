@@ -54,6 +54,8 @@ const roleLabels: Record<string, string> = {
     franchise_admin: '프랜차이즈 관리자',
     franchise_manager: '중간 관리자',
     store_admin: '매장 관리자',
+    store_reception: '대기접수 데스크',
+    store_board: '대기현황판',
 };
 
 const roleColors: Record<string, string> = {
@@ -61,6 +63,8 @@ const roleColors: Record<string, string> = {
     franchise_admin: 'bg-blue-100 text-blue-800',
     franchise_manager: 'bg-orange-100 text-orange-800',
     store_admin: 'bg-green-100 text-green-800',
+    store_reception: 'bg-cyan-100 text-cyan-800',
+    store_board: 'bg-indigo-100 text-indigo-800',
 };
 
 export default function UsersPage() {
@@ -146,8 +150,8 @@ export default function UsersPage() {
             return;
         }
 
-        if (createForm.role === 'store_admin' && !createForm.store_id) {
-            toast.error('매장 관리자는 매장을 선택해야 합니다.');
+        if (['store_admin', 'store_reception', 'store_board'].includes(createForm.role) && !createForm.store_id) {
+            toast.error('매장 관리자 및 전용 단말기 계정은 매장을 선택해야 합니다.');
             return;
         }
 
@@ -164,7 +168,7 @@ export default function UsersPage() {
                 role: createForm.role,
             };
 
-            if (createForm.role === 'store_admin') {
+            if (['store_admin', 'store_reception', 'store_board'].includes(createForm.role)) {
                 payload.store_id = parseInt(createForm.store_id);
             } else if (createForm.role === 'franchise_manager') {
                 payload.managed_store_ids = createForm.managed_store_ids.map(id => parseInt(id));
@@ -261,7 +265,7 @@ export default function UsersPage() {
                 }
                 payload.franchise_id = parseInt(editForm.franchise_id);
                 payload.store_id = null;
-            } else if (editForm.role === 'store_admin') {
+            } else if (['store_admin', 'store_reception', 'store_board'].includes(editForm.role)) {
                 if (!editForm.franchise_id || !editForm.store_id) {
                     toast.error('프랜차이즈와 매장을 모두 선택해주세요.');
                     setSubmitting(false);
@@ -371,11 +375,13 @@ export default function UsersPage() {
                                     <SelectContent>
                                         <SelectItem value="franchise_admin">프랜차이즈 관리자</SelectItem>
                                         <SelectItem value="store_admin">매장 관리자</SelectItem>
+                                        <SelectItem value="store_reception">대기접수 데스크</SelectItem>
+                                        <SelectItem value="store_board">대기현황판</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
 
-                            {createForm.role === 'store_admin' && (
+                            {['store_admin', 'store_reception', 'store_board'].includes(createForm.role) && (
                                 <div className="grid gap-2">
                                     <Label htmlFor="store">매장 (필수)</Label>
                                     <Select
@@ -484,12 +490,14 @@ export default function UsersPage() {
                                     <SelectItem value="franchise_admin">프랜차이즈 관리자</SelectItem>
                                     <SelectItem value="franchise_manager">중간 관리자</SelectItem>
                                     <SelectItem value="store_admin">매장 매니저</SelectItem>
+                                    <SelectItem value="store_reception">대기접수 데스크</SelectItem>
+                                    <SelectItem value="store_board">대기현황판</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
 
-                        {/* Franchise Selection (Visible for Franchise Admin & Store Manager & Franchise Manager) */}
-                        {(editForm.role === 'franchise_admin' || editForm.role === 'store_admin' || editForm.role === 'franchise_manager') && (
+                        {/* Franchise Selection (Visible for Franchise Admin & Store roles & Franchise Manager) */}
+                        {(editForm.role === 'franchise_admin' || ['store_admin', 'store_reception', 'store_board'].includes(editForm.role) || editForm.role === 'franchise_manager') && (
                             <div className="grid gap-2">
                                 <Label htmlFor="edit-franchise">프랜차이즈</Label>
                                 <Select
@@ -513,8 +521,8 @@ export default function UsersPage() {
                             </div>
                         )}
 
-                        {/* Store Selection (Visible only for Store Manager) */}
-                        {editForm.role === 'store_admin' && (
+                        {/* Store Selection (Visible for Store roles) */}
+                        {['store_admin', 'store_reception', 'store_board'].includes(editForm.role) && (
                             <div className="grid gap-2">
                                 <Label htmlFor="edit-store">매장</Label>
                                 <Select

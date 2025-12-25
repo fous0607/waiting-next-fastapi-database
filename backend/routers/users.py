@@ -90,7 +90,7 @@ async def create_user(
         )
 
     # 역할 검증
-    if user_create.role not in ['franchise_admin', 'store_admin', 'franchise_manager']:
+    if user_create.role not in ['franchise_admin', 'store_admin', 'franchise_manager', 'store_reception', 'store_board']:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="올바르지 않은 역할입니다."
@@ -214,7 +214,7 @@ async def update_user(
             )
 
     # 역할 변경 시 검증
-    if user_update.role and user_update.role not in ['franchise_admin', 'store_admin', 'franchise_manager']:
+    if user_update.role and user_update.role not in ['franchise_admin', 'store_admin', 'franchise_manager', 'store_reception', 'store_board']:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="올바르지 않은 역할입니다."

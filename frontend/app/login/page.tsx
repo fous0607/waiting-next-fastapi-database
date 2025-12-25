@@ -48,8 +48,8 @@ export default function LoginPage() {
                 user_role: localStorage.getItem('user_role')
             });
 
-            // Save store information only for store-level users
-            if (store && (role === 'store_admin' || role === 'store_manager')) {
+            // Save store information for store-level users and dedicated terminals
+            if (store && (role === 'store_admin' || role === 'store_manager' || role === 'store_reception' || role === 'store_board')) {
                 localStorage.setItem('selected_store_id', store.id.toString());
                 localStorage.setItem('selected_store_name', store.name);
                 localStorage.setItem('selected_store_code', store.code);
@@ -64,8 +64,12 @@ export default function LoginPage() {
                 window.location.href = '/superadmin';
             } else if (role === 'franchise_admin' || role === 'franchise_manager') {
                 window.location.href = '/admin';
+            } else if (role === 'store_reception') {
+                window.location.href = '/reception';
+            } else if (role === 'store_board') {
+                window.location.href = '/board';
             } else {
-                // Store admins go directly to home
+                // Store admins/managers go directly to home (Dashboard)
                 router.push('/');
             }
         } catch (error: any) {

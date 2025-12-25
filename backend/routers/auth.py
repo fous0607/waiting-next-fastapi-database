@@ -90,10 +90,10 @@ async def login(
         samesite="lax"
     )
 
-    # 매장 정보 포함하여 반환 (store_admin만)
+    # 매장 정보 포함하여 반환 (매장급 관리자 및 전용 단말기)
     store_info = None
-    if user.store and user.role in ['store_admin', 'store_manager']:
-        # 매장 관리자: 할당된 매장 사용
+    if user.store and user.role in ['store_admin', 'store_manager', 'store_reception', 'store_board']:
+        # 소속된 매장 정보를 함께 반환
         store_info = {
             "id": user.store.id,
             "name": user.store.name,
