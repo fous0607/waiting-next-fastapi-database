@@ -64,28 +64,44 @@ async def sse_stream(
                 raise HTTPException(status_code=404, detail="Store not found")
 
         # 2-2. 서비스 활성화 여부 및 접속 제한 체크
-        settings = db.query(StoreSettings).filter(StoreSettings.store_id == resolved_id).first()
+        try:
+            settings = db.query(StoreSettings).filter(StoreSettings.store_id == resolved_id).first()
+        except Exception as e:
+            print(f"[SSE] Initial settings query failed, trying fallback with defer: {e}")
+            db.rollback()
+            from sqlalchemy.orm import defer
+            settings = db.query(StoreSettings).options(
+                defer(StoreSettings.max_dashboard_connections),
+                defer(StoreSettings.dashboard_connection_policy)
+            ).filter(StoreSettings.store_id == resolved_id).first()
+
         max_limit = 0 # 0 means unlimited by default in manager logic
+        policy = "eject_old"
         
         if settings:
-            if role == 'board' and not settings.enable_waiting_board:
+            # 안전한 필드 접근 (getattr 사용)
+            enable_board = getattr(settings, 'enable_waiting_board', True)
+            enable_reception = getattr(settings, 'enable_reception_desk', True)
+
+            if role == 'board' and not enable_board:
                 print(f"[SSE] Access denied: Board is disabled for store_id={resolved_id}")
                 raise HTTPException(status_code=403, detail="Waiting board is disabled for this store")
-            elif role == 'reception' and not settings.enable_reception_desk:
+            elif role == 'reception' and not enable_reception:
                 print(f"[SSE] Access denied: Reception desk is disabled for store_id={resolved_id}")
                 raise HTTPException(status_code=403, detail="Reception desk is disabled for this store")
             
             # 대시보드 역할(admin, board, reception 등)일 경우 제한 적용
             if role in ['admin', 'board', 'reception', 'manager']:
-                max_limit = settings.max_dashboard_connections or 2
-                
+                max_limit = getattr(settings, 'max_dashboard_connections', 2) or 2
+                policy = getattr(settings, 'dashboard_connection_policy', 'eject_old') or "eject_old"
+        
         # 2-3. SSE 매니저 연결 (제한값 및 정책 포함)
         queue, connection_id = await sse_manager.connect(
             resolved_id, 
             role, 
             request, 
             max_connections=max_limit,
-            policy=settings.dashboard_connection_policy if settings else "eject_old"
+            policy=policy
         )
         
     except HTTPException as he:
