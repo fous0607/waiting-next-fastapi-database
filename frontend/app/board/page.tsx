@@ -6,7 +6,7 @@ import api from '@/lib/api';
 import { BoardCard } from '@/components/board/board-card';
 import { GlobalLoader } from "@/components/ui/GlobalLoader";
 
-import { WaitingItem } from '@/lib/store/useWaitingStore';
+
 
 interface BoardClass {
     id: number;
@@ -16,24 +16,31 @@ interface BoardClass {
     max_capacity: number;
 }
 
-interface BoardData {
-    classes: BoardClass[];
-    waiting_list: WaitingItem[];
-    business_date: string;
-    rows_per_class?: number;
+interface BoardWaitingItem {
+    id: number;
+    waiting_number: number;
+    display_name: string;
+    class_id: number;
+    class_name: string;
+    class_order: number;
+    is_empty_seat: boolean;
+    status: string;
+    call_count: number;
 }
+
 
 // Removed constant ITEMS_PER_PAGE
 
 interface BoardData {
     classes: BoardClass[];
-    waiting_list: WaitingItem[];
+    waiting_list: BoardWaitingItem[];
     business_date: string;
     rows_per_class?: number;
     waiting_board_page_size?: number;
     waiting_board_rotation_interval?: number;
     waiting_board_transition_effect?: string;
 }
+
 
 export default function BoardPage() {
     const [data, setData] = useState<BoardData | null>(null);
