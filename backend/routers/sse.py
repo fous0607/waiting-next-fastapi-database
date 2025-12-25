@@ -13,7 +13,8 @@ async def sse_stream(
     request: Request,
     store_id: str = None, 
     channel: str = None,
-    role: str = 'unknown'  # 'admin' or 'board' etc
+    role: str = 'unknown',  # 'admin' or 'board' etc
+    client_id: str = None   # 기기 고유 ID 추가
 ):
     """
     SSE 스트림 엔드포인트
@@ -107,7 +108,8 @@ async def sse_stream(
             role, 
             request, 
             max_connections=max_limit,
-            policy=policy
+            policy=policy,
+            client_id=client_id # 기기 고유 ID 전달
         )
         
     except HTTPException as he:

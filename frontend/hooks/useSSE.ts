@@ -82,10 +82,18 @@ export function useSSE() {
 
             console.log(`[SSE] Connecting to stream for store: ${storeId} as ${currentRole}...`);
 
+            // [ClientId] 기기별 고유 ID 생성 또는 로드 (정책 정확성 확보용)
+            let clientId = typeof window !== 'undefined' ? localStorage.getItem('sse_client_id') : null;
+            if (!clientId) {
+                clientId = crypto.randomUUID();
+                localStorage.setItem('sse_client_id', clientId);
+            }
+
             // Build URL with proper encoding
             const params = new URLSearchParams();
             params.append('store_id', storeId!); // asserted not null
             params.append('role', currentRole);
+            params.append('client_id', clientId); // 기기 고유 ID 추가
             if (token) {
                 params.append('token', token);
             }

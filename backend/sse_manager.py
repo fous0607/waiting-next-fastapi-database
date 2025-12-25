@@ -14,6 +14,7 @@ class ConnectionInfo:
     ip: str
     user_agent: str
     connected_at: str
+    client_id: Optional[str] = None # 기기 고유 ID 추가
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
 
 class SSEConnectionManager:
@@ -31,7 +32,7 @@ class SSEConnectionManager:
         self.system_connections: Set[asyncio.Queue] = set()
 
     # --- Store Channel ---
-    async def connect(self, store_id: str, role: str, request: Request = None, max_connections: int = 0, policy: str = "eject_old") -> tuple[asyncio.Queue, str]:
+    async def connect(self, store_id: str, role: str, request: Request = None, max_connections: int = 0, policy: str = "eject_old", client_id: str = None) -> tuple[asyncio.Queue, str]:
         """새로운 SSE 연결 추가 (매장용)"""
         if store_id not in self.active_connections:
             self.active_connections[store_id] = {}
@@ -49,23 +50,21 @@ class SSEConnectionManager:
         if request and request.headers.get("x-forwarded-for"):
             client_ip = request.headers.get("x-forwarded-for").split(",")[0].strip()
 
-        # 1-1. 동일 기기/브라우저의 중복 연결 제거
-        # 동일 IP + 동일 Role + 동일 User Agent인 경우 '확실하게' 동일 세션의 새로고침으로 간주
+        # 1-1. 기기 고유 ID(client_id) 기반 중복 연결 제거
+        # client_id가 같으면 100% 동일 기기의 새로고침으로 간주하고 기존 세션 즉시 정리
         duplicates_to_remove = []
         is_dashboard_role = role in ['admin', 'manager']
         
         for conn_id, conn in self.active_connections[store_id].items():
-            if conn.ip == client_ip and conn.role == role:
-                # 1) UA까지 같으면 100% 동일 세션
-                if conn.user_agent == user_agent:
-                    duplicates_to_remove.append(conn_id)
-                # 2) block_new 정책인데 UA가 다르더라도 같은 IP/Role이면 
-                #    동일인이 다른 브라우저를 켰거나 UA가 미세하게 변한 경우일 수 있음.
-                #    이때 정리하지 않으면 스스로가 스스로를 차단하여 고립될 수 있으므로 정리 시도.
-                elif policy == "block_new" and is_dashboard_role:
-                    duplicates_to_remove.append(conn_id)
-                    print(f"[SSEManager] Potential duplicate found (Same IP/Role): store={store_id}, old_id={conn_id}")
-        
+            # 1) 고유 ID가 일치하는 경우 (가장 확실한 식별 방법)
+            if client_id and conn.client_id == client_id:
+                duplicates_to_remove.append(conn_id)
+                print(f"[SSEManager] Duplicate client_id found (Refresh): id={client_id}")
+            # 2) Fallback: 고유 ID가 없거나 불일치해도 IP+Role+UA가 모두 같으면 동일 세션으로 간주
+            elif not client_id and conn.ip == client_ip and conn.role == role and conn.user_agent == user_agent:
+                duplicates_to_remove.append(conn_id)
+                print(f"[SSEManager] Duplicate IP/UA found (Legacy Refresh): ip={client_ip}")
+
         for dup_id in duplicates_to_remove:
             try:
                 old_conn = self.active_connections[store_id][dup_id]
@@ -73,7 +72,7 @@ class SSEConnectionManager:
             except:
                 pass
             del self.active_connections[store_id][dup_id]
-            print(f"[SSEManager] Cleaned up duplicate session before limit check: {dup_id}")
+            print(f"[SSEManager] Cleaned up duplicate session: {dup_id}")
 
         # 1-2. 전체 대수 제한 체크 (역할 그룹별 체크)
         if max_connections > 0:
@@ -85,14 +84,12 @@ class SSEConnectionManager:
                 ]
                 current_count = len(active_dashboard_conns)
             else:
-                # 그 외 역할(board, reception 등)은 개별 역할별로 체크하거나 unlimited(max_connections=0)로 들어옴
                 current_count = len([c for c in self.active_connections[store_id].values() if c.role == role])
 
             if current_count >= max_connections:
                 # [Policy: block_new] 신규 접속 차단
                 if policy == "block_new":
-                    print(f"[SSEManager] CONNECTION REJECTED: store={store_id}, role={role}, ip={client_ip}, limit={max_connections}, current={current_count}")
-                    # 차단 이벤트 전송
+                    print(f"[SSEManager] CONNECTION REJECTED: store={store_id}, role={role}, client_id={client_id}, limit={max_connections}")
                     await queue.put({
                         "event": "connection_rejected",
                         "data": {"reason": "limit_reached", "max": max_connections}
@@ -101,7 +98,6 @@ class SSEConnectionManager:
 
                 # [Policy: eject_old] 기존 접속 추방
                 else: 
-                    # 해당 역할 그룹의 연결만 추방 대상
                     target_conns = active_dashboard_conns if is_dashboard_role else \
                                   [c for c in self.active_connections[store_id].values() if c.role == role]
                     
@@ -110,7 +106,7 @@ class SSEConnectionManager:
                     
                     for i in range(min(num_to_eject, len(sorted_conns))):
                         old_conn = sorted_conns[i]
-                        print(f"[SSEManager] EJECTING: id={old_conn.id}, role={old_conn.role}, reason=limit_exceeded")
+                        print(f"[SSEManager] EJECTING: id={old_conn.id}, client_id={old_conn.client_id}")
                         try:
                             await old_conn.queue.put({
                                 "event": "force_disconnect", 
@@ -127,6 +123,7 @@ class SSEConnectionManager:
             role=role,
             ip=client_ip,
             user_agent=user_agent,
+            client_id=client_id, # 기기 고유 ID 저장
             connected_at=datetime.now().isoformat()
         )
         
