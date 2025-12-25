@@ -37,6 +37,7 @@ class SSEConnectionManager:
             self.active_connections[store_id] = {}
             
         queue = asyncio.Queue()
+        now_dt = datetime.now()
         
         # 메타데이터 추출
         client_ip = "Unknown"
@@ -49,41 +50,47 @@ class SSEConnectionManager:
         if request and request.headers.get("x-forwarded-for"):
             client_ip = request.headers.get("x-forwarded-for").split(",")[0].strip()
 
+        print(f"[SSEManager] CONNECT_ATTEMPT: store={store_id}, user={user_id}, client={client_id}, role={role}, ip={client_ip}")
+
         # 1. 중복/이전 세션 정리 (우선순위: ClientId > UserID > IP/UA)
         duplicates_to_remove = []
         is_dashboard_role = role in ['admin', 'manager']
         
         for conn_id, conn in self.active_connections[store_id].items():
             # 1) ClientId 일치: 100% 동일 기기 새로고침/탭복제 -> 메시지 없이 조용히 교체 (Silent Kill)
-            #    (메시지를 보내면 React StrictMode 등에서 이전 컴포넌트가 살아있을 때 에러 팝업을 띄울 수 있음)
             if client_id and conn.client_id == client_id:
-                duplicates_to_remove.append((conn_id, False)) # False = No Message
-                print(f"[SSEManager] Duplicate client_id found (Refresh/NewTab): id={client_id}")
+                duplicates_to_remove.append((conn_id, False, "refresh"))
+                print(f"[SSEManager] DUPLICATE_CLIENT found: id={client_id}. Replacing silently.")
             
-            # 2) UserID 일치: "본인"이 다른 기기에서 접속 -> "다른 기기 접속" 알림 후 종료
+            # 2) UserID 일치: "본인"이 다른 기기에서 접속 -> 본인의 이전 접속 종료 (세션 이동)
             elif user_id and conn.user_id == user_id:
-                duplicates_to_remove.append((conn_id, True)) # True = Send Message
-                print(f"[SSEManager] Same User detected (Session Transfer): user_id={user_id}. Ejecting old session.")
+                # [Grace Filter] 만약 이전 연결이 방금(2초 이내) 만들어졌다면, 레이스 컨디션일 수 있으므로 조용히 교체
+                conn_time = datetime.fromisoformat(conn.connected_at)
+                is_very_recent = (now_dt - conn_time).total_seconds() < 2.0
+                
+                duplicates_to_remove.append((conn_id, not is_very_recent, "session_transfer"))
+                print(f"[SSEManager] SAME_USER detected: user_id={user_id}. Recent={is_very_recent}. Ejecting old.")
 
             # 3) Fallback: ID들 없는데 IP/Role/UA 같음 -> Legacy Refresh -> Silent Kill
             elif (not client_id and not user_id) and conn.ip == client_ip and conn.role == role and conn.user_agent == user_agent:
-                duplicates_to_remove.append((conn_id, False))
-                print(f"[SSEManager] Duplicate IP/UA found (Legacy Refresh): ip={client_ip}")
+                duplicates_to_remove.append((conn_id, False, "legacy_refresh"))
+                print(f"[SSEManager] DUPLICATE_IP/UA found: ip={client_ip}. Replacing silently.")
 
-        for dup_id, send_message in duplicates_to_remove:
+        for dup_id, send_message, reason in duplicates_to_remove:
             if send_message:
                 try:
                     old_conn = self.active_connections[store_id][dup_id]
-                    await old_conn.queue.put({"event": "force_disconnect", "data": {"reason": "session_transfer"}})
-                except:
-                    pass
+                    await old_conn.queue.put({
+                        "event": "force_disconnect", 
+                        "data": {"reason": reason, "msg": "다른 기기에서 접속하였습니다."}
+                    })
+                except: pass
             
-            # 메시지 전송 여부와 관계없이 목록에서 즉시 제거
             if dup_id in self.active_connections[store_id]:
                 del self.active_connections[store_id][dup_id]
-            print(f"[SSEManager] Cleaned up session: {dup_id} (Notified: {send_message})")
+            print(f"[SSEManager] CLEANUP_DONE: id={dup_id}, reason={reason}, notified={send_message}")
 
-        # 2. 전체 대수 제한 체크 (위에서 본인 꺼는 지웠으므로, 남은 건 타인들의 접속)
+        # 2. 전체 대수 제한 체크
         if max_connections > 0:
             if is_dashboard_role:
                 active_dashboard_conns = [
@@ -95,16 +102,13 @@ class SSEConnectionManager:
                 current_count = len([c for c in self.active_connections[store_id].values() if c.role == role])
 
             if current_count >= max_connections:
-                # [Policy: block_new] 신규 접속 차단 (타인에 대해서만)
                 if policy == "block_new":
-                    print(f"[SSEManager] CONNECTION REJECTED: store={store_id}, role={role}, limit={max_connections}")
+                    print(f"[SSEManager] REJECTED (Limit): store={store_id}, user={user_id}, current={current_count}, max={max_connections}")
                     await queue.put({
                         "event": "connection_rejected",
                         "data": {"reason": "limit_reached", "max": max_connections}
                     })
                     return queue, None
-
-                # [Policy: eject_old] 기존 접속 추방
                 else: 
                     target_conns = active_dashboard_conns if is_dashboard_role else \
                                   [c for c in self.active_connections[store_id].values() if c.role == role]
@@ -114,14 +118,13 @@ class SSEConnectionManager:
                     
                     for i in range(min(num_to_eject, len(sorted_conns))):
                         old_conn = sorted_conns[i]
-                        print(f"[SSEManager] EJECTING (Limit): id={old_conn.id}")
+                        print(f"[SSEManager] EJECTING (Policy): id={old_conn.id}, user={old_conn.user_id}")
                         try:
                             await old_conn.queue.put({
                                 "event": "force_disconnect", 
                                 "data": {"reason": "limit_exceeded", "max": max_connections}
                             })
                         except: pass
-                        
                         if old_conn.id in self.active_connections[store_id]:
                             del self.active_connections[store_id][old_conn.id]
 
@@ -132,18 +135,20 @@ class SSEConnectionManager:
             ip=client_ip,
             user_agent=user_agent,
             client_id=client_id,
-            user_id=user_id, # 사용자 ID 저장
-            connected_at=datetime.now().isoformat()
+            user_id=user_id,
+            connected_at=now_dt.isoformat()
         )
         
         self.active_connections[store_id][connection.id] = connection
-        print(f"[SSEManager] Connected: store={store_id}, user={user_id}, id={connection.id}")
+        print(f"[SSEManager] CONNECTED: store={store_id}, user={user_id}, client={client_id}, id={connection.id}")
         return queue, connection.id
 
     def disconnect(self, store_id: str, connection_id: str):
         """SSE 연결 제거 (매장용)"""
         if store_id in self.active_connections:
             if connection_id in self.active_connections[store_id]:
+                conn = self.active_connections[store_id][connection_id]
+                print(f"[SSEManager] DISCONNECTED: store={store_id}, user={conn.user_id}, client={conn.client_id}, id={connection_id}")
                 del self.active_connections[store_id][connection_id]
             
             if not self.active_connections[store_id]:

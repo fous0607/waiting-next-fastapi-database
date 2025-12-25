@@ -53,15 +53,25 @@ function AdminSidebar() {
 
     const handleLogout = async () => {
         try {
+            // 1. 서버 로그아웃 호출 (서버에서 SSE 세션 강제 종료 수행)
             await api.post('/auth/logout');
+        } catch (error) {
+            console.error('Logout failed on server:', error);
+        } finally {
+            // 2. 로컬 데이터 정리
             localStorage.removeItem('access_token');
             localStorage.removeItem('user_role');
             localStorage.removeItem('selected_store_id');
-            reset(); // Clear Zustand state
+            localStorage.removeItem('selected_store_name');
+            localStorage.removeItem('selected_store_code');
+
+            // Zustand 초기화
+            reset();
+
+            // 쿠키 삭제
             document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-            window.location.href = '/login';
-        } catch (error) {
-            console.error('Logout failed:', error);
+
+            // 리다이렉트
             window.location.href = '/login';
         }
     };

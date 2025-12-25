@@ -250,18 +250,26 @@ export default function DashboardPage() {
   const handleLogout = async () => {
     setIsLoggingOut(true);
     try {
+      // 1. 서버에 로그아웃 알림 (여기서 서버가 SSE 연결을 강제 종료함)
       await api.post('/auth/logout');
     } catch (error) {
-      console.error("Logout failed", error);
+      console.error("Logout failed on server", error);
     } finally {
+      // 2. 서버 응답 여부와 관계없이 로컬 상태 확실히 정리
       localStorage.removeItem('access_token');
       localStorage.removeItem('user_role');
       localStorage.removeItem('selected_store_id');
       localStorage.removeItem('selected_store_name');
       localStorage.removeItem('selected_store_code');
-      reset(); // Clear Zustand state
+
+      // Zustand 상태 초기화
+      reset();
+
+      // 세션 쿠키 수동 삭제 (백업용)
+      document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+
+      // 로그인 페이지로 이동 (전체 페이지 리로드)
       window.location.href = '/login';
-      // No need to set false as we redirect
     }
   };
 
