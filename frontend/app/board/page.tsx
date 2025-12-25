@@ -202,7 +202,7 @@ export default function BoardPage() {
             clearTimeout(reconnectTimeout);
             setIsConnected(false);
         };
-    }, [debouncedReload, storeSettings]);
+    }, [debouncedReload, storeSettings?.enable_waiting_board]);
 
     // Page Rotation Timer - respects store settings
     useEffect(() => {

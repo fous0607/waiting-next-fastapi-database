@@ -45,32 +45,27 @@ export default function ReceptionPage() {
 
     const loadStatus = useCallback(async () => {
         try {
-            const [statusRes, storeRes] = await Promise.all([
-                api.get('/waiting/next-slot'),
-                api.get('/store')
-            ]);
+            const res = await api.get('/waiting/next-slot');
+            console.log('[ReceptionStatus] Status response:', res.data);
+            setWaitingStatus(res.data);
+        } catch (error) {
+            console.error('[ReceptionStatus] Load failed:', error);
+        }
+    }, []);
 
-            console.log('[Reception] Status response:', statusRes.data);
-            setWaitingStatus(statusRes.data);
-
-            // Access store name safely (it can be an array from /api/store/)
+    const loadStoreSettings = useCallback(async () => {
+        try {
+            const storeRes = await api.get('/store');
             const storeData = Array.isArray(storeRes.data) ? storeRes.data[0] : storeRes.data;
             setStoreName(storeData?.name || storeData?.store_name || '매장 정보 없음');
-
             if (storeData) {
                 setStoreSettings(storeData);
                 if (storeData.keypad_style) {
                     setKeypadStyle(storeData.keypad_style);
                 }
             }
-
         } catch (error) {
-            console.error('[Reception] Initial load failed:', error);
-            const err = error as any;
-            if (err.response) {
-                console.error('[Reception] Error response data:', err.response.data);
-                console.error('[Reception] Error status:', err.response.status);
-            }
+            console.error('[ReceptionSettings] Load failed:', error);
         }
     }, []);
 
@@ -200,6 +195,8 @@ export default function ReceptionPage() {
 
         if (storeSettings) {
             connect();
+        } else {
+            loadStoreSettings();
         }
 
         return () => {
@@ -207,7 +204,7 @@ export default function ReceptionPage() {
             if (reconnectTimeout) clearTimeout(reconnectTimeout);
             setIsConnected(false);
         };
-    }, [loadStatus, debouncedLoadStatus, storeSettings]);
+    }, [loadStatus, debouncedLoadStatus, storeSettings?.enable_reception_desk, loadStoreSettings]);
 
     // Audio Context for Keypad Sounds
     const audioContextRef = useRef<AudioContext | null>(null);
