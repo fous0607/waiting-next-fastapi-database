@@ -90,6 +90,7 @@ function StatCard({ title, value, unit, trend, icon: Icon, color }: any) {
 function StatsContent(): React.JSX.Element {
     const router = useRouter();
     const searchParams = useSearchParams();
+    const view = searchParams.get('view') || 'period';
     const [period, setPeriod] = useState<Period>('daily');
     const [dateRange, setDateRange] = useState({ start: '', end: '' });
     const [stats, setStats] = useState<AnalyticsDashboard | null>(null);
@@ -113,7 +114,11 @@ function StatsContent(): React.JSX.Element {
             const params = new URLSearchParams();
             if (dateRange.start) params.append('start_date', dateRange.start);
             if (dateRange.end) params.append('end_date', dateRange.end);
-            params.append('period', period);
+
+            // Set period based on view
+            const effectivePeriod = view === 'hourly' ? 'daily' : period;
+            params.append('period', effectivePeriod);
+
             if (selectedStoreId !== 'all') params.append('store_id', selectedStoreId.toString());
 
             const response = await api.get(`/franchise/stats/store-dashboard?${params.toString()}`);
@@ -129,7 +134,7 @@ function StatsContent(): React.JSX.Element {
         if (dateRange.start && dateRange.end) {
             fetchStats();
         }
-    }, [dateRange, period, selectedStoreId, refetchKey]);
+    }, [dateRange, period, selectedStoreId, refetchKey, view]);
 
     const handleRangeChange = (range: { start: string; end: string }) => {
         setDateRange(range);
@@ -141,12 +146,45 @@ function StatsContent(): React.JSX.Element {
     return (
         <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-end gap-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex flex-wrap items-center gap-3">
                     <div className="flex items-center gap-3 bg-white p-1.5 rounded-2xl border border-slate-200 shadow-sm">
                         <DateRangeSelector onRangeChange={handleRangeChange} />
                     </div>
                 </div>
+
+                {/* Period selector for 'period' view */}
+                {view === 'period' && (
+                    <div className="flex items-center gap-2 bg-white p-1 rounded-xl border border-slate-200">
+                        <button
+                            onClick={() => setPeriod('daily')}
+                            className={cn(
+                                "px-4 py-2 rounded-lg text-sm font-medium transition-all",
+                                period === 'daily' ? "bg-blue-500 text-white shadow-sm" : "text-slate-600 hover:bg-slate-50"
+                            )}
+                        >
+                            일별
+                        </button>
+                        <button
+                            onClick={() => setPeriod('weekly')}
+                            className={cn(
+                                "px-4 py-2 rounded-lg text-sm font-medium transition-all",
+                                period === 'weekly' ? "bg-blue-500 text-white shadow-sm" : "text-slate-600 hover:bg-slate-50"
+                            )}
+                        >
+                            주별
+                        </button>
+                        <button
+                            onClick={() => setPeriod('monthly')}
+                            className={cn(
+                                "px-4 py-2 rounded-lg text-sm font-medium transition-all",
+                                period === 'monthly' ? "bg-blue-500 text-white shadow-sm" : "text-slate-600 hover:bg-slate-50"
+                            )}
+                        >
+                            월별
+                        </button>
+                    </div>
+                )}
             </div>
 
             {loading ? (
@@ -191,57 +229,77 @@ function StatsContent(): React.JSX.Element {
                         />
                     </div>
 
-                    {/* Hourly Stats Chart */}
-                    <Card className="border-none shadow-sm lg:col-span-2">
-                        <CardHeader>
-                            <CardTitle className="text-lg font-bold text-slate-800">시간대별 대기 현황</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            {stats.hourly_stats && stats.hourly_stats.length > 0 ? (
-                                <div className="h-[300px] w-full">
-                                    <Bar
-                                        data={{
-                                            labels: stats.hourly_stats.map((s: any) => `${s.hour || s.label}시`),
-                                            datasets: [
-                                                {
-                                                    label: '대기 접수',
-                                                    data: stats.hourly_stats.map((s: any) => s.waiting_count || 0),
-                                                    backgroundColor: 'rgba(59, 130, 246, 0.6)',
-                                                    borderColor: 'rgb(59, 130, 246)',
-                                                    borderWidth: 1,
-                                                },
-                                                {
-                                                    label: '입장 완료',
-                                                    data: stats.hourly_stats.map((s: any) => s.attendance_count || 0),
-                                                    backgroundColor: 'rgba(34, 197, 94, 0.6)',
-                                                    borderColor: 'rgb(34, 197, 94)',
-                                                    borderWidth: 1,
-                                                }
-                                            ]
-                                        }}
-                                        options={{
-                                            responsive: true,
-                                            maintainAspectRatio: false,
-                                            scales: {
-                                                y: {
-                                                    beginAtZero: true
-                                                }
-                                            }
-                                        }}
-                                    />
-                                </div>
-                            ) : (
-                                <div className="h-[300px] flex items-center justify-center text-slate-400">
-                                    <p>데이터가 없습니다.</p>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
+                    {/* Charts based on view */}
+                    {view === 'hourly' ? (
+                        <>
+                            {/* Hourly Stats Chart */}
+                            <Card className="border-none shadow-sm lg:col-span-2">
+                                <CardHeader>
+                                    <CardTitle className="text-lg font-bold text-slate-800">시간대별 대기 현황</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    {stats.hourly_stats && stats.hourly_stats.length > 0 ? (
+                                        <div className="h-[300px] w-full">
+                                            <Bar
+                                                data={{
+                                                    labels: stats.hourly_stats.map((s: any) => `${s.hour || s.label}시`),
+                                                    datasets: [
+                                                        {
+                                                            label: '대기 접수',
+                                                            data: stats.hourly_stats.map((s: any) => s.waiting_count || 0),
+                                                            backgroundColor: 'rgba(59, 130, 246, 0.6)',
+                                                            borderColor: 'rgb(59, 130, 246)',
+                                                            borderWidth: 1,
+                                                        },
+                                                        {
+                                                            label: '입장 완료',
+                                                            data: stats.hourly_stats.map((s: any) => s.attendance_count || 0),
+                                                            backgroundColor: 'rgba(34, 197, 94, 0.6)',
+                                                            borderColor: 'rgb(34, 197, 94)',
+                                                            borderWidth: 1,
+                                                        }
+                                                    ]
+                                                }}
+                                                options={{
+                                                    responsive: true,
+                                                    maintainAspectRatio: false,
+                                                    scales: {
+                                                        y: {
+                                                            beginAtZero: true
+                                                        }
+                                                    }
+                                                }}
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className="h-[300px] flex items-center justify-center text-slate-400">
+                                            <p>데이터가 없습니다.</p>
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
 
-                    {/* Detailed Table Section */}
-                    <div className="lg:col-span-2">
-                        <TimeStatsTable stats={stats.hourly_stats || []} loading={loading} />
-                    </div>
+                            {/* Detailed Table Section */}
+                            <div className="lg:col-span-2">
+                                <TimeStatsTable stats={stats.hourly_stats || []} loading={loading} />
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            {/* Period-based Analytics Chart */}
+                            <div className="lg:col-span-2">
+                                <AnalyticsCharts
+                                    data={stats.hourly_stats || []}
+                                    periodType={period === 'daily' ? 'daily' : period === 'weekly' ? 'weekly' : 'monthly'}
+                                />
+                            </div>
+
+                            {/* Detailed Table Section */}
+                            <div className="lg:col-span-2">
+                                <TimeStatsTable stats={stats.hourly_stats || []} loading={loading} />
+                            </div>
+                        </>
+                    )}
                 </div>
             ) : (
                 <div className="h-96 flex flex-col items-center justify-center text-slate-400">

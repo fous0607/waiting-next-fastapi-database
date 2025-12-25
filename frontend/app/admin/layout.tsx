@@ -72,11 +72,6 @@ function AdminSidebar() {
             title: '시간대별 조회',
             href: '/admin/stats?view=hourly',
             active: (pathname === '/admin' || pathname === '/admin/stats') && viewParam === 'hourly',
-        },
-        {
-            title: '매장별 조회',
-            href: '/admin/stats?view=store',
-            active: (pathname === '/admin' || pathname === '/admin/stats') && viewParam === 'store',
         }
     ];
 
@@ -152,14 +147,15 @@ function AdminSidebar() {
                                         href={item.href}
                                         className={cn(
                                             'flex items-center w-full px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 group',
-                                            // Simplified active check for now, relies on visual indication
-                                            'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                                            item.active
+                                                ? 'bg-orange-50 text-orange-900'
+                                                : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
                                         )}
                                     >
                                         <div
                                             className={cn(
                                                 'w-1.5 h-1.5 rounded-full mr-3',
-                                                'bg-slate-300' // Keeping it simple for subitems for now
+                                                item.active ? 'bg-orange-500' : 'bg-slate-300'
                                             )}
                                         />
                                         {item.title}

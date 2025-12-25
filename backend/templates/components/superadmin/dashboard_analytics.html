@@ -1,7 +1,15 @@
 <div id="analyticsDashboardContainer" style="display: none; padding: 24px;">
     <!-- Top Header & Controls -->
     <div style="margin-bottom: 32px;">
-        <h2 style="font-size: 26px; font-weight: 700; color: #191f28; margin-bottom: 24px;">대시보드</h2>
+        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
+            <button onclick="showDashboard('summary')"
+                style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 8px; border: 1px solid #e5e8eb; background: white; cursor: pointer; transition: all 0.2s;"
+                onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'"
+                title="메인 대시보드로">
+                <i class="fas fa-home" style="color: #333d4b; font-size: 18px;"></i>
+            </button>
+            <h2 style="font-size: 26px; font-weight: 700; color: #191f28; margin: 0;">대시보드</h2>
+        </div>
 
         <!-- Controls Row 1: Date Filter -->
         <div style="display: flex; gap: 8px; margin-bottom: 16px;">
