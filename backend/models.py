@@ -153,6 +153,7 @@ class StoreSettings(Base):
     show_new_member_text_in_waiting_modal = Column(Boolean, default=True)  # 대기접수 모달 신규회원 문구 표시 여부
     enable_waiting_voice_alert = Column(Boolean, default=False)  # 대기접수 완료 음성 안내 여부
     waiting_voice_message = Column(String, default="{클래스명}  {회원명}님 대기 접수 되었습니다.")  # 대기접수 완료 음성 안내 커스텀 메시지
+    waiting_call_voice_message = Column(String, default="{순번}번 {회원명}님, 데스크로 오시기 바랍니다.") # 호출 시 음성 안내 커스텀 메시지
     waiting_voice_name = Column(String, nullable=True)  # 대기접수 완료 음성 안내 선택된 목소리 이름
     waiting_voice_rate = Column(Float, default=1.0)  # 대기접수 완료 음성 안내 속도 (0.1 ~ 10, 기본 1.0)
     waiting_voice_pitch = Column(Float, default=1.0)  # 대기접수 완료 음성 안내 높낮이 (0 ~ 2, 기본 1.0)

@@ -54,6 +54,7 @@ class StoreSettingsBase(BaseModel):
     show_new_member_text_in_waiting_modal: bool = True
     enable_waiting_voice_alert: bool = False
     waiting_voice_message: Optional[str] = "{클래스명}  {회원명}님 대기 접수 되었습니다."
+    waiting_call_voice_message: Optional[str] = "{순번}번 {회원명}님, 데스크로 오시기 바랍니다."
     waiting_voice_name: Optional[str] = None
     waiting_voice_rate: float = 1.0
     waiting_voice_pitch: float = 1.0
@@ -138,6 +139,7 @@ class StoreSettingsUpdate(BaseModel):
     show_new_member_text_in_waiting_modal: Optional[bool] = None
     enable_waiting_voice_alert: Optional[bool] = None
     waiting_voice_message: Optional[str] = None
+    waiting_call_voice_message: Optional[str] = None
     waiting_voice_name: Optional[str] = None
     waiting_voice_rate: Optional[float] = None
     waiting_voice_pitch: Optional[float] = None

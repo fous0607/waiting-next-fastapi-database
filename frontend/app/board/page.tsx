@@ -39,6 +39,11 @@ export default function BoardPage() {
     const [data, setData] = useState<BoardData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [pageIndices, setPageIndices] = useState<Record<number, number>>({});
+    const dataRef = useRef<BoardData | null>(null);
+
+    useEffect(() => {
+        dataRef.current = data;
+    }, [data]);
 
     const loadData = useCallback(async () => {
         try {
@@ -90,6 +95,38 @@ export default function BoardPage() {
 
         loadStoreSettings();
     }, []);
+
+    const speak = useCallback((text: string) => {
+        if (!storeSettings?.enable_waiting_voice_alert) return;
+        if (typeof window === 'undefined' || !window.speechSynthesis) return;
+
+        window.speechSynthesis.cancel();
+
+        const parts = text.split(/(\s{2,})/);
+        let currentTime = 0;
+
+        parts.forEach((part) => {
+            if (/^\s{2,}$/.test(part)) {
+                const delayCount = Math.floor(part.length / 2);
+                currentTime += delayCount * 500;
+            } else if (part.trim()) {
+                setTimeout(() => {
+                    const utterance = new SpeechSynthesisUtterance(part.trim());
+                    utterance.lang = 'ko-KR';
+                    utterance.rate = storeSettings?.waiting_voice_rate || 1.0;
+                    utterance.pitch = storeSettings?.waiting_voice_pitch || 1.0;
+
+                    if (storeSettings?.waiting_voice_name) {
+                        const voices = window.speechSynthesis.getVoices();
+                        const voice = voices.find(v => v.name === storeSettings.waiting_voice_name);
+                        if (voice) utterance.voice = voice;
+                    }
+                    window.speechSynthesis.speak(utterance);
+                }, currentTime);
+                currentTime += part.length * 100;
+            }
+        });
+    }, [storeSettings]);
 
     // Initial load only - SSE will handle all subsequent updates
     useEffect(() => {
@@ -177,7 +214,22 @@ export default function BoardPage() {
                         case 'empty_seat_inserted':
                         case 'class_closed':
                         case 'class_reopened':
+                            debouncedReload();
+                            break;
                         case 'user_called':
+                            // Handle announcement
+                            if (message.data?.waiting_id) {
+                                const calledItem = dataRef.current?.waiting_list.find(item => item.id === message.data.waiting_id);
+                                if (calledItem) {
+                                    const customMsg = storeSettings?.waiting_call_voice_message || "{순번}번 {회원명}님, 데스크로 오시기 바랍니다.";
+                                    const announcement = customMsg
+                                        .replace('{회원명}', calledItem.display_name || '')
+                                        .replace('{순번}', calledItem.waiting_number?.toString() || '');
+                                    speak(announcement);
+                                }
+                            }
+                            debouncedReload();
+                            break;
                         case 'batch_attendance':
                         case 'name_updated':
                             debouncedReload();

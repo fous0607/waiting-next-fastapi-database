@@ -74,6 +74,12 @@ const settingsSchema = z.object({
     show_new_member_text_in_waiting_modal: z.boolean().default(true),
     enable_waiting_voice_alert: z.boolean().default(false),
     waiting_voice_message: z.string().optional().nullable(),
+    waiting_call_voice_message: z.string().optional().nullable(),
+
+    // Voice Selection (Legacy fields were rate, pitch, name - keep them but map UI)
+    waiting_voice_name: z.string().optional().nullable(),
+    waiting_voice_rate: z.coerce.number().min(0.1).max(2.0).default(1.0),
+    waiting_voice_pitch: z.coerce.number().min(0).max(2).default(1.0),
 
     // Traffic
     enable_waiting_board: z.boolean().default(true),
@@ -83,6 +89,11 @@ const settingsSchema = z.object({
 
     admin_password: z.string().optional(), // For verification if needed, usually just loaded
     registration_message: z.string().default("처음 방문하셨네요!\n성함을 입력해 주세요."),
+
+    // Voice Selection (Legacy fields were rate, pitch, name - keep them but map UI)
+    waiting_voice_name: z.string().optional().nullable(),
+    waiting_voice_rate: z.coerce.number().min(0.1).max(2.0).default(1.0),
+    waiting_voice_pitch: z.coerce.number().min(0).max(2).default(1.0),
 });
 
 type SettingsFormValues = z.infer<typeof settingsSchema>;
@@ -90,6 +101,7 @@ type SettingsFormValues = z.infer<typeof settingsSchema>;
 export function GeneralSettings() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(true);
+    const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
 
     const form = useForm<SettingsFormValues>({
         /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
@@ -140,6 +152,21 @@ export function GeneralSettings() {
             registration_message: "처음 방문하셨네요!\n성함을 입력해 주세요.",
         },
     });
+
+    useEffect(() => {
+        const loadVoices = () => {
+            const availableVoices = window.speechSynthesis.getVoices();
+            // Filter only Korean voices by default or just show all if desired
+            // Let's show Korean primarily
+            const koVoices = availableVoices.filter(v => v.lang.includes('ko'));
+            setVoices(koVoices.length > 0 ? koVoices : availableVoices);
+        };
+
+        loadVoices();
+        if (window.speechSynthesis.onvoiceschanged !== undefined) {
+            window.speechSynthesis.onvoiceschanged = loadVoices;
+        }
+    }, []);
 
     useEffect(() => {
         const fetchSettings = async () => {
@@ -227,6 +254,30 @@ export function GeneralSettings() {
     if (isLoading) {
         return <div className="p-8 flex justify-center">로딩 중...</div>;
     }
+
+    const handlePreviewVoice = () => {
+        const values = form.getValues();
+        if (!window.speechSynthesis) {
+            toast.error('이 브라우저는 음성 안내를 지원하지 않습니다.');
+            return;
+        }
+
+        window.speechSynthesis.cancel();
+        const text = values.waiting_voice_message?.replace('{클래스명}', '테스트교시').replace('{회원명}', '홍길동').replace('{순번}', '1')
+            || '테스트교시 홍길동님 1번째 대기 접수 되었습니다.';
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'ko-KR';
+        utterance.rate = values.waiting_voice_rate || 1.0;
+        utterance.pitch = values.waiting_voice_pitch || 1.0;
+
+        if (values.waiting_voice_name) {
+            const voice = voices.find(v => v.name === values.waiting_voice_name);
+            if (voice) utterance.voice = voice;
+        }
+
+        window.speechSynthesis.speak(utterance);
+    };
 
     return (
         <Card>
@@ -602,7 +653,7 @@ export function GeneralSettings() {
                                             name="waiting_voice_message"
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel>음성 안내 메시지 (옵션)</FormLabel>
+                                                    <FormLabel>접수 완료 안내 메시지</FormLabel>
                                                     <FormControl><Input placeholder="예: {클래스명}  {회원명}님 대기 접수 되었습니다." {...field} value={field.value ?? ''} /></FormControl>
                                                     <FormDescription className="text-[10px]">
                                                         {`{클래스명}, {회원명}, {순번}을 사용할 수 있습니다. 공백을 2번 연속 입력하면 0.5초간 쉬고 읽어줍니다.`}
@@ -610,6 +661,83 @@ export function GeneralSettings() {
                                                 </FormItem>
                                             )}
                                         />
+
+                                        <FormField
+                                            control={form.control}
+                                            name="waiting_call_voice_message"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>호출 시 안내 메시지</FormLabel>
+                                                    <FormControl><Input placeholder="예: {순번}번 {회원명}님, 데스크로 오시기 바랍니다." {...field} value={field.value ?? ''} /></FormControl>
+                                                    <FormDescription className="text-[10px]">
+                                                        {`{회원명}, {순번}을 사용할 수 있습니다. (대기현황판 전용)`}
+                                                    </FormDescription>
+                                                </FormItem>
+                                            )}
+                                        />
+
+                                        {form.watch('enable_waiting_voice_alert') && (
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2 p-4 bg-slate-50 rounded-lg border border-slate-100">
+                                                <FormField
+                                                    control={form.control}
+                                                    name="waiting_voice_name"
+                                                    render={({ field }) => (
+                                                        <FormItem>
+                                                            <FormLabel className="text-xs">목소리 선택 (성별/유형)</FormLabel>
+                                                            <Select onValueChange={field.onChange} value={field.value || ''}>
+                                                                <FormControl>
+                                                                    <SelectTrigger className="h-9 text-xs">
+                                                                        <SelectValue placeholder="목소리를 선택하세요" />
+                                                                    </SelectTrigger>
+                                                                </FormControl>
+                                                                <SelectContent>
+                                                                    {voices.length === 0 && <SelectItem value="default">시스템 기본값</SelectItem>}
+                                                                    {voices.map((voice) => (
+                                                                        <SelectItem key={voice.name} value={voice.name} className="text-xs">
+                                                                            {voice.name.includes('Female') || voice.name.includes('Yuna') || voice.name.includes('Jiyoung') || voice.name.includes('Soyeon') ? ' [여성] ' : (voice.name.includes('Male') || voice.name.includes('Minsang') ? ' [남성] ' : ' [공공/기타] ')} {voice.name}
+                                                                        </SelectItem>
+                                                                    ))}
+                                                                </SelectContent>
+                                                            </Select>
+                                                        </FormItem>
+                                                    )}
+                                                />
+                                                <FormField
+                                                    control={form.control}
+                                                    name="waiting_voice_rate"
+                                                    render={({ field }) => (
+                                                        <FormItem>
+                                                            <FormLabel className="text-xs">말하기 속도</FormLabel>
+                                                            <Select onValueChange={(val) => field.onChange(parseFloat(val))} value={field.value?.toString()}>
+                                                                <FormControl>
+                                                                    <SelectTrigger className="h-9 text-xs">
+                                                                        <SelectValue />
+                                                                    </SelectTrigger>
+                                                                </FormControl>
+                                                                <SelectContent>
+                                                                    <SelectItem value="0.7">느리게 (0.7x)</SelectItem>
+                                                                    <SelectItem value="0.8">조금 느리게 (0.8x)</SelectItem>
+                                                                    <SelectItem value="1.0">보통 (1.0x)</SelectItem>
+                                                                    <SelectItem value="1.2">조금 빠르게 (1.2x)</SelectItem>
+                                                                    <SelectItem value="1.5">빠르게 (1.5x)</SelectItem>
+                                                                </SelectContent>
+                                                            </Select>
+                                                        </FormItem>
+                                                    )}
+                                                />
+                                                <div className="md:col-span-2 flex justify-end">
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="text-xs h-8"
+                                                        onClick={handlePreviewVoice}
+                                                    >
+                                                        미리듣기 (Preview)
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        )}
                                         <FormField
                                             control={form.control}
                                             name="require_member_registration"
