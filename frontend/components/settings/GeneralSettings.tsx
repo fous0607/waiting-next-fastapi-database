@@ -90,10 +90,7 @@ const settingsSchema = z.object({
     admin_password: z.string().optional(), // For verification if needed, usually just loaded
     registration_message: z.string().default("처음 방문하셨네요!\n성함을 입력해 주세요."),
 
-    // Voice Selection (Legacy fields were rate, pitch, name - keep them but map UI)
-    waiting_voice_name: z.string().optional().nullable(),
-    waiting_voice_rate: z.coerce.number().min(0.1).max(2.0).default(1.0),
-    waiting_voice_pitch: z.coerce.number().min(0).max(2).default(1.0),
+
 });
 
 type SettingsFormValues = z.infer<typeof settingsSchema>;
