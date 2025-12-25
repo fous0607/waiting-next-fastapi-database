@@ -63,42 +63,58 @@ export function useSSE() {
 
             // Get token
             const token = localStorage.getItem('access_token');
-            console.log(`[SSE] Connecting to stream for store: ${storeId}...`);
+            // role 파악 (현재 페이지 URL 기준으로 유추)
+            let currentRole = 'admin';
+            if (typeof window !== 'undefined') {
+                if (window.location.pathname.includes('/board')) currentRole = 'board';
+                else if (window.location.pathname.includes('/reception')) currentRole = 'reception';
+            }
+
+            console.log(`[SSE] Connecting to stream for store: ${storeId} as ${currentRole}...`);
 
             // Build URL with proper encoding
             const params = new URLSearchParams();
             params.append('store_id', storeId!); // asserted not null
-            params.append('role', 'admin'); // Explicitly set role as admin for Manager page
+            params.append('role', currentRole);
             if (token) {
                 params.append('token', token);
             }
 
             // Vercel Proxy Strategy (Matching Board Page)
-            // Use relative path to avoid Mixed Content errors and leverage Next.js rewrites
             const url = `/api/sse/stream?${params.toString()}`;
-            console.log(`[SSE] URL: ${url}`);
-
             const es = new EventSource(url);
             eventSourceRef.current = es;
+
+            let isEjected = false;
 
             es.onopen = () => {
                 console.log('[SSE] Connection opened successfully');
                 setConnected(true);
-                toast.success(`실시간 연결 성공 (Store: ${storeId})`);
             };
 
             es.onmessage = (event) => {
                 try {
                     const message = JSON.parse(event.data);
 
-                    // Debug: Log EVERYTHING except ping
-                    if (message.event !== 'ping') {
-                        console.log('[SSE Debug] Raw Event:', message);
-                    }
-
                     if (message.event === 'ping') return;
 
-                    console.log('[SSE] Event received:', message.event, message.data);
+                    // 강제 종료 시그널 처리 (Stage 2: Ejection)
+                    if (message.event === 'force_disconnect') {
+                        isEjected = true;
+                        es.close();
+                        setConnected(false);
+
+                        const reason = message.data?.reason;
+                        if (reason === 'limit_exceeded') {
+                            toast.error(`접속 대수 초과: 다른 기기에서 접속하여 이 기기의 연결이 종료되었습니다. (최대 ${message.data.max}대)`, {
+                                duration: 10000,
+                                position: 'top-center'
+                            });
+                        } else {
+                            toast.error("서버에 의해 실시간 연결이 종료되었습니다.");
+                        }
+                        return;
+                    }
 
                     switch (message.event) {
                         case 'new_user':
@@ -107,11 +123,10 @@ export function useSSE() {
                         case 'class_moved':
                         case 'empty_seat_inserted':
                         case 'batch_attendance':
-                            debouncedRefresh(); // Use debounced handler
+                            debouncedRefresh();
                             break;
                         case 'class_closed':
                             handleClassClosed(message.data.class_id);
-                            // Also trigger refresh to ensure lists are correct
                             debouncedRefresh();
                             break;
                         case 'class_reopened':
@@ -127,6 +142,8 @@ export function useSSE() {
             };
 
             es.onerror = (err) => {
+                if (isEjected) return; // 추방된 경우 재연결 시도 안 함
+
                 console.error('[SSE] Connection error', err);
                 setConnected(false);
                 es.close();
@@ -135,7 +152,7 @@ export function useSSE() {
                 reconnectTimeout = setTimeout(() => {
                     console.log('[SSE] Attempting reconnect...');
                     connectSSE();
-                }, 3000);
+                }, 5000);
             };
         };
 

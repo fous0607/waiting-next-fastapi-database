@@ -31,7 +31,7 @@ class SSEConnectionManager:
         self.system_connections: Set[asyncio.Queue] = set()
 
     # --- Store Channel ---
-    async def connect(self, store_id: str, role: str, request: Request = None) -> asyncio.Queue:
+    async def connect(self, store_id: str, role: str, request: Request = None, max_connections: int = 0) -> asyncio.Queue:
         """새로운 SSE 연결 추가 (매장용)"""
         if store_id not in self.active_connections:
             self.active_connections[store_id] = {}
@@ -49,6 +49,47 @@ class SSEConnectionManager:
         if request and request.headers.get("x-forwarded-for"):
             client_ip = request.headers.get("x-forwarded-for").split(",")[0].strip()
 
+        # 1-1. 동일 IP + 동일 Role의 중복 연결 제거 (단순 새로고침 등)
+        duplicates_to_remove = []
+        for conn_id, conn in self.active_connections[store_id].items():
+            if conn.ip == client_ip and conn.role == role:
+                duplicates_to_remove.append(conn_id)
+                print(f"[SSEManager] Removing same-IP duplicate: store={store_id}, role={role}, ip={client_ip}, old_id={conn_id}")
+        
+        for dup_id in duplicates_to_remove:
+            del self.active_connections[store_id][dup_id]
+
+        # 1-2. 전체 대수 제한 체크 (Ejection Logic - Stage 2)
+        if max_connections > 0:
+            current_count = len(self.active_connections[store_id])
+            if current_count >= max_connections:
+                # 가장 오래된 연결부터 찾아서 종료 시그널 전송
+                # connected_at 기준으로 정렬
+                sorted_conns = sorted(
+                    self.active_connections[store_id].values(),
+                    key=lambda x: x.connected_at
+                )
+                
+                # 초과분만큼 제거 (새로 추가될 것 고려하여 current_count - max_connections + 1)
+                num_to_eject = current_count - max_connections + 1
+                for i in range(min(num_to_eject, len(sorted_conns))):
+                    old_conn = sorted_conns[i]
+                    print(f"[SSEManager] Ejecting old connection to respect limit ({max_connections}): id={old_conn.id}, role={old_conn.role}, ip={old_conn.ip}")
+                    
+                    try:
+                        # 클라이언트에게 추방 알림 전송
+                        await old_conn.queue.put({
+                            "event": "force_disconnect", 
+                            "data": {"reason": "limit_exceeded", "max": max_connections}
+                        })
+                    except:
+                        pass
+                    
+                    # 목록에서 즉시 제거
+                    if old_conn.id in self.active_connections[store_id]:
+                        del self.active_connections[store_id][old_conn.id]
+
+        # 2. 신규 연결 등록
         connection = ConnectionInfo(
             queue=queue,
             role=role,
@@ -57,18 +98,8 @@ class SSEConnectionManager:
             connected_at=datetime.now().isoformat()
         )
         
-        # Remove duplicate connections from same IP + role before adding new one
-        duplicates_to_remove = []
-        for conn_id, conn in self.active_connections[store_id].items():
-            if conn.ip == client_ip and conn.role == role:
-                duplicates_to_remove.append(conn_id)
-                print(f"[SSEManager] Removing duplicate connection: store={store_id}, role={role}, ip={client_ip}, old_id={conn_id}")
-        
-        for dup_id in duplicates_to_remove:
-            del self.active_connections[store_id][dup_id]
-        
         self.active_connections[store_id][connection.id] = connection
-        print(f"[SSEManager] Connected: store={store_id}, role={role}, ip={client_ip}, id={connection.id}")
+        print(f"[SSEManager] Connected (Session {len(self.active_connections[store_id])}/{max_connections if max_connections > 0 else 'inf'}): store={store_id}, role={role}, ip={client_ip}, id={connection.id}")
         return queue, connection.id
 
     def disconnect(self, store_id: str, connection_id: str):

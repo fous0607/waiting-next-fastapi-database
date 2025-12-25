@@ -63,8 +63,10 @@ async def sse_stream(
             else:
                 raise HTTPException(status_code=404, detail="Store not found")
 
-        # 2-2. 서비스 활성화 여부 체크
+        # 2-2. 서비스 활성화 여부 및 접속 제한 체크
         settings = db.query(StoreSettings).filter(StoreSettings.store_id == resolved_id).first()
+        max_limit = 0 # 0 means unlimited by default in manager logic
+        
         if settings:
             if role == 'board' and not settings.enable_waiting_board:
                 print(f"[SSE] Access denied: Board is disabled for store_id={resolved_id}")
@@ -72,9 +74,13 @@ async def sse_stream(
             elif role == 'reception' and not settings.enable_reception_desk:
                 print(f"[SSE] Access denied: Reception desk is disabled for store_id={resolved_id}")
                 raise HTTPException(status_code=403, detail="Reception desk is disabled for this store")
+            
+            # 대시보드 역할(admin, board, reception 등)일 경우 제한 적용
+            if role in ['admin', 'board', 'reception', 'manager']:
+                max_limit = settings.max_dashboard_connections or 2
         
-        # 2-3. SSE 매니저 연결
-        queue, connection_id = await sse_manager.connect(resolved_id, role, request)
+        # 2-3. SSE 매니저 연결 (제한값 포함)
+        queue, connection_id = await sse_manager.connect(resolved_id, role, request, max_connections=max_limit)
         
     except HTTPException as he:
         # HTTPException은 그대로 다시 던져서 FastAPI가 처리하게 함

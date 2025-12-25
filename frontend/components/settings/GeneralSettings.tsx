@@ -78,6 +78,7 @@ const settingsSchema = z.object({
     // Traffic
     enable_waiting_board: z.boolean().default(true),
     enable_reception_desk: z.boolean().default(true),
+    max_dashboard_connections: z.coerce.number().min(1).max(10).default(2),
 
     admin_password: z.string().optional(), // For verification if needed, usually just loaded
     registration_message: z.string().default("처음 방문하셨네요!\n성함을 입력해 주세요."),
@@ -133,6 +134,7 @@ export function GeneralSettings() {
             enable_waiting_voice_alert: false,
             enable_waiting_board: true,
             enable_reception_desk: true,
+            max_dashboard_connections: 2,
             registration_message: "처음 방문하셨네요!\n성함을 입력해 주세요.",
         },
     });
@@ -162,6 +164,7 @@ export function GeneralSettings() {
                     enable_waiting_voice_alert: data.enable_waiting_voice_alert ?? false,
                     enable_waiting_board: data.enable_waiting_board ?? true,
                     enable_reception_desk: data.enable_reception_desk ?? true,
+                    max_dashboard_connections: data.max_dashboard_connections || 2,
                     auto_closing: data.auto_closing ?? true,
                     use_max_waiting_limit: data.use_max_waiting_limit ?? true,
                     block_last_class_registration: data.block_last_class_registration ?? false,
@@ -686,6 +689,28 @@ export function GeneralSettings() {
                                                     <div className="space-y-1 leading-none">
                                                         <FormLabel>대기접수 데스크 사용</FormLabel>
                                                         <FormDescription>키오스크/태블릿 접수 기능을 활성화합니다.</FormDescription>
+                                                    </div>
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control}
+                                            name="max_dashboard_connections"
+                                            render={({ field }) => (
+                                                <FormItem className="rounded-md border p-4 shadow-sm bg-orange-50/20">
+                                                    <div className="flex flex-row items-center justify-between gap-4">
+                                                        <div className="space-y-1">
+                                                            <FormLabel className="text-orange-700 font-bold">동시 대시보드 접속 허용 대수</FormLabel>
+                                                            <FormDescription className="text-xs">
+                                                                한 매장에서 동시에 관리자 화면을 열 수 있는 최대 기기 수입니다.
+                                                                (권장: 2대)
+                                                            </FormDescription>
+                                                        </div>
+                                                        <FormControl>
+                                                            <div className="w-24">
+                                                                <Input type="number" {...field} className="text-right font-bold" />
+                                                            </div>
+                                                        </FormControl>
                                                     </div>
                                                 </FormItem>
                                             )}
