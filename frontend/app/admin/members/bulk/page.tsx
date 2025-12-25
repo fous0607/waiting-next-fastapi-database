@@ -74,7 +74,11 @@ export default function BulkRegisterPage() {
         formData.append('file', file);
 
         try {
-            const response = await api.post('/members/upload-excel', formData);
+            const response = await api.post('/members/upload-excel', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
             setValidationResult(response.data);
         } catch (error) {
             console.error('Validation failed:', error);
