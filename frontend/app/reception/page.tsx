@@ -124,11 +124,21 @@ export default function ReceptionPage() {
     }, [loadStatus, setStoreId, isConnected]);
 
     // SSE Connection for Real-time Updates
+    const sseRef = useRef<EventSource | null>(null);
     useEffect(() => {
-        let es: EventSource | null = null;
         let reconnectTimeout: NodeJS.Timeout;
 
         const connect = () => {
+            // 중복 연결 방지 가드
+            if (sseRef.current && (sseRef.current.readyState === EventSource.OPEN || sseRef.current.readyState === EventSource.CONNECTING)) {
+                console.log('[ReceptionSSE] Already connecting or connected, skipping...');
+                return;
+            }
+
+            // 이전 연결 확실히 정리
+            if (sseRef.current) {
+                sseRef.current.close();
+            }
             let storeId = '1';
             if (typeof window !== 'undefined') {
                 const params = new URLSearchParams(window.location.search);
@@ -153,7 +163,8 @@ export default function ReceptionPage() {
             const url = `/api/sse/stream?${params.toString()}`;
             console.log(`[ReceptionSSE] Connecting to ${url}`);
 
-            es = new EventSource(url);
+            const es = new EventSource(url);
+            sseRef.current = es;
 
             es.onopen = () => {
                 console.log('[ReceptionSSE] Connected');
@@ -200,11 +211,14 @@ export default function ReceptionPage() {
         }
 
         return () => {
-            if (es) es.close();
+            if (sseRef.current) {
+                sseRef.current.close();
+                sseRef.current = null;
+            }
             if (reconnectTimeout) clearTimeout(reconnectTimeout);
             setIsConnected(false);
         };
-    }, [loadStatus, debouncedLoadStatus, storeSettings?.enable_reception_desk, loadStoreSettings]);
+    }, [storeSettings?.enable_reception_desk, loadStoreSettings]);
 
     // Audio Context for Keypad Sounds
     const audioContextRef = useRef<AudioContext | null>(null);

@@ -61,10 +61,12 @@ async def sse_stream(
             if settings:
                 if role == 'board' and not settings.enable_waiting_board:
                     print(f"[SSE] Access denied: Board is disabled for store_id={resolved_id}")
-                    return {"error": "Waiting board is disabled for this store"}
+                    from fastapi import HTTPException
+                    raise HTTPException(status_code=403, detail="Waiting board is disabled for this store")
                 elif role == 'reception' and not settings.enable_reception_desk:
                     print(f"[SSE] Access denied: Reception desk is disabled for store_id={resolved_id}")
-                    return {"error": "Reception desk is disabled for this store"}
+                    from fastapi import HTTPException
+                    raise HTTPException(status_code=403, detail="Reception desk is disabled for this store")
         except Exception as e:
             print(f"[SSE] Settings check failed: {e}")
         finally:

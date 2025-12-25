@@ -112,11 +112,21 @@ export default function BoardPage() {
     }, [loadData]);
 
     // SSE Connection
+    const sseRef = useRef<EventSource | null>(null);
     useEffect(() => {
-        let es: EventSource | null = null;
         let reconnectTimeout: NodeJS.Timeout;
 
         const connect = () => {
+            // 중복 연결 방지 가드
+            if (sseRef.current && (sseRef.current.readyState === EventSource.OPEN || sseRef.current.readyState === EventSource.CONNECTING)) {
+                console.log('[BoardSSE] Already connecting or connected, skipping...');
+                return;
+            }
+
+            // 이전 연결 정리
+            if (sseRef.current) {
+                sseRef.current.close();
+            }
             // Check if board is enabled in settings
             if (storeSettings && storeSettings.enable_waiting_board === false) {
                 console.log('[BoardSSE] Connection aborted: Waiting board is disabled in settings');
@@ -143,7 +153,8 @@ export default function BoardPage() {
             const url = `/api/sse/stream?${params.toString()}`;
             console.log(`[BoardSSE] Connecting for store ${storeId} using URL: ${url}`);
 
-            es = new EventSource(url);
+            const es = new EventSource(url);
+            sseRef.current = es;
 
             es.onopen = () => {
                 console.log('[BoardSSE] Connected');
