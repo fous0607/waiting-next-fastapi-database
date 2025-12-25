@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import Link from "next/link";
 import { Settings, Users, Monitor, Tablet, LogOut, Play, StopCircle, Loader2, BarChart3 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useWaitingStore } from "@/lib/store/useWaitingStore";
