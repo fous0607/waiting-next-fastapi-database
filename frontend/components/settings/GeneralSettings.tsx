@@ -549,7 +549,7 @@ export function GeneralSettings() {
 
                             {/* Section 4: Modal & Reception */}
                             <AccordionItem value="reception">
-                                <AccordionTrigger>대기접수 및 알림 설정</AccordionTrigger>
+                                <AccordionTrigger>대기접수 및 알림 설정 (v2.0)</AccordionTrigger>
                                 <AccordionContent className="space-y-4 p-2">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <FormField
