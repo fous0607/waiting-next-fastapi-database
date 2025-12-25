@@ -166,6 +166,7 @@ class StoreSettings(Base):
     enable_waiting_board = Column(Boolean, default=True)  # 대기현황판 사용 여부 (SSE 연결 제어)
     enable_reception_desk = Column(Boolean, default=True)  # 대기접수 데스크 사용 여부 (SSE 연결 제어)
     max_dashboard_connections = Column(Integer, default=2)  # 동시 대시보드 접속 허용 대수
+    dashboard_connection_policy = Column(String, default="eject_old")  # eject_old(밀어내기) or block_new(차단)
     
     # 테마 설정
     theme = Column(String, default="zinc")  # zinc, blue, green

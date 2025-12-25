@@ -79,35 +79,40 @@ async def get_store_settings(
             StoreSettings.store_id == current_store.id
         ).first()
 
-        # Manually set the deferred field to avoid Pydantic triggering a lazy load crash
-        if settings: # Only set if settings object was found
-            # Existing specific defaults
-            settings.enable_franchise_monitoring = False
-            settings.manager_button_size = "medium"
-            settings.waiting_manager_max_width = None
-            settings.waiting_list_box_size = "medium"
-            
-            # New specific defaults
-            settings.waiting_modal_timeout = 5
-            settings.show_member_name_in_waiting_modal = True
-            settings.show_new_member_text_in_waiting_modal = True
-            settings.enable_waiting_voice_alert = False
-            settings.waiting_voice_message = ""
-            settings.waiting_voice_name = "유나"
-            settings.waiting_voice_rate = 0.8
-            settings.waiting_voice_pitch = 1.0
-            settings.waiting_board_page_size = 12
-            settings.waiting_board_rotation_interval = 5
-            settings.waiting_board_transition_effect = "slide"
-            settings.theme = "zinc"
-            settings.default_class_minute = 50
-            settings.default_break_minute = 10
-            settings.default_max_capacity = 10
-            settings.require_member_registration = False
-            settings.require_member_registration = False
-            settings.registration_message = "처음 방문하셨네요!\n성함을 입력해 주세요."
-            settings.max_dashboard_connections = 2
-            settings.dashboard_connection_policy = "eject_old"
+        # Manually set the deferred field ONLY if they are not already set/available
+        # This prevents overwriting actual DB values with defaults every time
+        if settings:
+            def set_default(obj, field, default_val):
+                try:
+                    val = getattr(obj, field)
+                    if val is None:
+                        setattr(obj, field, default_val)
+                except (AttributeError, Exception):
+                    setattr(obj, field, default_val)
+
+            set_default(settings, 'enable_franchise_monitoring', False)
+            set_default(settings, 'manager_button_size', "medium")
+            set_default(settings, 'waiting_manager_max_width', None)
+            set_default(settings, 'waiting_list_box_size', "medium")
+            set_default(settings, 'waiting_modal_timeout', 5)
+            set_default(settings, 'show_member_name_in_waiting_modal', True)
+            set_default(settings, 'show_new_member_text_in_waiting_modal', True)
+            set_default(settings, 'enable_waiting_voice_alert', False)
+            set_default(settings, 'waiting_voice_message', "")
+            set_default(settings, 'waiting_voice_name', "유나")
+            set_default(settings, 'waiting_voice_rate', 0.8)
+            set_default(settings, 'waiting_voice_pitch', 1.0)
+            set_default(settings, 'waiting_board_page_size', 12)
+            set_default(settings, 'waiting_board_rotation_interval', 5)
+            set_default(settings, 'waiting_board_transition_effect', "slide")
+            set_default(settings, 'theme', "zinc")
+            set_default(settings, 'default_class_minute', 50)
+            set_default(settings, 'default_break_minute', 10)
+            set_default(settings, 'default_max_capacity', 10)
+            set_default(settings, 'require_member_registration', False)
+            set_default(settings, 'registration_message', "처음 방문하셨네요!\n성함을 입력해 주세요.")
+            set_default(settings, 'max_dashboard_connections', 2)
+            set_default(settings, 'dashboard_connection_policy', "eject_old")
 
     if not settings:
         # 기본 설정 생성
