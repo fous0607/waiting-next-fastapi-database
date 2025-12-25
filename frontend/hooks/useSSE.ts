@@ -8,6 +8,7 @@ export function useSSE() {
     const {
 
         setConnected,
+        setConnectionBlockState,
         refreshAll, // Use optimized refresh
         handleClassClosed,
         handleClassReopened,
@@ -98,21 +99,30 @@ export function useSSE() {
 
                     if (message.event === 'ping') return;
 
-                    // 강제 종료 시그널 처리 (Stage 2: Ejection)
-                    if (message.event === 'force_disconnect') {
-                        isEjected = true;
+                    // [Stage 2] 강제 종료 (Ejected) or 접속 거부 (Blocked) 처리
+                    if (message.event === 'force_disconnect' || message.event === 'connection_rejected') {
+                        isEjected = true; // 재연결 방지 플래그
                         es.close();
                         setConnected(false);
 
                         const reason = message.data?.reason;
-                        if (reason === 'limit_exceeded') {
-                            toast.error(`접속 대수 초과: 다른 기기에서 접속하여 이 기기의 연결이 종료되었습니다. (최대 ${message.data.max}대)`, {
-                                duration: 10000,
-                                position: 'top-center'
-                            });
-                        } else {
-                            toast.error("서버에 의해 실시간 연결이 종료되었습니다.");
-                        }
+                        const max = message.data?.max || '?';
+                        const isRejected = message.event === 'connection_rejected';
+
+                        // 1. 상태 업데이트 (UI 차단막 표시용)
+                        setConnectionBlockState({
+                            type: isRejected ? 'blocked' : 'ejected',
+                            message: isRejected
+                                ? `접속 가능한 대수(${max}대)를 초과하여 접속할 수 없습니다.`
+                                : `다른 기기가 접속하여 이 기기의 연결이 종료되었습니다. (최대 ${max}대)`
+                        });
+
+                        // 2. 토스트 알림 (UI 차단막이 뜨더라도 알림은 띄움)
+                        /* 
+                           차단막이 뜨므로 토스트는 선택사항이지만, 
+                           명확한 전달을 위해 남겨두거나 차단막 내 메시지로 대체 가능.
+                           여기서는 차단막이 주가 되므로 토스트는 제거하거나 간단히 유지.
+                        */
                         return;
                     }
 

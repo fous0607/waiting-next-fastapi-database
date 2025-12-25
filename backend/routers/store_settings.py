@@ -72,7 +72,9 @@ async def get_store_settings(
             defer(StoreSettings.default_break_minute),
             defer(StoreSettings.default_max_capacity),
             defer(StoreSettings.require_member_registration),
-            defer(StoreSettings.registration_message)
+            defer(StoreSettings.registration_message),
+            defer(StoreSettings.max_dashboard_connections),
+            defer(StoreSettings.dashboard_connection_policy)
         ).filter(
             StoreSettings.store_id == current_store.id
         ).first()
@@ -102,7 +104,10 @@ async def get_store_settings(
             settings.default_break_minute = 10
             settings.default_max_capacity = 10
             settings.require_member_registration = False
+            settings.require_member_registration = False
             settings.registration_message = "처음 방문하셨네요!\n성함을 입력해 주세요."
+            settings.max_dashboard_connections = 2
+            settings.dashboard_connection_policy = "eject_old"
 
     if not settings:
         # 기본 설정 생성
@@ -236,7 +241,10 @@ async def update_store_settings(
                     'waiting_voice_message',
                     'waiting_voice_name',
                     'waiting_voice_rate',
-                    'waiting_voice_pitch'
+                    'waiting_voice_rate',
+                    'waiting_voice_pitch',
+                    'max_dashboard_connections',
+                    'dashboard_connection_policy'
                 ]
             }
             

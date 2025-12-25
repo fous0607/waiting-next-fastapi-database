@@ -79,6 +79,7 @@ const settingsSchema = z.object({
     enable_waiting_board: z.boolean().default(true),
     enable_reception_desk: z.boolean().default(true),
     max_dashboard_connections: z.coerce.number().min(1).max(10).default(2),
+    dashboard_connection_policy: z.enum(['eject_old', 'block_new']).default('eject_old'),
 
     admin_password: z.string().optional(), // For verification if needed, usually just loaded
     registration_message: z.string().default("처음 방문하셨네요!\n성함을 입력해 주세요."),
@@ -135,6 +136,7 @@ export function GeneralSettings() {
             enable_waiting_board: true,
             enable_reception_desk: true,
             max_dashboard_connections: 2,
+            dashboard_connection_policy: 'eject_old',
             registration_message: "처음 방문하셨네요!\n성함을 입력해 주세요.",
         },
     });
@@ -165,6 +167,7 @@ export function GeneralSettings() {
                     enable_waiting_board: data.enable_waiting_board ?? true,
                     enable_reception_desk: data.enable_reception_desk ?? true,
                     max_dashboard_connections: data.max_dashboard_connections || 2,
+                    dashboard_connection_policy: data.dashboard_connection_policy || 'eject_old',
                     auto_closing: data.auto_closing ?? true,
                     use_max_waiting_limit: data.use_max_waiting_limit ?? true,
                     block_last_class_registration: data.block_last_class_registration ?? false,
@@ -693,6 +696,8 @@ export function GeneralSettings() {
                                                 </FormItem>
                                             )}
                                         />
+                                    </div>
+                                    <div className="space-y-4">
                                         <FormField
                                             control={form.control}
                                             name="max_dashboard_connections"
@@ -711,6 +716,31 @@ export function GeneralSettings() {
                                                                 <Input type="number" {...field} className="text-right font-bold" />
                                                             </div>
                                                         </FormControl>
+                                                    </div>
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control}
+                                            name="dashboard_connection_policy"
+                                            render={({ field }) => (
+                                                <FormItem className="rounded-md border p-4 shadow-sm bg-orange-50/10">
+                                                    <div className="flex flex-col gap-2">
+                                                        <FormLabel className="text-orange-900 font-semibold">접속 초과 시 처리 방법</FormLabel>
+                                                        <FormDescription className="text-xs mb-2">
+                                                            허용된 대수를 초과하여 새로운 기기가 접속할 때의 처리 방식을 선택합니다.
+                                                        </FormDescription>
+                                                        <Select onValueChange={field.onChange} value={field.value || 'eject_old'}>
+                                                            <FormControl>
+                                                                <SelectTrigger className="bg-white">
+                                                                    <SelectValue placeholder="처리 방법 선택" />
+                                                                </SelectTrigger>
+                                                            </FormControl>
+                                                            <SelectContent>
+                                                                <SelectItem value="eject_old">기존 기기 접속 끊기 (가장 오래된 기기 종료)</SelectItem>
+                                                                <SelectItem value="block_new">신규 접속 차단 (먼저 접속한 기기 우선)</SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
                                                     </div>
                                                 </FormItem>
                                             )}

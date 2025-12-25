@@ -40,8 +40,12 @@ interface WaitingState {
     isConnected: boolean;
     hideClosedClasses: boolean;
 
+    // Connection Blocking State (For Ejection/Blocking UI)
+    connectionBlockState: { type: 'ejected' | 'blocked', message: string } | null;
+
     // Actions
     setConnected: (status: boolean) => void;
+    setConnectionBlockState: (state: { type: 'ejected' | 'blocked', message: string } | null) => void;
     toggleHideClosedClasses: () => void;
     fetchClasses: () => Promise<void>;
     selectClass: (classId: number) => void;
@@ -74,6 +78,7 @@ export const useWaitingStore = create<WaitingState>((set, get) => ({
     closedClasses: new Set(),
     isConnected: false,
     hideClosedClasses: true, // Default to hidden
+    connectionBlockState: null,
     isLoading: true,
 
     setStoreId: (id: string) => {
@@ -84,6 +89,7 @@ export const useWaitingStore = create<WaitingState>((set, get) => ({
     },
 
     setConnected: (status) => set({ isConnected: status }),
+    setConnectionBlockState: (state) => set({ connectionBlockState: state }),
     toggleHideClosedClasses: () => set((state) => ({ hideClosedClasses: !state.hideClosedClasses })),
 
     fetchStoreStatus: async () => {

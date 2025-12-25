@@ -78,9 +78,15 @@ async def sse_stream(
             # 대시보드 역할(admin, board, reception 등)일 경우 제한 적용
             if role in ['admin', 'board', 'reception', 'manager']:
                 max_limit = settings.max_dashboard_connections or 2
-        
-        # 2-3. SSE 매니저 연결 (제한값 포함)
-        queue, connection_id = await sse_manager.connect(resolved_id, role, request, max_connections=max_limit)
+                
+        # 2-3. SSE 매니저 연결 (제한값 및 정책 포함)
+        queue, connection_id = await sse_manager.connect(
+            resolved_id, 
+            role, 
+            request, 
+            max_connections=max_limit,
+            policy=settings.dashboard_connection_policy if settings else "eject_old"
+        )
         
     except HTTPException as he:
         # HTTPException은 그대로 다시 던져서 FastAPI가 처리하게 함
@@ -94,7 +100,8 @@ async def sse_stream(
         db.close()
 
     async def cleanup_store():
-        sse_manager.disconnect(resolved_id, connection_id)
+        if connection_id:
+            sse_manager.disconnect(resolved_id, connection_id)
 
     # 2-4. SSE 응답 생성
     response = StreamingResponse(

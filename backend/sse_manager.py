@@ -31,7 +31,7 @@ class SSEConnectionManager:
         self.system_connections: Set[asyncio.Queue] = set()
 
     # --- Store Channel ---
-    async def connect(self, store_id: str, role: str, request: Request = None, max_connections: int = 0) -> asyncio.Queue:
+    async def connect(self, store_id: str, role: str, request: Request = None, max_connections: int = 0, policy: str = "eject_old") -> tuple[asyncio.Queue, str]:
         """새로운 SSE 연결 추가 (매장용)"""
         if store_id not in self.active_connections:
             self.active_connections[store_id] = {}
@@ -59,35 +59,48 @@ class SSEConnectionManager:
         for dup_id in duplicates_to_remove:
             del self.active_connections[store_id][dup_id]
 
-        # 1-2. 전체 대수 제한 체크 (Ejection Logic - Stage 2)
+        # 1-2. 전체 대수 제한 체크
         if max_connections > 0:
             current_count = len(self.active_connections[store_id])
             if current_count >= max_connections:
-                # 가장 오래된 연결부터 찾아서 종료 시그널 전송
-                # connected_at 기준으로 정렬
-                sorted_conns = sorted(
-                    self.active_connections[store_id].values(),
-                    key=lambda x: x.connected_at
-                )
                 
-                # 초과분만큼 제거 (새로 추가될 것 고려하여 current_count - max_connections + 1)
-                num_to_eject = current_count - max_connections + 1
-                for i in range(min(num_to_eject, len(sorted_conns))):
-                    old_conn = sorted_conns[i]
-                    print(f"[SSEManager] Ejecting old connection to respect limit ({max_connections}): id={old_conn.id}, role={old_conn.role}, ip={old_conn.ip}")
+                # [Policy: block_new] 신규 접속 차단
+                if policy == "block_new":
+                    print(f"[SSEManager] Connection Blocked (Limit {max_connections} reached): store={store_id}, ip={client_ip}")
+                    # 차단 이벤트 전송 후 즉시 종료
+                    await queue.put({
+                        "event": "connection_rejected",
+                        "data": {"reason": "limit_reached", "max": max_connections}
+                    })
+                    # 연결을 active 목록에 추가하지 않고 반환 (connection_id = None)
+                    return queue, None
+
+                # [Policy: eject_old] 기존 접속 추방 (Default)
+                else: 
+                    # 가장 오래된 연결부터 찾아서 종료 시그널 전송
+                    sorted_conns = sorted(
+                        self.active_connections[store_id].values(),
+                        key=lambda x: x.connected_at
+                    )
                     
-                    try:
-                        # 클라이언트에게 추방 알림 전송
-                        await old_conn.queue.put({
-                            "event": "force_disconnect", 
-                            "data": {"reason": "limit_exceeded", "max": max_connections}
-                        })
-                    except:
-                        pass
-                    
-                    # 목록에서 즉시 제거
-                    if old_conn.id in self.active_connections[store_id]:
-                        del self.active_connections[store_id][old_conn.id]
+                    # 초과분만큼 제거 (새로 추가될 것 고려하여 current_count - max_connections + 1)
+                    num_to_eject = current_count - max_connections + 1
+                    for i in range(min(num_to_eject, len(sorted_conns))):
+                        old_conn = sorted_conns[i]
+                        print(f"[SSEManager] Ejecting old connection to respect limit ({max_connections}): id={old_conn.id}, role={old_conn.role}, ip={old_conn.ip}")
+                        
+                        try:
+                            # 클라이언트에게 추방 알림 전송
+                            await old_conn.queue.put({
+                                "event": "force_disconnect", 
+                                "data": {"reason": "limit_exceeded", "max": max_connections}
+                            })
+                        except:
+                            pass
+                        
+                        # 목록에서 즉시 제거
+                        if old_conn.id in self.active_connections[store_id]:
+                            del self.active_connections[store_id][old_conn.id]
 
         # 2. 신규 연결 등록
         connection = ConnectionInfo(
@@ -266,25 +279,26 @@ sse_manager = SSEConnectionManager()
 async def event_generator(queue: asyncio.Queue, store_id: str = None, connection_id: str = None):
     """SSE 이벤트 스트림 생성기"""
     try:
-        # 연결 확인용 초기 메시지
-        initial_message = {"event": "connected", "data": {}}
-        yield f"data: {json.dumps(initial_message)}\n\n"
+        # 연결 확인용 초기 메시지 (정상 연결일 때만)
+        if connection_id:
+            initial_message = {"event": "connected", "data": {}}
+            yield f"data: {json.dumps(initial_message)}\n\n"
 
         while True:
             try:
                 # 30초 heartbeat
                 message = await asyncio.wait_for(queue.get(), timeout=30.0)
 
-                # 강제 종료 시그널 처리
-                if message.get("event") == "force_disconnect":
-                    # 클라이언트에게 종료 메시지 보내고 루프 탈출 -> 스트림 종료 -> 클라이언트 재연결 시도
-                    payload = {"event": "force_disconnect", "data": message.get("data", {})}
-                    yield f"data: {json.dumps(payload)}\n\n"
-                    break
-
                 event_type = message.get("event", "message")
                 data = message.get("data", {})
-                
+
+                # 강제 종료 / 접속 거부 시그널 처리
+                if event_type in ["force_disconnect", "connection_rejected"]:
+                    payload = {"event": event_type, "data": data}
+                    yield f"data: {json.dumps(payload)}\n\n"
+                    # 스트림 종료 (서버 측 연결 끊기)
+                    break
+
                 payload = {"event": event_type, "data": data}
                 if "store_id" in message:
                     payload["store_id"] = message["store_id"]

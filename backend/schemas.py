@@ -69,6 +69,8 @@ class StoreSettingsBase(BaseModel):
     # SSE 트래픽 관리 설정
     enable_waiting_board: bool = True  # 대기현황판 사용 여부
     enable_reception_desk: bool = True  # 대기접수 데스크 사용 여부
+    max_dashboard_connections: int = 2  # 동시 대시보드 접속 허용 대수
+    dashboard_connection_policy: str = "eject_old"  # eject_old(밀어내기) or block_new(차단)
     
     # 테마 설정
     theme: str = "zinc"  # zinc, blue, green
@@ -150,6 +152,8 @@ class StoreSettingsUpdate(BaseModel):
     # SSE 트래픽 관리 설정
     enable_waiting_board: Optional[bool] = None
     enable_reception_desk: Optional[bool] = None
+    max_dashboard_connections: Optional[int] = None
+    dashboard_connection_policy: Optional[str] = None
     
     # 테마 설정
     theme: Optional[str] = None

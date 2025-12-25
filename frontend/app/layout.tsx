@@ -19,6 +19,7 @@ export const metadata: Metadata = {
 
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
+import { BlockingOverlay } from "@/components/ui/BlockingOverlay";
 
 export default function RootLayout({
   children,
@@ -39,6 +40,7 @@ export default function RootLayout({
         >
           {children}
           <Toaster />
+          <BlockingOverlay />
         </ThemeProvider>
       </body>
     </html>
