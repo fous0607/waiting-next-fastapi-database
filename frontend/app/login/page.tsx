@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import api from '@/lib/api';
 
@@ -16,6 +17,24 @@ export default function LoginPage() {
         username: '',
         password: '',
     });
+    const [rememberId, setRememberId] = useState(false);
+    const [rememberPassword, setRememberPassword] = useState(false);
+
+    // Load saved credentials on mount
+    useEffect(() => {
+        const savedUsername = localStorage.getItem('saved_username');
+        const savedPassword = localStorage.getItem('saved_password');
+
+        if (savedUsername) {
+            setFormData(prev => ({ ...prev, username: savedUsername }));
+            setRememberId(true);
+        }
+
+        if (savedPassword) {
+            setFormData(prev => ({ ...prev, password: savedPassword }));
+            setRememberPassword(true);
+        }
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -53,6 +72,19 @@ export default function LoginPage() {
                 localStorage.setItem('selected_store_id', store.id.toString());
                 localStorage.setItem('selected_store_name', store.name);
                 localStorage.setItem('selected_store_code', store.code);
+            }
+
+            // Persistence logic
+            if (rememberId) {
+                localStorage.setItem('saved_username', formData.username);
+            } else {
+                localStorage.removeItem('saved_username');
+            }
+
+            if (rememberPassword) {
+                localStorage.setItem('saved_password', formData.password);
+            } else {
+                localStorage.removeItem('saved_password');
             }
 
             // Set cookie for middleware access
@@ -110,6 +142,28 @@ export default function LoginPage() {
                                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                     required
                                 />
+                            </div>
+                            <div className="flex items-center space-x-4 pt-2 border-t mt-2">
+                                <div className="flex items-center space-x-2">
+                                    <input
+                                        type="checkbox"
+                                        id="rememberId"
+                                        checked={rememberId}
+                                        onChange={(e) => setRememberId(e.target.checked)}
+                                        className="w-4 h-4"
+                                    />
+                                    <Label htmlFor="rememberId" className="text-sm font-normal cursor-pointer">아이디 저장</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <input
+                                        type="checkbox"
+                                        id="rememberPassword"
+                                        checked={rememberPassword}
+                                        onChange={(e) => setRememberPassword(e.target.checked)}
+                                        className="w-4 h-4"
+                                    />
+                                    <Label htmlFor="rememberPassword" className="text-sm font-normal cursor-pointer">비밀번호 저장</Label>
+                                </div>
                             </div>
                         </div>
                     </CardContent>
