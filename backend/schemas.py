@@ -53,7 +53,7 @@ class StoreSettingsBase(BaseModel):
     show_member_name_in_waiting_modal: bool = True
     show_new_member_text_in_waiting_modal: bool = True
     enable_waiting_voice_alert: bool = False
-    waiting_voice_message: Optional[str] = None
+    waiting_voice_message: Optional[str] = "{클래스명}  {회원명}님 대기 접수 되었습니다."
     waiting_voice_name: Optional[str] = None
     waiting_voice_rate: float = 1.0
     waiting_voice_pitch: float = 1.0

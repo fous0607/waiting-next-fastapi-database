@@ -597,7 +597,10 @@ export function GeneralSettings() {
                                             render={({ field }) => (
                                                 <FormItem>
                                                     <FormLabel>음성 안내 메시지 (옵션)</FormLabel>
-                                                    <FormControl><Input placeholder="예: {클래스명} 대기 접수 되었습니다." {...field} value={field.value ?? ''} /></FormControl>
+                                                    <FormControl><Input placeholder="예: {클래스명}  {회원명}님 대기 접수 되었습니다." {...field} value={field.value ?? ''} /></FormControl>
+                                                    <FormDescription className="text-[10px]">
+                                                        {`{클래스명}, {회원명}, {순번}을 사용할 수 있습니다. 공백을 2번 연속 입력하면 0.5초간 쉬고 읽어줍니다.`}
+                                                    </FormDescription>
                                                 </FormItem>
                                             )}
                                         />

@@ -395,15 +395,16 @@ export default function ReceptionPage() {
         // Cancel previous speech
         window.speechSynthesis.cancel();
 
-        // + 딜레이 파싱: + = 0.5초, ++ = 1초
-        const parts = text.split(/(\\+\\+|\\+)/);
+        // 연속된 공백(2개 이상)을 기준으로 분할하여 딜레이 생성
+        const parts = text.split(/(\s{2,})/);
         let currentTime = 0;
 
         parts.forEach((part, index) => {
-            if (part === '+') {
-                currentTime += 500; // 0.5초 딜레이
-            } else if (part === '++') {
-                currentTime += 1000; // 1초 딜레이
+            // 공백만으로 이루어진 파트 (딜레이로 처리)
+            if (/^\s{2,}$/.test(part)) {
+                // 공백 2개당 0.5초 딜레이 (예: 공백 4개면 1.0초)
+                const delayCount = Math.floor(part.length / 2);
+                currentTime += delayCount * 500;
             } else if (part.trim()) {
                 setTimeout(() => {
                     const utterance = new SpeechSynthesisUtterance(part.trim());
