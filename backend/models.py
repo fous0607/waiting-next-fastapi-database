@@ -138,6 +138,8 @@ class StoreSettings(Base):
     # 대기접수 키패드 설정
     keypad_style = Column(String, default="modern")  # modern, bold, dark, colorful
     keypad_font_size = Column(String, default="large")  # small, medium, large, xlarge
+    keypad_sound_enabled = Column(Boolean, default=True)  # 키패드 효과음 사용 여부
+    keypad_sound_type = Column(String, default="beep")  # 키패드 효과음 종류 (beep, click, ping)
 
     # 대기관리자 화면 레이아웃 설정
     manager_button_size = Column(String, default="medium")  # xsmall, small, medium, large

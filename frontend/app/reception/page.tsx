@@ -200,8 +200,83 @@ export default function ReceptionPage() {
         };
     }, [loadStatus, debouncedLoadStatus]);
 
+    // Audio Context for Keypad Sounds
+    const audioContextRef = useRef<AudioContext | null>(null);
+
+    const playKeypadSound = useCallback((type: string = 'beep') => {
+        if (!storeSettings?.keypad_sound_enabled) return;
+
+        try {
+            if (!audioContextRef.current) {
+                audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+            }
+            const ctx = audioContextRef.current;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+
+            const now = ctx.currentTime;
+
+            // Sound Profiles
+            const soundType = storeSettings?.keypad_sound_type || type;
+
+            if (soundType === 'click') {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.exponentialRampToValueAtTime(40, now + 0.05);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                osc.start(now);
+                osc.stop(now + 0.05);
+            } else if (soundType === 'ping') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(880, now);
+                osc.frequency.exponentialRampToValueAtTime(440, now + 0.1);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now);
+                osc.stop(now + 0.1);
+            } else { // default 'beep'
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(1200, now);
+                osc.frequency.exponentialRampToValueAtTime(800, now + 0.08);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+                osc.start(now);
+                osc.stop(now + 0.08);
+            }
+        } catch (e) {
+            console.warn('Audio feedback failed:', e);
+        }
+    }, [storeSettings]);
+
+    const speak = useCallback((text: string) => {
+        if (!storeSettings?.enable_waiting_voice_alert) return;
+        if (typeof window === 'undefined' || !window.speechSynthesis) return;
+
+        // Cancel previous speech
+        window.speechSynthesis.cancel();
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'ko-KR';
+        utterance.rate = storeSettings?.waiting_voice_rate || 1.0;
+        utterance.pitch = storeSettings?.waiting_voice_pitch || 1.0;
+
+        // Optionally select voice if configured (currently not UI exposed but in schema)
+        if (storeSettings?.waiting_voice_name) {
+            const voices = window.speechSynthesis.getVoices();
+            const voice = voices.find(v => v.name === storeSettings.waiting_voice_name);
+            if (voice) utterance.voice = voice;
+        }
+
+        window.speechSynthesis.speak(utterance);
+    }, [storeSettings]);
+
     const handleNumberClick = (num: string) => {
         if (phoneNumber.length >= 11) return;
+        playKeypadSound();
         setPhoneNumber(prev => {
             const newVal = prev + num;
             return newVal;
@@ -209,10 +284,12 @@ export default function ReceptionPage() {
     };
 
     const handleBackspace = () => {
+        playKeypadSound('click');
         setPhoneNumber(prev => prev.slice(0, -1));
     };
 
     const handleClear = () => {
+        playKeypadSound('click');
         setPhoneNumber('');
     };
 
@@ -247,9 +324,20 @@ export default function ReceptionPage() {
             setRegistrationDialog({ open: false, phone: '' }); // Close registration if open
             loadStatus();
 
+            // Speak success
+            if (storeSettings?.enable_waiting_voice_alert) {
+                const customMsg = storeSettings?.waiting_voice_message;
+                const message = customMsg
+                    ? customMsg.replace('{클래스명}', data.class_name).replace('{순번}', data.class_order)
+                    : `${data.class_name} ${data.class_order}번째 대기 접수 되었습니다.`;
+                speak(message);
+            }
+
+            // Custom timeout from settings
+            const timeout = (storeSettings?.waiting_modal_timeout || 5) * 1000;
             setTimeout(() => {
                 setResultDialog(prev => ({ ...prev, open: false }));
-            }, 5000);
+            }, timeout);
 
         } catch (error) {
             const err = error as any;
@@ -260,9 +348,10 @@ export default function ReceptionPage() {
                 setErrorDialog({ open: true, message: errorMessage });
 
                 // Auto-close after 5 seconds
+                const timeout = (storeSettings?.waiting_modal_timeout || 5) * 1000;
                 setTimeout(() => {
                     setErrorDialog(prev => ({ ...prev, open: false }));
-                }, 5000);
+                }, timeout);
             } else {
                 toast.error(errorMessage);
             }
@@ -273,6 +362,7 @@ export default function ReceptionPage() {
 
     const handleSubmit = async () => {
         if (!phoneNumber) return;
+        playKeypadSound('ping'); // Special sound for submit
 
         // 1. 4-Digit Logic (Member Lookup)
         if (phoneNumber.length === 4) {
@@ -526,6 +616,11 @@ export default function ReceptionPage() {
                                     </span>
                                 )}
                             </span>
+                            {storeSettings?.show_member_name_in_waiting_modal && resultDialog.data?.name && (
+                                <span className="block text-3xl text-slate-900 font-bold mb-4">
+                                    {resultDialog.data.name}님
+                                </span>
+                            )}
                             대기 접수가 완료되었습니다.
                         </DialogDescription>
                     </DialogHeader>

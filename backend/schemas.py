@@ -42,6 +42,8 @@ class StoreSettingsBase(BaseModel):
     keypad_style: str = "modern"  # modern, bold, dark, colorful
 
     keypad_font_size: str = "large"  # small, medium, large, xlarge
+    keypad_sound_enabled: bool = True
+    keypad_sound_type: str = "beep"
 
     # 개점 설정
     daily_opening_rule: str = "strict"
@@ -119,6 +121,8 @@ class StoreSettingsUpdate(BaseModel):
     # 대기접수 키패드 설정
     keypad_style: Optional[str] = None
     keypad_font_size: Optional[str] = None
+    keypad_sound_enabled: Optional[bool] = None
+    keypad_sound_type: Optional[str] = None
     
     # 대기관리자 화면 버튼 크기
     manager_button_size: Optional[str] = None

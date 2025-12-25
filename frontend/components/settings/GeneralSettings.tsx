@@ -65,6 +65,8 @@ const settingsSchema = z.object({
 
     keypad_style: z.string().default("modern"),
     keypad_font_size: z.string().default("large"),
+    keypad_sound_enabled: z.boolean().default(true),
+    keypad_sound_type: z.enum(['beep', 'click', 'ping']).default('beep'),
 
     // Modal & Audio
     waiting_modal_timeout: z.coerce.number().min(1).default(5),
@@ -123,6 +125,8 @@ export function GeneralSettings() {
             waiting_manager_max_width: null,
             keypad_style: "modern",
             keypad_font_size: "large",
+            keypad_sound_enabled: true,
+            keypad_sound_type: "beep",
             waiting_modal_timeout: 5,
             show_member_name_in_waiting_modal: true,
             show_new_member_text_in_waiting_modal: true,
@@ -522,8 +526,35 @@ export function GeneralSettings() {
                                                 </FormItem>
                                             )}
                                         />
+                                        <FormField
+                                            control={form.control}
+                                            name="keypad_sound_type"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>키패드 효과음 종류</FormLabel>
+                                                    <Select onValueChange={field.onChange} value={field.value as string || ''}>
+                                                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                                                        <SelectContent>
+                                                            <SelectItem value="beep">Beep (비프음)</SelectItem>
+                                                            <SelectItem value="click">Click (클릭음)</SelectItem>
+                                                            <SelectItem value="ping">Ping (탁구)</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </FormItem>
+                                            )}
+                                        />
                                     </div>
                                     <div className="flex flex-col gap-2">
+                                        <FormField
+                                            control={form.control}
+                                            name="keypad_sound_enabled"
+                                            render={({ field }) => (
+                                                <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                                                    <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
+                                                    <FormLabel className='font-normal'>키패드 효과음 사용</FormLabel>
+                                                </FormItem>
+                                            )}
+                                        />
                                         <FormField
                                             control={form.control}
                                             name="show_member_name_in_waiting_modal"
