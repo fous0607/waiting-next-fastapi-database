@@ -66,6 +66,7 @@ interface WaitingState {
     // Admin Actions
     closeClass: (classId: number) => Promise<void>;
     reorderWaitingList: (classId: number, fromIndex: number, toIndex: number) => void;
+    reset: () => void;
 }
 
 export const useWaitingStore = create<WaitingState>((set, get) => ({
@@ -311,5 +312,17 @@ export const useWaitingStore = create<WaitingState>((set, get) => ({
                 }
             };
         });
-    }
+    },
+
+    reset: () => set({
+        classes: [],
+        waitingList: {},
+        storeName: '',
+        businessDate: '',
+        currentClassId: null,
+        closedClasses: new Set(),
+        isConnected: false,
+        connectionBlockState: null,
+        isLoading: false
+    })
 }));

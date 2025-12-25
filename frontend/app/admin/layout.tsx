@@ -20,7 +20,10 @@ import { api } from '@/lib/api';
 
 // ... imports
 
+import { useWaitingStore } from '@/lib/store/useWaitingStore';
+
 function AdminSidebar() {
+    const { reset } = useWaitingStore();
     const pathname = usePathname();
     const searchParams = useSearchParams();
     const viewParam = searchParams.get('view');
@@ -54,6 +57,7 @@ function AdminSidebar() {
             localStorage.removeItem('access_token');
             localStorage.removeItem('user_role');
             localStorage.removeItem('selected_store_id');
+            reset(); // Clear Zustand state
             document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
             window.location.href = '/login';
         } catch (error) {

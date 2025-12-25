@@ -49,14 +49,26 @@ class SSEConnectionManager:
         if request and request.headers.get("x-forwarded-for"):
             client_ip = request.headers.get("x-forwarded-for").split(",")[0].strip()
 
-        # 1-1. 동일 IP + 동일 Role의 중복 연결 제거 (단순 새로고침 등)
+        # 1-1. 동일 환경(IP + Role + User Agent)의 중복 연결 제거
+        # 단순 새로고침이나 탭 이동 시 기존 연결을 '즉시' 추방하여 좀비 세션 방지
         duplicates_to_remove = []
         for conn_id, conn in self.active_connections[store_id].items():
             if conn.ip == client_ip and conn.role == role:
-                duplicates_to_remove.append(conn_id)
-                print(f"[SSEManager] Removing same-IP duplicate: store={store_id}, role={role}, ip={client_ip}, old_id={conn_id}")
+                # User Agent까지 같으면 확실한 동일 기기/브라우저
+                if conn.user_agent == user_agent:
+                    duplicates_to_remove.append(conn_id)
+                    print(f"[SSEManager] Removing same-browser duplicate: store={store_id}, role={role}, ip={client_ip}, old_id={conn_id}")
+                else:
+                    # IP/Role은 같지만 UA가 다르면 다른 브라우저일 수 있음 (일단 유지하되 대수 제한에서 처리)
+                    pass
         
         for dup_id in duplicates_to_remove:
+            # 중복 연결에게도 종료 알림을 보내서 클라이언트 리소스 정리 유도
+            try:
+                old_conn = self.active_connections[store_id][dup_id]
+                await old_conn.queue.put({"event": "force_disconnect", "data": {"reason": "duplicate_connection"}})
+            except:
+                pass
             del self.active_connections[store_id][dup_id]
 
         # 1-2. 전체 대수 제한 체크

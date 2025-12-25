@@ -10,9 +10,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import Link from "next/link";
 import { Settings, Users, Monitor, Tablet, LogOut, Play, StopCircle, Loader2, BarChart3 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useWaitingStore } from "@/lib/store/useWaitingStore";
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
 import { GlobalLoader } from "@/components/ui/GlobalLoader";
@@ -23,6 +23,7 @@ import { ko } from 'date-fns/locale';
 
 
 export default function DashboardPage() {
+  const { reset } = useWaitingStore();
   const router = useRouter();
   const [storeName, setStoreName] = useState('');
   const [storeCode, setStoreCode] = useState(''); // Store code state
@@ -257,7 +258,8 @@ export default function DashboardPage() {
       localStorage.removeItem('selected_store_id');
       localStorage.removeItem('selected_store_name');
       localStorage.removeItem('selected_store_code');
-      router.push('/login');
+      reset(); // Clear Zustand state
+      window.location.href = '/login';
       // No need to set false as we redirect
     }
   };

@@ -57,18 +57,27 @@ export function useSSE() {
         let reconnectTimeout: NodeJS.Timeout;
 
         const connectSSE = () => {
-            if (eventSourceRef.current) {
-                console.log('[SSE] Closing existing connection before retry');
-                eventSourceRef.current.close();
-            }
-
             // Get token
-            const token = localStorage.getItem('access_token');
+            const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+
             // role 파악 (현재 페이지 URL 기준으로 유추)
             let currentRole = 'admin';
             if (typeof window !== 'undefined') {
                 if (window.location.pathname.includes('/board')) currentRole = 'board';
                 else if (window.location.pathname.includes('/reception')) currentRole = 'reception';
+            }
+
+            // [Security/Stability] 관리자용 페이지에서 토큰이 없으면 연결 시도 금지
+            // 현황판(board)이나 접수(reception)는 토큰 없이도 접속 가능할 수 있으므로 role에 따라 분기
+            if (!token && (currentRole === 'admin' || currentRole === 'manager')) {
+                console.log('[SSE] No access token found for admin role, skipping connection');
+                setConnected(false);
+                return;
+            }
+
+            if (eventSourceRef.current) {
+                console.log('[SSE] Closing existing connection before retry');
+                eventSourceRef.current.close();
             }
 
             console.log(`[SSE] Connecting to stream for store: ${storeId} as ${currentRole}...`);
