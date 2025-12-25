@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Response
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 from typing import List, Optional
@@ -395,6 +395,31 @@ async def bulk_create_members(
         "error_count": error_count,
         "errors": errors
     }
+
+@router.get("/sample-excel")
+async def get_sample_excel():
+    """회원 일괄 등록용 샘플 엑셀 다운로드"""
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "회원 일괄 등록"
+    
+    # 헤더
+    ws.append(["고객명", "핸드폰번호", "바코드"])
+    
+    # 샘플 데이터
+    ws.append(["홍길동", "01012345678", "BC123456"])
+    ws.append(["김철수", "01087654321", ""])
+    
+    # 엑셀 파일 저장
+    output = BytesIO()
+    wb.save(output)
+    output.seek(0)
+    
+    return Response(
+        content=output.read(),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": "attachment; filename=member_sample.xlsx"}
+    )
 
 @router.post("/upload-excel")
 async def upload_excel(

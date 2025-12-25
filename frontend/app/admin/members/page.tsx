@@ -22,6 +22,7 @@ interface Member {
     id: number;
     name: string;
     phone: string;
+    barcode?: string | null;
 }
 
 interface VisitHistory {
@@ -47,8 +48,9 @@ function MemberLookupContent() {
     const [selectedMember, setSelectedMember] = useState<MemberDetail | null>(null);
     const [detailLoading, setDetailLoading] = useState(false);
 
-    const [isEditNameOpen, setIsEditNameOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editingName, setEditingName] = useState('');
+    const [editingBarcode, setEditingBarcode] = useState('');
     const [isUpdating, setIsUpdating] = useState(false);
 
     const handleSearch = async (e?: React.FormEvent) => {
@@ -79,35 +81,40 @@ function MemberLookupContent() {
         }
     };
 
-    const handleNameClick = () => {
+    const handleEditClick = () => {
         if (selectedMember) {
             setEditingName(selectedMember.member.name);
-            setIsEditNameOpen(true);
+            setEditingBarcode(selectedMember.member.barcode || '');
+            setIsEditModalOpen(true);
         }
     };
 
-    const handleUpdateName = async () => {
+    const handleUpdateMember = async () => {
         if (!selectedMember || !editingName.trim()) return;
 
         setIsUpdating(true);
         try {
-            await api.put(`/members/${selectedMember.member.id}`, { name: editingName });
+            const updateData = {
+                name: editingName,
+                barcode: editingBarcode.trim() || null
+            };
+
+            await api.put(`/members/${selectedMember.member.id}`, updateData);
 
             // Update local state
             setSelectedMember(prev => prev ? {
                 ...prev,
-                member: { ...prev.member, name: editingName }
+                member: { ...prev.member, ...updateData }
             } : null);
 
             // Update search results list if the updated member is in it
             setSearchResults(prev => prev.map(m =>
-                m.id === selectedMember.member.id ? { ...m, name: editingName } : m
+                m.id === selectedMember.member.id ? { ...m, ...updateData } : m
             ));
 
-            setIsEditNameOpen(false);
+            setIsEditModalOpen(false);
         } catch (error) {
-            console.error('Failed to update name:', error);
-            // Optionally add toast error here
+            console.error('Failed to update member:', error);
         } finally {
             setIsUpdating(false);
         }
@@ -203,14 +210,22 @@ function MemberLookupContent() {
                                         <div>
                                             <div
                                                 className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
-                                                onClick={handleNameClick}
-                                                title="이름 수정"
+                                                onClick={handleEditClick}
+                                                title="정보 수정"
                                             >
                                                 <h3 className="text-2xl font-bold">{selectedMember.member.name}</h3>
                                                 <Edit2 className="w-4 h-4 text-slate-400" />
                                             </div>
-                                            <div className="flex items-center gap-3 mt-1 text-slate-400 font-medium text-sm">
+                                            <div className="flex flex-col gap-1 mt-1 text-slate-400 font-medium text-sm">
                                                 <span className="flex items-center gap-1"><Phone className="w-3.5 h-3.5" /> {selectedMember.member.phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3')}</span>
+                                                {selectedMember.member.barcode && (
+                                                    <span className="flex items-center gap-1 text-[10px] opacity-70">
+                                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                                        </svg>
+                                                        바코드: {selectedMember.member.barcode}
+                                                    </span>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -287,26 +302,37 @@ function MemberLookupContent() {
                 </div>
             </div>
 
-            <Dialog open={isEditNameOpen} onOpenChange={setIsEditNameOpen}>
-                <DialogContent>
+            <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+                <DialogContent className="sm:max-w-[425px] rounded-3xl">
                     <DialogHeader>
-                        <DialogTitle>회원 이름 수정</DialogTitle>
+                        <DialogTitle>회원 정보 수정</DialogTitle>
                     </DialogHeader>
-                    <div className="py-4 space-y-4">
+                    <div className="py-6 space-y-5">
                         <div className="space-y-2">
-                            <Label htmlFor="name">이름</Label>
+                            <Label htmlFor="name" className="text-xs font-bold text-slate-500 ml-1">고객명</Label>
                             <Input
                                 id="name"
                                 value={editingName}
                                 onChange={(e) => setEditingName(e.target.value)}
                                 placeholder="이름을 입력하세요"
+                                className="rounded-xl border-slate-200"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="barcode" className="text-xs font-bold text-slate-500 ml-1">바코드 (선택)</Label>
+                            <Input
+                                id="barcode"
+                                value={editingBarcode}
+                                onChange={(e) => setEditingBarcode(e.target.value)}
+                                placeholder="회원 바코드를 입력하거나 캔해주세요"
+                                className="rounded-xl border-slate-200"
                             />
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsEditNameOpen(false)}>취소</Button>
-                        <Button onClick={handleUpdateName} disabled={isUpdating}>
-                            {isUpdating ? '수정 중...' : '확인'}
+                        <Button variant="ghost" className="rounded-xl text-slate-500" onClick={() => setIsEditModalOpen(false)}>취소</Button>
+                        <Button className="rounded-xl bg-slate-900 hover:bg-slate-800 px-8" onClick={handleUpdateMember} disabled={isUpdating}>
+                            {isUpdating ? '저장 중...' : '확인'}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

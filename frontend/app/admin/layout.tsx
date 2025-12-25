@@ -106,6 +106,12 @@ function AdminSidebar() {
             href: '/admin/members/new',
             active: pathname === '/admin/members/new',
         },
+        {
+            title: '회원 일괄 등록',
+            icon: Users,
+            href: '/admin/members/bulk',
+            active: pathname === '/admin/members/bulk',
+        },
     ];
 
     return (
