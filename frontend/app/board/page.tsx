@@ -208,12 +208,15 @@ export default function BoardPage() {
         }
 
         return () => {
-            if (es) es.close();
-            if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current); // Cleanup debounce
+            if (sseRef.current) {
+                sseRef.current.close();
+                sseRef.current = null;
+            }
+            if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
             clearTimeout(reconnectTimeout);
             setIsConnected(false);
         };
-    }, [debouncedReload, storeSettings?.enable_waiting_board]);
+    }, [storeSettings?.enable_waiting_board]);
 
     // Page Rotation Timer - respects store settings
     useEffect(() => {
