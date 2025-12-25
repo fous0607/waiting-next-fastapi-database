@@ -226,40 +226,15 @@ async def update_store_settings(
                 StoreSettings.store_id == current_store.id
             ).first()
             
-            # 문제되는 새 컬럼들 제외하고 업데이트
-            safe_update_data = {
-                k: v for k, v in update_data.items() 
-                if k not in [
-                    'manager_button_size', 
-                    'waiting_manager_max_width',
-                    'waiting_list_box_size',
-                    'enable_franchise_monitoring',
-                    'waiting_modal_timeout',
-                    'show_member_name_in_waiting_modal',
-                    'show_new_member_text_in_waiting_modal',
-                    'enable_waiting_voice_alert',
-                    'waiting_voice_message',
-                    'waiting_voice_name',
-                    'waiting_voice_rate',
-                    'waiting_voice_rate',
-                    'waiting_voice_pitch',
-                    'max_dashboard_connections',
-                    'dashboard_connection_policy'
-                ]
-            }
-            
-            for field, value in safe_update_data.items():
-                setattr(db_settings, field, value)
+            # 문제되는 새 컬럼들을 제외하고 업데이트 하되,
+            # 특정 필드들이 db_settings 객체에 존재한다면(마이그레이션 성공 시) 업데이트에 포함
+            for field, value in update_data.items():
+                if hasattr(db_settings, field):
+                    setattr(db_settings, field, value)
                 
             db.commit()
             db.refresh(db_settings)
             
-            # 응답 모델 보정
-            if 'manager_button_size' in update_data:
-                db_settings.manager_button_size = update_data['manager_button_size']
-            if 'waiting_manager_max_width' in update_data:
-                db_settings.waiting_manager_max_width = update_data['waiting_manager_max_width']
-                
             # Log Audit for Fallback Update
             from services.audit_service import AuditService
             AuditService.log(
@@ -269,8 +244,8 @@ async def update_store_settings(
                 target_id=db_settings.id,
                 user_id=current_user.id,
                 store_id=current_store.id,
-                old_value=old_state, # Approximation since fallback might have partial update
-                new_value={"note": "Fallback update due to migration failure"},
+                old_value=old_state,
+                new_value={"note": "Update performed with hasattr check"},
                 ip_address=request.client.host
             )
 
