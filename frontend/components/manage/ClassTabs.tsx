@@ -47,7 +47,7 @@ export function ClassTabs() {
                         key={cls.id}
                         onClick={() => selectClass(cls.id)}
                         className={cn(
-                            "flex flex-col items-center justify-center min-w-[100px] px-4 py-3 rounded-lg border transition-all duration-200",
+                            "flex items-center justify-center gap-2 min-w-[100px] px-4 py-3 rounded-lg border transition-all duration-200",
                             isActive
                                 ? "bg-primary text-primary-foreground border-primary shadow-md"
                                 : "bg-card text-card-foreground border-border hover:bg-accent",
@@ -59,7 +59,7 @@ export function ClassTabs() {
                             {isClosed && <span className="text-xs ml-1">(마감)</span>}
                         </span>
                         <span className={cn(
-                            "text-sm font-medium mt-1 px-2 py-0.5 rounded-full",
+                            "text-sm font-medium px-2 py-0.5 rounded-full",
                             isActive ? "bg-primary-foreground/20" : "bg-secondary text-secondary-foreground"
                         )}>
                             {cls.current_count}명
