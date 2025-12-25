@@ -29,7 +29,6 @@ export function ManageHeader() {
                         </span>
                     )}
                 </h1>
-                <p className="text-muted-foreground mt-1">대기자 출석, 취소, 순서 변경 관리</p>
             </div>
             <div className="flex items-center gap-3">
                 <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${isConnected ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>

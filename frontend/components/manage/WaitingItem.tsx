@@ -142,70 +142,70 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                     item.status === 'called' && "border-yellow-400 bg-yellow-50/50 dark:bg-yellow-900/20",
                     isDragging && "shadow-2xl border-primary border-2 bg-primary/5"
                 )}>
-                    <CardContent className="flex items-center p-3">
+                    <CardContent className="flex items-center p-2">
                         {/* Drag Handle - Draggable area with grip icon */}
                         <div
                             {...listeners}
                             className={cn(
-                                "flex flex-col items-center justify-center mr-3 min-w-[3.5rem] cursor-grab select-none p-2 -ml-2 rounded-lg transition-all",
+                                "flex flex-col items-center justify-center mr-2 min-w-[2.5rem] cursor-grab select-none p-1 -ml-1 rounded-lg transition-all",
                                 isDragging ? "scale-110 bg-primary/20 cursor-grabbing" : "active:scale-110 active:bg-primary/10 active:cursor-grabbing"
                             )}
                         >
                             <GripVertical className={cn(
-                                "w-6 h-6 mb-0.5 transition-all",
+                                "w-4 h-4 mb-0.5 transition-all",
                                 isDragging ? "text-primary scale-110" : "text-muted-foreground/50 active:scale-110"
                             )} />
-                            <span className="text-xl font-black text-primary">{item.waiting_number}</span>
-                            <span className="text-[10px] text-muted-foreground">{index + 1}번째</span>
+                            <span className="text-lg font-black text-primary leading-none">{item.waiting_number}</span>
+                            <span className="text-[9px] text-muted-foreground mt-0.5">{index + 1}번째</span>
                         </div>
 
                         {/* Info */}
                         <div className="flex-1 min-w-0">
-                            <div className="flex items-center space-x-2">
-                                <h3 className="text-base font-bold truncate">{item.name || item.phone.slice(-4)}</h3>
-                                {item.status === 'called' && <Badge className="bg-yellow-500 text-white hover:bg-yellow-600 px-1.5 py-0 text-[10px]">호출됨</Badge>}
+                            <div className="flex items-center space-x-1.5">
+                                <h3 className="text-sm font-bold truncate tracking-tight">{item.name || item.phone.slice(-4)}</h3>
+                                {item.status === 'called' && <Badge className="bg-yellow-500 text-white hover:bg-yellow-600 px-1 py-0 text-[9px] h-3.5">호출</Badge>}
                             </div>
-                            <div className="flex items-center text-xs text-muted-foreground mt-0.5">
-                                <Phone className="w-3 h-3 mr-1" />
+                            <div className="flex items-center text-[10px] text-muted-foreground mt-0.5">
+                                <Phone className="w-2.5 h-2.5 mr-1" />
                                 {item.phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3')}
                             </div>
                         </div>
 
                         {/* Actions */}
                         <div className="flex items-center space-x-1">
-                            {/* Arrow buttons - Always visible and larger for touch */}
-                            <div className="flex flex-col gap-1 mr-2">
+                            {/* Arrow buttons - Always visible and optimized for space */}
+                            <div className="flex flex-col gap-0.5 mr-1">
                                 <Button
                                     variant="outline"
                                     size="icon"
-                                    className="h-10 w-10 touch-manipulation"
+                                    className="h-7 w-7 touch-manipulation"
                                     onClick={() => handleOrderChange('up')}
                                     title="순서 올리기"
                                 >
-                                    <ArrowUp className="w-5 h-5" />
+                                    <ArrowUp className="w-3.5 h-3.5" />
                                 </Button>
                                 <Button
                                     variant="outline"
                                     size="icon"
-                                    className="h-10 w-10 touch-manipulation"
+                                    className="h-7 w-7 touch-manipulation"
                                     onClick={() => handleOrderChange('down')}
                                     title="순서 내리기"
                                 >
-                                    <ArrowDown className="w-5 h-5" />
+                                    <ArrowDown className="w-3.5 h-3.5" />
                                 </Button>
                             </div>
 
-                            <Button variant="outline" size="icon" onClick={handleCall} className="hidden sm:flex" title="호출">
-                                <BellRing className="w-4 h-4 text-orange-500" />
+                            <Button variant="outline" size="icon" onClick={handleCall} className="hidden sm:flex h-7 w-7" title="호출">
+                                <BellRing className="w-3.5 h-3.5 text-orange-500" />
                             </Button>
-                            <Button variant="outline" size="icon" onClick={() => handleStatusUpdate('attended')} className="hidden sm:flex" title="출석">
-                                <CheckCircle className="w-4 h-4 text-green-600" />
+                            <Button variant="outline" size="icon" onClick={() => handleStatusUpdate('attended')} className="hidden sm:flex h-7 w-7" title="출석">
+                                <CheckCircle className="w-3.5 h-3.5 text-green-600" />
                             </Button>
 
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon">
-                                        <MoreHorizontal className="w-5 h-5" />
+                                    <Button variant="ghost" size="icon" className="h-7 w-7">
+                                        <MoreHorizontal className="w-4 h-4" />
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
