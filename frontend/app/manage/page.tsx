@@ -63,7 +63,7 @@ function ManageContent() {
     }
 
     return (
-        <div className="container max-w-7xl mx-auto p-4 h-screen flex flex-col pb-10"> {/* Added pb-10 for footer space */}
+        <div className="w-full px-4 py-4 h-screen flex flex-col pb-10"> {/* Full width layout */}
             <ManageHeader />
             <QuickRegister />
 

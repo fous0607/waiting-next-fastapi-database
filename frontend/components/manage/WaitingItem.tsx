@@ -142,7 +142,7 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                     item.status === 'called' && "border-yellow-400 bg-yellow-50/50 dark:bg-yellow-900/20",
                     isDragging && "shadow-2xl border-primary border-2 bg-primary/5"
                 )}>
-                    <CardContent className="flex items-center p-2">
+                    <CardContent className="flex items-center px-2 py-1.5">
                         {/* Drag Handle - Draggable area with grip icon */}
                         <div
                             {...listeners}
@@ -174,7 +174,7 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                         {/* Actions */}
                         <div className="flex items-center space-x-1">
                             {/* Arrow buttons - Always visible and optimized for space */}
-                            <div className="flex flex-col gap-0.5 mr-1">
+                            <div className="flex flex-col gap-0.5 mr-0.5">
                                 <Button
                                     variant="outline"
                                     size="icon"
