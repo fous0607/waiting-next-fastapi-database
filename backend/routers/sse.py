@@ -90,10 +90,16 @@ async def sse_stream(
                 print(f"[SSE] Access denied: Reception desk is disabled for store_id={resolved_id}")
                 raise HTTPException(status_code=403, detail="Reception desk is disabled for this store")
             
-            # 대시보드 역할(admin, board, reception 등)일 경우 제한 적용
-            if role in ['admin', 'board', 'reception', 'manager']:
+            # 대시보드 역할(admin, manager)일 경우에만 설정된 제한 적용
+            # board, reception 등은 개별 통제 대상에서 제외하거나 별도 로직 필요
+            # 여기서는 사용자 대시보드 동시 접속 제어라는 취지에 맞춰 admin/manager만 필터링
+            if role in ['admin', 'manager']:
                 max_limit = getattr(settings, 'max_dashboard_connections', 2) or 2
                 policy = getattr(settings, 'dashboard_connection_policy', 'eject_old') or "eject_old"
+            else:
+                # 그 외 역할은 무제한 (또는 충분히 큰 값)
+                max_limit = 0 
+                policy = "eject_old"
         
         # 2-3. SSE 매니저 연결 (제한값 및 정책 포함)
         queue, connection_id = await sse_manager.connect(

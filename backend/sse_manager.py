@@ -49,68 +49,75 @@ class SSEConnectionManager:
         if request and request.headers.get("x-forwarded-for"):
             client_ip = request.headers.get("x-forwarded-for").split(",")[0].strip()
 
-        # 1-1. 동일 환경(IP + Role + User Agent)의 중복 연결 제거
-        # 단순 새로고침이나 탭 이동 시 기존 연결을 '즉시' 추방하여 좀비 세션 방지
+        # 1-1. 동일 기기/브라우저의 중복 연결 제거
+        # 동일 IP + 동일 Role + 동일 User Agent인 경우 '확실하게' 동일 세션의 새로고침으로 간주
         duplicates_to_remove = []
+        is_dashboard_role = role in ['admin', 'manager']
+        
         for conn_id, conn in self.active_connections[store_id].items():
             if conn.ip == client_ip and conn.role == role:
-                # User Agent까지 같으면 확실한 동일 기기/브라우저
+                # 1) UA까지 같으면 100% 동일 세션
                 if conn.user_agent == user_agent:
                     duplicates_to_remove.append(conn_id)
-                    print(f"[SSEManager] Removing same-browser duplicate: store={store_id}, role={role}, ip={client_ip}, old_id={conn_id}")
-                else:
-                    # IP/Role은 같지만 UA가 다르면 다른 브라우저일 수 있음 (일단 유지하되 대수 제한에서 처리)
-                    pass
+                # 2) block_new 정책인데 UA가 다르더라도 같은 IP/Role이면 
+                #    동일인이 다른 브라우저를 켰거나 UA가 미세하게 변한 경우일 수 있음.
+                #    이때 정리하지 않으면 스스로가 스스로를 차단하여 고립될 수 있으므로 정리 시도.
+                elif policy == "block_new" and is_dashboard_role:
+                    duplicates_to_remove.append(conn_id)
+                    print(f"[SSEManager] Potential duplicate found (Same IP/Role): store={store_id}, old_id={conn_id}")
         
         for dup_id in duplicates_to_remove:
-            # 중복 연결에게도 종료 알림을 보내서 클라이언트 리소스 정리 유도
             try:
                 old_conn = self.active_connections[store_id][dup_id]
                 await old_conn.queue.put({"event": "force_disconnect", "data": {"reason": "duplicate_connection"}})
             except:
                 pass
             del self.active_connections[store_id][dup_id]
+            print(f"[SSEManager] Cleaned up duplicate session before limit check: {dup_id}")
 
-        # 1-2. 전체 대수 제한 체크
+        # 1-2. 전체 대수 제한 체크 (역할 그룹별 체크)
         if max_connections > 0:
-            current_count = len(self.active_connections[store_id])
+            # 관리자용 대시보드 역할군(admin, manager)은 합산하여 체크
+            if is_dashboard_role:
+                active_dashboard_conns = [
+                    c for c in self.active_connections[store_id].values() 
+                    if c.role in ['admin', 'manager']
+                ]
+                current_count = len(active_dashboard_conns)
+            else:
+                # 그 외 역할(board, reception 등)은 개별 역할별로 체크하거나 unlimited(max_connections=0)로 들어옴
+                current_count = len([c for c in self.active_connections[store_id].values() if c.role == role])
+
             if current_count >= max_connections:
-                
                 # [Policy: block_new] 신규 접속 차단
                 if policy == "block_new":
-                    print(f"[SSEManager] Connection Blocked (Limit {max_connections} reached): store={store_id}, ip={client_ip}")
-                    # 차단 이벤트 전송 후 즉시 종료
+                    print(f"[SSEManager] CONNECTION REJECTED: store={store_id}, role={role}, ip={client_ip}, limit={max_connections}, current={current_count}")
+                    # 차단 이벤트 전송
                     await queue.put({
                         "event": "connection_rejected",
                         "data": {"reason": "limit_reached", "max": max_connections}
                     })
-                    # 연결을 active 목록에 추가하지 않고 반환 (connection_id = None)
                     return queue, None
 
-                # [Policy: eject_old] 기존 접속 추방 (Default)
+                # [Policy: eject_old] 기존 접속 추방
                 else: 
-                    # 가장 오래된 연결부터 찾아서 종료 시그널 전송
-                    sorted_conns = sorted(
-                        self.active_connections[store_id].values(),
-                        key=lambda x: x.connected_at
-                    )
+                    # 해당 역할 그룹의 연결만 추방 대상
+                    target_conns = active_dashboard_conns if is_dashboard_role else \
+                                  [c for c in self.active_connections[store_id].values() if c.role == role]
                     
-                    # 초과분만큼 제거 (새로 추가될 것 고려하여 current_count - max_connections + 1)
+                    sorted_conns = sorted(target_conns, key=lambda x: x.connected_at)
                     num_to_eject = current_count - max_connections + 1
+                    
                     for i in range(min(num_to_eject, len(sorted_conns))):
                         old_conn = sorted_conns[i]
-                        print(f"[SSEManager] Ejecting old connection to respect limit ({max_connections}): id={old_conn.id}, role={old_conn.role}, ip={old_conn.ip}")
-                        
+                        print(f"[SSEManager] EJECTING: id={old_conn.id}, role={old_conn.role}, reason=limit_exceeded")
                         try:
-                            # 클라이언트에게 추방 알림 전송
                             await old_conn.queue.put({
                                 "event": "force_disconnect", 
                                 "data": {"reason": "limit_exceeded", "max": max_connections}
                             })
-                        except:
-                            pass
+                        except: pass
                         
-                        # 목록에서 즉시 제거
                         if old_conn.id in self.active_connections[store_id]:
                             del self.active_connections[store_id][old_conn.id]
 
