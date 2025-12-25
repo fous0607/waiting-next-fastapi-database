@@ -15,6 +15,7 @@ interface MemberCandidate {
 
 export function QuickRegister() {
     const [inputValue, setInputValue] = useState("");
+    const [displayValue, setDisplayValue] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const { fetchWaitingList, currentClassId, fetchClasses, classes, waitingList, closedClasses, closeClass } = useWaitingStore();
 
@@ -48,6 +49,47 @@ export function QuickRegister() {
     // Close Class Confirmation State
     const [closeDialogOpen, setCloseDialogOpen] = useState(false);
 
+    // Format phone number based on input length
+    const formatPhoneNumber = (value: string) => {
+        // Remove all non-digit characters
+        const digitsOnly = value.replace(/\D/g, '');
+
+        // 4자리 이하: 그대로 (기존회원 조회)
+        if (digitsOnly.length <= 4) {
+            return digitsOnly;
+        }
+
+        // 9자리 이상: 그대로 (바코드)
+        if (digitsOnly.length >= 9) {
+            return digitsOnly;
+        }
+
+        // 5-8자리: ####-#### 형식 (신규회원 전화번호)
+        if (digitsOnly.length <= 8) {
+            const first = digitsOnly.slice(0, 4);
+            const second = digitsOnly.slice(4);
+            return second ? `${first}-${second}` : first;
+        }
+
+        return digitsOnly;
+    };
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const rawValue = e.target.value;
+
+        // Allow only digits and hyphens
+        const sanitized = rawValue.replace(/[^\d-]/g, '');
+
+        // Remove existing hyphens to get raw digits
+        const digitsOnly = sanitized.replace(/-/g, '');
+
+        // Update raw value (digits only)
+        setInputValue(digitsOnly);
+
+        // Update display value with formatting
+        setDisplayValue(formatPhoneNumber(digitsOnly));
+    };
+
     const handleRegister = async (overrideValue?: string) => {
         const valToSubmit = overrideValue || inputValue;
 
@@ -80,6 +122,7 @@ export function QuickRegister() {
 
             toast.success("대기 접수가 완료되었습니다.");
             setInputValue("");
+            setDisplayValue("");
 
             // Refresh
             fetchClasses();
@@ -108,17 +151,17 @@ export function QuickRegister() {
 
     return (
         <>
-            <div className="flex items-center gap-4 py-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10">
+            <div className="flex items-center gap-4 py-3 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10">
                 <div className="flex-1 flex items-center gap-2">
                     <span className="text-muted-foreground whitespace-nowrap min-w-[80px]">간편 등록</span>
                     <div className="flex w-full max-w-md items-center gap-2">
                         <Input
                             placeholder="이름 / 핸드폰번호(8자리) / 바코드"
-                            value={inputValue}
-                            onChange={(e) => setInputValue(e.target.value)}
+                            value={displayValue}
+                            onChange={handleInputChange}
                             onKeyDown={handleKeyDown}
                             disabled={isLoading}
-                            className="bg-white"
+                            className="bg-white text-xl font-semibold tracking-wider"
                         />
                         <Button onClick={() => handleRegister()} disabled={isLoading}>
                             {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "대기 등록"}

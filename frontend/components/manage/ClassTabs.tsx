@@ -24,7 +24,7 @@ export function ClassTabs() {
     );
 
     return (
-        <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-2">
+        <div className="flex items-center gap-2 mb-2 overflow-x-auto pb-2">
             <Button
                 variant="outline"
                 size="icon"
