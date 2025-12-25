@@ -204,7 +204,9 @@ export default function ReceptionPage() {
     const audioContextRef = useRef<AudioContext | null>(null);
 
     const playKeypadSound = useCallback((type: string = 'beep') => {
-        if (!storeSettings?.keypad_sound_enabled) return;
+        // 기본값은 true (설정이 없거나 명시적으로 false일 때만 비활성화)
+        console.log('[Keypad Sound] enabled:', storeSettings?.keypad_sound_enabled, 'type:', storeSettings?.keypad_sound_type || type);
+        if (storeSettings?.keypad_sound_enabled === false) return;
 
         try {
             if (!audioContextRef.current) {
@@ -327,9 +329,13 @@ export default function ReceptionPage() {
             // Speak success
             if (storeSettings?.enable_waiting_voice_alert) {
                 const customMsg = storeSettings?.waiting_voice_message;
+                const memberName = data.name || '';
                 const message = customMsg
-                    ? customMsg.replace('{클래스명}', data.class_name).replace('{순번}', data.class_order)
-                    : `${data.class_name} ${data.class_order}번째 대기 접수 되었습니다.`;
+                    ? customMsg
+                        .replace('{클래스명}', data.class_name)
+                        .replace('{순번}', data.class_order)
+                        .replace('{회원명}', memberName)
+                    : `${data.class_name} ${memberName ? memberName + '님 ' : ''}${data.class_order}번째 대기 접수 되었습니다.`;
                 speak(message);
             }
 
