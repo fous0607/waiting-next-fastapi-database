@@ -139,7 +139,7 @@ class StoreSettings(Base):
     keypad_style = Column(String, default="modern")  # modern, bold, dark, colorful
     keypad_font_size = Column(String, default="large")  # small, medium, large, xlarge
     keypad_sound_enabled = Column(Boolean, default=True)  # 키패드 효과음 사용 여부
-    keypad_sound_type = Column(String, default="keyboard")  # 키패드 효과음 종류 (keyboard, mechanical, smooth, classic)
+    keypad_sound_type = Column(String, default="button")  # 키패드 효과음 종류 (button, soft, atm, elevator, touch, classic_beep)
 
     # 대기관리자 화면 레이아웃 설정
     manager_button_size = Column(String, default="medium")  # xsmall, small, medium, large

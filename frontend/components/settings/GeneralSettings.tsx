@@ -66,7 +66,7 @@ const settingsSchema = z.object({
     keypad_style: z.string().default("modern"),
     keypad_font_size: z.string().default("large"),
     keypad_sound_enabled: z.boolean().default(true),
-    keypad_sound_type: z.enum(['keyboard', 'mechanical', 'smooth', 'classic']).default('keyboard'),
+    keypad_sound_type: z.enum(['button', 'soft', 'atm', 'elevator', 'touch', 'classic_beep']).default('button'),
 
     // Modal & Audio
     waiting_modal_timeout: z.coerce.number().min(1).default(5),
@@ -126,7 +126,7 @@ export function GeneralSettings() {
             keypad_style: "modern",
             keypad_font_size: "large",
             keypad_sound_enabled: true,
-            keypad_sound_type: "keyboard",
+            keypad_sound_type: "button",
             waiting_modal_timeout: 5,
             show_member_name_in_waiting_modal: true,
             show_new_member_text_in_waiting_modal: true,
@@ -535,10 +535,12 @@ export function GeneralSettings() {
                                                     <Select onValueChange={field.onChange} value={field.value as string || ''}>
                                                         <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                                                         <SelectContent>
-                                                            <SelectItem value="keyboard">Keyboard (현대적)</SelectItem>
-                                                            <SelectItem value="mechanical">Mechanical (기계식)</SelectItem>
-                                                            <SelectItem value="smooth">Smooth (부드러운)</SelectItem>
-                                                            <SelectItem value="classic">Classic (타자기)</SelectItem>
+                                                            <SelectItem value="button">Button (현대적 클릭음)</SelectItem>
+                                                            <SelectItem value="soft">Soft (부드러운 버튼음)</SelectItem>
+                                                            <SelectItem value="atm">ATM (전화기 스타일)</SelectItem>
+                                                            <SelectItem value="elevator">Elevator (엘리베이터 버튼)</SelectItem>
+                                                            <SelectItem value="touch">Touch (터치스크린)</SelectItem>
+                                                            <SelectItem value="classic_beep">Classic Beep (전통적인 삐 소리)</SelectItem>
                                                         </SelectContent>
                                                     </Select>
                                                     <FormDescription className="text-xs">

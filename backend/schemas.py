@@ -43,7 +43,7 @@ class StoreSettingsBase(BaseModel):
 
     keypad_font_size: str = "large"  # small, medium, large, xlarge
     keypad_sound_enabled: bool = True
-    keypad_sound_type: str = "keyboard"
+    keypad_sound_type: str = "button"
 
     # 개점 설정
     daily_opening_rule: str = "strict"
