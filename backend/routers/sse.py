@@ -3,7 +3,8 @@ from fastapi.responses import StreamingResponse
 from starlette.background import BackgroundTask
 from sse_manager import sse_manager, event_generator
 from database import SessionLocal
-from models import Store, StoreSettings
+from auth import decode_access_token
+from models import Store, StoreSettings, User
 
 router = APIRouter()
 
@@ -14,8 +15,23 @@ async def sse_stream(
     store_id: str = None, 
     channel: str = None,
     role: str = 'unknown',  # 'admin' or 'board' etc
-    client_id: str = None   # 기기 고유 ID 추가
+    client_id: str = None,   # 기기 고유 ID
+    token: str = None        # 인증 토큰 추가
 ):
+    # ... (중략) ...
+    
+    # 0. 사용자 식별 (선택 사항)
+    # token이 있으면 user_id를 추출하여 연결 관리에 활용 (본인 확인용)
+    user_id = None
+    if token:
+        try:
+            token_data = decode_access_token(token)
+            if token_data and token_data.username:
+                # DB 세션은 아래에서 생성되므로 거기서 조회하거나, 여기서 임시 조회
+                # 효율을 위해 아래 `db = SessionLocal()` 이후에 조회 로직 수행 권장
+                pass 
+        except:
+            pass
     """
     SSE 스트림 엔드포인트
     - store_id: 특정 매장 이벤트 수신
@@ -54,6 +70,20 @@ async def sse_stream(
     
     db = SessionLocal()
     try:
+        # 0. 사용자 식별 (Token 기반)
+        user_id = None
+        if token:
+            try:
+                # 위에서 pass했으므로 여기서 실제 로직 수행
+                token_data = decode_access_token(token)
+                if token_data and token_data.username:
+                    user = db.query(User).filter(User.username == token_data.username).first()
+                    if user:
+                        user_id = user.id
+                        print(f"[SSE] Identified User: {user.username} (ID: {user_id})")
+            except Exception as e:
+                print(f"[SSE] Token validation failed: {e}")
+
         # 2-1. store_id 해소 (ID 또는 코드)
         resolved_id = store_id
         if not str(store_id).isdigit():
@@ -109,7 +139,8 @@ async def sse_stream(
             request, 
             max_connections=max_limit,
             policy=policy,
-            client_id=client_id # 기기 고유 ID 전달
+            client_id=client_id, # 기기 고유 ID 전달
+            user_id=user_id      # 사용자 ID 전달
         )
         
     except HTTPException as he:

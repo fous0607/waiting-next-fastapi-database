@@ -14,7 +14,8 @@ class ConnectionInfo:
     ip: str
     user_agent: str
     connected_at: str
-    client_id: Optional[str] = None # 기기 고유 ID 추가
+    client_id: Optional[str] = None # 기기 고유 ID
+    user_id: Optional[int] = None # 로그인한 사용자 ID
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
 
 class SSEConnectionManager:
@@ -22,8 +23,6 @@ class SSEConnectionManager:
 
     def __init__(self):
         # store_id: {connection_id: ConnectionInfo}
-        # 구조 변경: Role별 그룹화보다 개별 연결 관리가 모니터링에 유리함
-        # 브로드캐스트 시에는 .values()에서 role 필터링
         self.active_connections: Dict[str, Dict[str, ConnectionInfo]] = {}
         
         # franchise_id별로 연결된 클라이언트들을 관리 (프랜차이즈 관리자용)
@@ -32,7 +31,7 @@ class SSEConnectionManager:
         self.system_connections: Set[asyncio.Queue] = set()
 
     # --- Store Channel ---
-    async def connect(self, store_id: str, role: str, request: Request = None, max_connections: int = 0, policy: str = "eject_old", client_id: str = None) -> tuple[asyncio.Queue, str]:
+    async def connect(self, store_id: str, role: str, request: Request = None, max_connections: int = 0, policy: str = "eject_old", client_id: str = None, user_id: int = None) -> tuple[asyncio.Queue, str]:
         """새로운 SSE 연결 추가 (매장용)"""
         if store_id not in self.active_connections:
             self.active_connections[store_id] = {}
@@ -50,33 +49,40 @@ class SSEConnectionManager:
         if request and request.headers.get("x-forwarded-for"):
             client_ip = request.headers.get("x-forwarded-for").split(",")[0].strip()
 
-        # 1-1. 기기 고유 ID(client_id) 기반 중복 연결 제거
-        # client_id가 같으면 100% 동일 기기의 새로고침으로 간주하고 기존 세션 즉시 정리
+        # 1. 중복/이전 세션 정리 (우선순위: ClientId > UserID > IP/UA)
         duplicates_to_remove = []
         is_dashboard_role = role in ['admin', 'manager']
         
         for conn_id, conn in self.active_connections[store_id].items():
-            # 1) 고유 ID가 일치하는 경우 (가장 확실한 식별 방법)
+            # 1) ClientId 일치: 100% 동일 기기 새로고침 -> 무조건 교체
             if client_id and conn.client_id == client_id:
                 duplicates_to_remove.append(conn_id)
                 print(f"[SSEManager] Duplicate client_id found (Refresh): id={client_id}")
-            # 2) Fallback: 고유 ID가 없거나 불일치해도 IP+Role+UA가 모두 같으면 동일 세션으로 간주
-            elif not client_id and conn.ip == client_ip and conn.role == role and conn.user_agent == user_agent:
+            
+            # 2) UserID 일치: "본인"이 다른 기기에서 접속 -> 본인의 이전 접속 종료 (세션 이동)
+            #    정책이 Block New여도, 본인의 이동은 허용해야 락인(Lock-in)되지 않음.
+            elif user_id and conn.user_id == user_id:
+                duplicates_to_remove.append(conn_id)
+                print(f"[SSEManager] Same User detected (Session Transfer): user_id={user_id}. Ejecting old session.")
+
+            # 3) Fallback: ID들 없는데 IP/Role/UA 같음 -> Legacy Refresh
+            elif (not client_id and not user_id) and conn.ip == client_ip and conn.role == role and conn.user_agent == user_agent:
                 duplicates_to_remove.append(conn_id)
                 print(f"[SSEManager] Duplicate IP/UA found (Legacy Refresh): ip={client_ip}")
 
         for dup_id in duplicates_to_remove:
             try:
                 old_conn = self.active_connections[store_id][dup_id]
-                await old_conn.queue.put({"event": "force_disconnect", "data": {"reason": "duplicate_connection"}})
+                reason = "duplicate_connection" if old_conn.client_id == client_id else "session_transfer"
+                await old_conn.queue.put({"event": "force_disconnect", "data": {"reason": reason}})
             except:
                 pass
-            del self.active_connections[store_id][dup_id]
-            print(f"[SSEManager] Cleaned up duplicate session: {dup_id}")
+            if dup_id in self.active_connections[store_id]:
+                del self.active_connections[store_id][dup_id]
+            print(f"[SSEManager] Cleaned up session: {dup_id}")
 
-        # 1-2. 전체 대수 제한 체크 (역할 그룹별 체크)
+        # 2. 전체 대수 제한 체크 (위에서 본인 꺼는 지웠으므로, 남은 건 타인들의 접속)
         if max_connections > 0:
-            # 관리자용 대시보드 역할군(admin, manager)은 합산하여 체크
             if is_dashboard_role:
                 active_dashboard_conns = [
                     c for c in self.active_connections[store_id].values() 
@@ -87,9 +93,9 @@ class SSEConnectionManager:
                 current_count = len([c for c in self.active_connections[store_id].values() if c.role == role])
 
             if current_count >= max_connections:
-                # [Policy: block_new] 신규 접속 차단
+                # [Policy: block_new] 신규 접속 차단 (타인에 대해서만)
                 if policy == "block_new":
-                    print(f"[SSEManager] CONNECTION REJECTED: store={store_id}, role={role}, client_id={client_id}, limit={max_connections}")
+                    print(f"[SSEManager] CONNECTION REJECTED: store={store_id}, role={role}, limit={max_connections}")
                     await queue.put({
                         "event": "connection_rejected",
                         "data": {"reason": "limit_reached", "max": max_connections}
@@ -106,7 +112,7 @@ class SSEConnectionManager:
                     
                     for i in range(min(num_to_eject, len(sorted_conns))):
                         old_conn = sorted_conns[i]
-                        print(f"[SSEManager] EJECTING: id={old_conn.id}, client_id={old_conn.client_id}")
+                        print(f"[SSEManager] EJECTING (Limit): id={old_conn.id}")
                         try:
                             await old_conn.queue.put({
                                 "event": "force_disconnect", 
@@ -117,18 +123,19 @@ class SSEConnectionManager:
                         if old_conn.id in self.active_connections[store_id]:
                             del self.active_connections[store_id][old_conn.id]
 
-        # 2. 신규 연결 등록
+        # 3. 신규 연결 등록
         connection = ConnectionInfo(
             queue=queue,
             role=role,
             ip=client_ip,
             user_agent=user_agent,
-            client_id=client_id, # 기기 고유 ID 저장
+            client_id=client_id,
+            user_id=user_id, # 사용자 ID 저장
             connected_at=datetime.now().isoformat()
         )
         
         self.active_connections[store_id][connection.id] = connection
-        print(f"[SSEManager] Connected (Session {len(self.active_connections[store_id])}/{max_connections if max_connections > 0 else 'inf'}): store={store_id}, role={role}, ip={client_ip}, id={connection.id}")
+        print(f"[SSEManager] Connected: store={store_id}, user={user_id}, id={connection.id}")
         return queue, connection.id
 
     def disconnect(self, store_id: str, connection_id: str):
@@ -136,10 +143,27 @@ class SSEConnectionManager:
         if store_id in self.active_connections:
             if connection_id in self.active_connections[store_id]:
                 del self.active_connections[store_id][connection_id]
-                print(f"[SSEManager] Disconnected: store={store_id}, id={connection_id}")
             
             if not self.active_connections[store_id]:
                 del self.active_connections[store_id]
+
+    async def disconnect_user(self, user_id: int):
+        """특정 사용자의 모든 연결 강제 종료 (로그아웃 시 사용)"""
+        print(f"[SSEManager] Force disconnecting all sessions for user_id={user_id}")
+        tasks = []
+        
+        for store_id, connections in self.active_connections.items():
+            # 리스트를 복사해서 순회 (삭제 안전성)
+            for conn_id, conn in list(connections.items()):
+                if conn.user_id == user_id:
+                    print(f"[SSEManager] Found session to kill: store={store_id}, conn_id={conn_id}")
+                    try:
+                        await conn.queue.put({"event": "force_disconnect", "data": {"reason": "logout"}})
+                    except:
+                        pass
+                    # 목록에서 제거
+                    if conn_id in self.active_connections[store_id]:
+                        del self.active_connections[store_id][conn_id]
 
     async def broadcast(self, store_id: str, event_type: str, data: dict = None, franchise_id: str = None, target_role: str = None):
         """

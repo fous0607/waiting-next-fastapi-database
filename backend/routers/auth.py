@@ -110,12 +110,22 @@ async def login(
     }
 
 
-@router.post("/logout")
-async def logout(response: Response):
-    """로그아웃
+from sse_manager import sse_manager
 
-    쿠키에서 토큰 제거
+@router.post("/logout")
+async def logout(
+    response: Response,
+    current_user: User = Depends(get_current_user)
+):
+    """로그아웃
+    
+    1. SSE 세션 정리
+    2. 쿠키 삭제
     """
+    # SSE 세션 강제 종료
+    if current_user:
+        await sse_manager.disconnect_user(current_user.id)
+
     response.delete_cookie(
         key="access_token",
         httponly=True,
