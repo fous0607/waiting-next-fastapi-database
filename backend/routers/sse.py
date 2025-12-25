@@ -53,6 +53,23 @@ async def sse_stream(
         except Exception as e:
             print(f"[SSE] Store ID resolution failed: {e}")
 
+        # Update: Check if the requested role is allowed for this store
+        db = SessionLocal()
+        try:
+            from models import StoreSettings
+            settings = db.query(StoreSettings).filter(StoreSettings.store_id == resolved_id).first()
+            if settings:
+                if role == 'board' and not settings.enable_waiting_board:
+                    print(f"[SSE] Access denied: Board is disabled for store_id={resolved_id}")
+                    return {"error": "Waiting board is disabled for this store"}
+                elif role == 'reception' and not settings.enable_reception_desk:
+                    print(f"[SSE] Access denied: Reception desk is disabled for store_id={resolved_id}")
+                    return {"error": "Reception desk is disabled for this store"}
+        except Exception as e:
+            print(f"[SSE] Settings check failed: {e}")
+        finally:
+            db.close()
+
         # Update: connect returns (queue, connection_id)
         queue, connection_id = await sse_manager.connect(resolved_id, role, request)
         

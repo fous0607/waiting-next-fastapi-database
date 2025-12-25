@@ -117,6 +117,13 @@ export default function BoardPage() {
         let reconnectTimeout: NodeJS.Timeout;
 
         const connect = () => {
+            // Check if board is enabled in settings
+            if (storeSettings && storeSettings.enable_waiting_board === false) {
+                console.log('[BoardSSE] Connection aborted: Waiting board is disabled in settings');
+                setIsConnected(false);
+                return;
+            }
+
             // Resolve store ID from URL or default to '1'
             let storeId = '1';
             if (typeof window !== 'undefined') {
@@ -185,7 +192,9 @@ export default function BoardPage() {
             };
         };
 
-        connect();
+        if (storeSettings) {
+            connect();
+        }
 
         return () => {
             if (es) es.close();
@@ -240,6 +249,21 @@ export default function BoardPage() {
     }, [data]);
 
     if (isLoading && !data) return <div className="h-screen w-screen flex items-center justify-center text-2xl">로딩 중...</div>;
+
+    // Check if board is disabled
+    if (storeSettings && storeSettings.enable_waiting_board === false) {
+        return (
+            <div className="h-screen w-screen flex flex-col items-center justify-center bg-slate-50 p-6 text-center">
+                <div className="w-24 h-24 bg-slate-200 rounded-full flex items-center justify-center text-5xl mb-6">🚫</div>
+                <h1 className="text-3xl font-bold text-slate-800 mb-2">대기현황판 미사용</h1>
+                <p className="text-slate-500 text-lg">
+                    현재 매장에서 대기현황판 기능을 사용하지 않도록 설정되어 있습니다.<br />
+                    관리자 설정에서 '대기현황판 사용'을 활성화해주세요.
+                </p>
+            </div>
+        );
+    }
+
     if (!data) return <div className="h-screen w-screen flex items-center justify-center text-2xl">데이터가 없습니다.</div>;
 
     // Group items by class
