@@ -1,7 +1,9 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import StreamingResponse
 from starlette.background import BackgroundTask
 from sse_manager import sse_manager, event_generator
+from database import SessionLocal
+from models import Store, StoreSettings
 
 router = APIRouter()
 
@@ -23,66 +25,72 @@ async def sse_stream(
     connection_id = None
     resolved_id = None
     
-    # 1. 시스템 로그 채널
+    # 1. 시스템 로그 채널 (Superadmin용)
     if channel == "system":
-        print(f"[SSE] System Log Connection Request from {request.client.host}")
+        print(f"[SSE] System Log Connection Request from {request.client.host if request.client else 'Unknown'}")
         queue = await sse_manager.connect_system()
         
-        async def cleanup():
+        async def cleanup_system():
             sse_manager.disconnect_system(queue)
             
-    # 2. 매장 이벤트 채널 (기존)
-    elif store_id:
-        print(f"[SSE] Store Connection Request: store_id={store_id}, role={role}, ip={request.client.host if request.client else 'Unknown'}")
+        response = StreamingResponse(
+            event_generator(queue),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "X-Accel-Buffering": "no",
+                "Content-Encoding": "none",
+            }
+        )
+        response.background = BackgroundTask(cleanup_system)
+        return response
         
-        # store_id가 코드(S001 등)일 수 있으므로 ID로 변환 시도
+    # 2. 매장 이벤트 채널
+    if not store_id:
+        raise HTTPException(status_code=400, detail="store_id or channel required")
+
+    print(f"[SSE] Store Connection Request: store_id={store_id}, role={role}, ip={request.client.host if request.client else 'Unknown'}")
+    
+    db = SessionLocal()
+    try:
+        # 2-1. store_id 해소 (ID 또는 코드)
         resolved_id = store_id
-        try:
-            # 숫자가 아니면 코드로 간주하고 DB에서 조회
-            if not str(store_id).isdigit():
-                from database import SessionLocal
-                from models import Store
-                db = SessionLocal()
-                try:
-                    store = db.query(Store).filter(Store.code == store_id).first()
-                    if store:
-                        resolved_id = str(store.id)
-                        print(f"[SSE] Resolved store code {store_id} to ID {resolved_id}")
-                finally:
-                    db.close()
-        except Exception as e:
-            print(f"[SSE] Store ID resolution failed: {e}")
+        if not str(store_id).isdigit():
+            store = db.query(Store).filter(Store.code == store_id).first()
+            if store:
+                resolved_id = str(store.id)
+                print(f"[SSE] Resolved store code {store_id} to ID {resolved_id}")
+            else:
+                raise HTTPException(status_code=404, detail="Store not found")
 
-        # Update: Check if the requested role is allowed for this store
-        db = SessionLocal()
-        try:
-            from models import StoreSettings
-            settings = db.query(StoreSettings).filter(StoreSettings.store_id == resolved_id).first()
-            if settings:
-                if role == 'board' and not settings.enable_waiting_board:
-                    print(f"[SSE] Access denied: Board is disabled for store_id={resolved_id}")
-                    from fastapi import HTTPException
-                    raise HTTPException(status_code=403, detail="Waiting board is disabled for this store")
-                elif role == 'reception' and not settings.enable_reception_desk:
-                    print(f"[SSE] Access denied: Reception desk is disabled for store_id={resolved_id}")
-                    from fastapi import HTTPException
-                    raise HTTPException(status_code=403, detail="Reception desk is disabled for this store")
-        except Exception as e:
-            print(f"[SSE] Settings check failed: {e}")
-        finally:
-            db.close()
-
-        # Update: connect returns (queue, connection_id)
+        # 2-2. 서비스 활성화 여부 체크
+        settings = db.query(StoreSettings).filter(StoreSettings.store_id == resolved_id).first()
+        if settings:
+            if role == 'board' and not settings.enable_waiting_board:
+                print(f"[SSE] Access denied: Board is disabled for store_id={resolved_id}")
+                raise HTTPException(status_code=403, detail="Waiting board is disabled for this store")
+            elif role == 'reception' and not settings.enable_reception_desk:
+                print(f"[SSE] Access denied: Reception desk is disabled for store_id={resolved_id}")
+                raise HTTPException(status_code=403, detail="Reception desk is disabled for this store")
+        
+        # 2-3. SSE 매니저 연결
         queue, connection_id = await sse_manager.connect(resolved_id, role, request)
         
-        async def cleanup():
-            sse_manager.disconnect(resolved_id, connection_id)
-            
-    else:
-        # 유효하지 않은 요청
-        return {"error": "store_id or channel required"}
+    except HTTPException as he:
+        # HTTPException은 그대로 다시 던져서 FastAPI가 처리하게 함
+        raise he
+    except Exception as e:
+        print(f"[SSE] Connection process failed: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        db.close()
 
-    # SSE 응답 생성
+    async def cleanup_store():
+        sse_manager.disconnect(resolved_id, connection_id)
+
+    # 2-4. SSE 응답 생성
     response = StreamingResponse(
         event_generator(queue, resolved_id, connection_id),
         media_type="text/event-stream",
@@ -92,8 +100,6 @@ async def sse_stream(
             "Content-Encoding": "none",
         }
     )
-
-    # 연결 종료 시 cleanup 호출하도록 설정
-    response.background = BackgroundTask(cleanup)
+    response.background = BackgroundTask(cleanup_store)
 
     return response
