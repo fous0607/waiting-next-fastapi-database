@@ -10,6 +10,7 @@ export interface ClassInfo {
     end_time: string;
     max_capacity: number;
     current_count: number;
+    total_count: number;
 }
 
 export interface WaitingItem {
@@ -159,7 +160,8 @@ export const useWaitingStore = create<WaitingState>((set, get) => ({
                 start_time: cls.start_time,
                 end_time: cls.end_time,
                 max_capacity: cls.max_capacity,
-                current_count: cls.current_count
+                current_count: cls.current_count,
+                total_count: cls.total_count || cls.current_count
             }));
 
             set({
@@ -168,16 +170,16 @@ export const useWaitingStore = create<WaitingState>((set, get) => ({
             });
             console.log("Classes state updated:", classesData);
 
-            // Auto-select first available class if none selected
+            // Auto-select first visible class if none selected
             if (!get().currentClassId && classesData.length > 0) {
-                const openClass = classesData.find(c => !closedIds.has(c.id));
-                if (openClass) {
-                    set({ currentClassId: openClass.id });
-                    get().fetchWaitingList(openClass.id);
-                } else if (!get().hideClosedClasses) {
-                    // Only select the first closed class if we are NOT hiding closed classes
-                    set({ currentClassId: classesData[0].id });
-                    get().fetchWaitingList(classesData[0].id);
+                const state = get();
+                // Determine which classes would be visible on screen
+                const visibleClasses = classesData.filter(c => !state.hideClosedClasses || !closedIds.has(c.id));
+
+                if (visibleClasses.length > 0) {
+                    // Select the first class on the screen
+                    set({ currentClassId: visibleClasses[0].id });
+                    get().fetchWaitingList(visibleClasses[0].id);
                 }
             }
         } catch (error) {
