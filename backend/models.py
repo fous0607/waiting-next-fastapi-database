@@ -109,7 +109,7 @@ class StoreSettings(Base):
     auto_register_member = Column(Boolean, default=False)  # 대기 등록 시 자동 회원가입
     require_member_registration = Column(Boolean, default=False)  # 대기 등록 시 회원가입 필수 (프론트에서 이름 입력 화면 표시)
     registration_message = Column(String, default="처음 방문하셨네요!\n성함을 입력해 주세요.") # 신규 회원 등록 화면 문구
-    business_day_start = Column(Integer, default=5)  # 영업일 기준 시간 (0~23)
+    business_day_start = Column(Integer, default=7)  # 영업일 기준 시간 (0~23)
     auto_closing = Column(Boolean, default=True)  # 영업일 변경 시 자동 마감 및 리셋 여부 (False: 대기자 이월)
     closing_action = Column(String, default="reset") # 자동 마감 시 미처리 대기자 처리 방식 ('reset' or 'attended')
     

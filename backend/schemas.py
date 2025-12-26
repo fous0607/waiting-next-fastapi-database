@@ -15,7 +15,7 @@ class StoreSettingsBase(BaseModel):
     auto_register_member: bool = False
     require_member_registration: bool = False
     registration_message: str = "처음 방문하셨네요!\n성함을 입력해 주세요."
-    business_day_start: int = 5  # 영업일 기준 시간 (0~23)
+    business_day_start: int = 7  # 영업일 기준 시간 (0~23)
     auto_closing: bool = True  # 영업일 변경 시 자동 마감 및 리셋 여부
     closing_action: str = "reset"
     

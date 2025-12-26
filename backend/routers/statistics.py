@@ -677,7 +677,7 @@ async def get_store_analytics_dashboard(
         # Priority 2: Configured Business Day Start (default 5)
         
         start_hour = 0
-        business_start_setting = 5
+        business_start_setting = 7
         
         try:
             if current_store.store_settings and len(current_store.store_settings) > 0:

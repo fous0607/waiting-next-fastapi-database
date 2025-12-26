@@ -42,7 +42,7 @@ def get_current_business_date(db: Session, store_id: int) -> date:
     ).scalar()
     
     if start_hour is None:
-        start_hour = 5
+        start_hour = 7
         
     return get_today_date(start_hour)
 

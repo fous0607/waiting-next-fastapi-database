@@ -1,6 +1,6 @@
 from datetime import datetime, date, timedelta, time
 
-def get_today_date(start_hour: int = 5) -> date:
+def get_today_date(start_hour: int = 7) -> date:
     """
     현재 영업일(Business Date)을 반환하는 함수.
     
@@ -15,7 +15,7 @@ def get_today_date(start_hour: int = 5) -> date:
     
     # 기준 시간 설정 (0~23)
     if not (0 <= start_hour <= 23):
-        start_hour = 5  # 유효하지 않은 값이면 기본값 사용
+        start_hour = 7  # 유효하지 않은 값이면 기본값 사용
         
     cutoff_time = time(start_hour, 0, 0)
     
