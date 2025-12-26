@@ -83,7 +83,7 @@ function SettingsContent() {
     return (
         <div className="flex min-h-screen bg-slate-50">
             {/* Sidebar */}
-            <aside className="w-64 bg-white border-r border-slate-200 flex flex-col sticky top-0 h-screen">
+            <aside className="w-52 bg-white border-r border-slate-200 flex flex-col sticky top-0 h-screen">
                 <div className="p-6 flex-1 overflow-y-auto no-scrollbar">
                     <Button
                         variant="ghost"
@@ -148,7 +148,7 @@ function SettingsContent() {
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 p-10 overflow-auto">
+            <main className="flex-1 p-6 overflow-auto">
                 <div className="max-w-5xl mx-auto space-y-6">
                     <div className="flex items-end justify-between mb-6">
                         <div>
@@ -157,11 +157,12 @@ function SettingsContent() {
                                 {currentTab === 'class' && '클래스 관리'}
                                 {currentTab === 'advanced' && '고급 설정'}
                             </h2>
-                            <p className="text-muted-foreground mt-1">
-                                {currentTab === 'general' && '매장의 기본 정보를 관리합니다.'}
-                                {currentTab === 'class' && '수업 시간표와 공휴일 일정을 관리합니다.'}
-                                {currentTab === 'advanced' && '시스템 관리 및 데이터 백업을 수행합니다.'}
-                            </p>
+                            {currentTab !== 'general' && (
+                                <p className="text-muted-foreground mt-1">
+                                    {currentTab === 'class' && '수업 시간표와 공휴일 일정을 관리합니다.'}
+                                    {currentTab === 'advanced' && '시스템 관리 및 데이터 백업을 수행합니다.'}
+                                </p>
+                            )}
                         </div>
                     </div>
 
