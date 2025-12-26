@@ -17,19 +17,34 @@ export function ManageHeader() {
             <SSEMonitor open={showMonitor} onOpenChange={setShowMonitor} storeId={selectedStoreId || undefined} />
             <div>
                 <h1 className="text-2xl font-bold flex items-center gap-3">
-                    <span className="text-slate-900 tracking-tight">대기 현황 관리</span>
+                    <div className="flex items-center gap-2">
+                        <span>{storeName || "매장 정보 없음"}</span>
+                        {selectedStoreId && <span className="text-xs px-2 py-0.5 bg-slate-100 rounded text-slate-500 font-mono">ID: {selectedStoreId}</span>}
+                    </div>
+                    <span>대기자 관리</span>
+                    <span className="text-xs text-muted-foreground font-normal">(Next.js v1.0)</span>
                     {businessDate && (
-                        <span className="text-lg font-bold bg-secondary/50 text-secondary-foreground px-4 py-1 rounded-lg">
+                        <span className="text-lg font-bold bg-secondary px-4 py-1 rounded-full text-secondary-foreground">
                             {businessDate}
                         </span>
                     )}
                 </h1>
             </div>
             <div className="flex items-center gap-3">
+                <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${isConnected ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                    <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-600' : 'bg-red-600'}`} />
+                    {isConnected ? '연결됨' : '연결 끊김'}
+                </div>
                 <Button variant="ghost" size="icon" onClick={() => setShowMonitor(true)} className="text-slate-500 hover:text-slate-900" title="연결 모니터링">
                     <Activity className="w-5 h-5" />
                 </Button>
                 <ModeToggle />
+                <Link href="/">
+                    <Button variant="outline">
+                        <ArrowLeft className="w-4 h-4 mr-2" />
+                        메인으로
+                    </Button>
+                </Link>
             </div>
         </div>
     );
