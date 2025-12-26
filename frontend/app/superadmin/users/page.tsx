@@ -56,6 +56,7 @@ const roleLabels: Record<string, string> = {
     store_admin: '매장 관리자',
     store_reception: '대기접수 데스크',
     store_board: '대기현황판',
+    store_owner: '매장 사장님',
 };
 
 const roleColors: Record<string, string> = {
@@ -65,6 +66,7 @@ const roleColors: Record<string, string> = {
     store_admin: 'bg-green-100 text-green-800',
     store_reception: 'bg-cyan-100 text-cyan-800',
     store_board: 'bg-indigo-100 text-indigo-800',
+    store_owner: 'bg-rose-100 text-rose-800',
 };
 
 export default function UsersPage() {
@@ -150,8 +152,8 @@ export default function UsersPage() {
             return;
         }
 
-        if (['store_admin', 'store_reception', 'store_board'].includes(createForm.role) && !createForm.store_id) {
-            toast.error('매장 관리자 및 전용 단말기 계정은 매장을 선택해야 합니다.');
+        if (['store_admin', 'store_reception', 'store_board', 'store_owner'].includes(createForm.role) && !createForm.store_id) {
+            toast.error('매장 관리자, 사장님 및 전용 단말기 계정은 매장을 선택해야 합니다.');
             return;
         }
 
@@ -168,7 +170,7 @@ export default function UsersPage() {
                 role: createForm.role,
             };
 
-            if (['store_admin', 'store_reception', 'store_board'].includes(createForm.role)) {
+            if (['store_admin', 'store_reception', 'store_board', 'store_owner'].includes(createForm.role)) {
                 payload.store_id = parseInt(createForm.store_id);
             } else if (createForm.role === 'franchise_manager') {
                 payload.managed_store_ids = createForm.managed_store_ids.map(id => parseInt(id));
@@ -265,7 +267,7 @@ export default function UsersPage() {
                 }
                 payload.franchise_id = parseInt(editForm.franchise_id);
                 payload.store_id = null;
-            } else if (['store_admin', 'store_reception', 'store_board'].includes(editForm.role)) {
+            } else if (['store_admin', 'store_reception', 'store_board', 'store_owner'].includes(editForm.role)) {
                 if (!editForm.franchise_id || !editForm.store_id) {
                     toast.error('프랜차이즈와 매장을 모두 선택해주세요.');
                     setSubmitting(false);
@@ -377,6 +379,7 @@ export default function UsersPage() {
                                         <SelectItem value="store_admin">매장 관리자</SelectItem>
                                         <SelectItem value="store_reception">대기접수 데스크</SelectItem>
                                         <SelectItem value="store_board">대기현황판</SelectItem>
+                                        <SelectItem value="store_owner">매장 사장님</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -492,6 +495,7 @@ export default function UsersPage() {
                                     <SelectItem value="store_admin">매장 매니저</SelectItem>
                                     <SelectItem value="store_reception">대기접수 데스크</SelectItem>
                                     <SelectItem value="store_board">대기현황판</SelectItem>
+                                    <SelectItem value="store_owner">매장 사장님</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
@@ -522,7 +526,7 @@ export default function UsersPage() {
                         )}
 
                         {/* Store Selection (Visible for Store roles) */}
-                        {['store_admin', 'store_reception', 'store_board'].includes(editForm.role) && (
+                        {['store_admin', 'store_reception', 'store_board', 'store_owner'].includes(editForm.role) && (
                             <div className="grid gap-2">
                                 <Label htmlFor="edit-store">매장</Label>
                                 <Select

@@ -68,7 +68,7 @@ export default function LoginPage() {
             });
 
             // Save store information for store-level users and dedicated terminals
-            if (store && (role === 'store_admin' || role === 'store_manager' || role === 'store_reception' || role === 'store_board')) {
+            if (store && (role === 'store_admin' || role === 'store_manager' || role === 'store_reception' || role === 'store_board' || role === 'store_owner')) {
                 localStorage.setItem('selected_store_id', store.id.toString());
                 localStorage.setItem('selected_store_name', store.name);
                 localStorage.setItem('selected_store_code', store.code);
@@ -100,6 +100,8 @@ export default function LoginPage() {
                 window.location.href = '/reception';
             } else if (role === 'store_board') {
                 window.location.href = '/board';
+            } else if (role === 'store_owner') {
+                window.location.href = '/owner';
             } else {
                 // Store admins/managers go directly to home (Dashboard)
                 router.push('/');

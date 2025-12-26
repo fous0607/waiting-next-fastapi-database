@@ -77,7 +77,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, nullable=False, index=True)  # 로그인 ID
     password_hash = Column(String, nullable=False)  # 비밀번호 해시
-    role = Column(String, nullable=False)  # system_admin, franchise_admin, store_admin, franchise_manager
+    role = Column(String, nullable=False)  # system_admin, franchise_admin, store_admin, franchise_manager, store_owner
     franchise_id = Column(Integer, ForeignKey("franchise.id"), nullable=True, index=True)  # 프랜차이즈 관리자인 경우
     store_id = Column(Integer, ForeignKey("store.id"), nullable=True, index=True)  # 매장 관리자인 경우 relative
     is_active = Column(Boolean, default=True)  # 활성화 여부
