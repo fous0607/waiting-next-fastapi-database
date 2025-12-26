@@ -142,7 +142,7 @@ export default function ReceptionPage() {
             let storeId = '1';
             if (typeof window !== 'undefined') {
                 const params = new URLSearchParams(window.location.search);
-                storeId = params.get('store') || '1';
+                storeId = params.get('store') || localStorage.getItem('selected_store_id') || '1';
             }
 
             // Check if reception desk is enabled in settings

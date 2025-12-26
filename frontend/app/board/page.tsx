@@ -178,11 +178,11 @@ export default function BoardPage() {
                 return;
             }
 
-            // Resolve store ID from URL or default to '1'
+            // Resolve store ID from URL, fallback to localStorage, or default to '1'
             let storeId = '1';
             if (typeof window !== 'undefined') {
                 const params = new URLSearchParams(window.location.search);
-                storeId = params.get('store') || '1';
+                storeId = params.get('store') || localStorage.getItem('selected_store_id') || '1';
             }
 
             const token = localStorage.getItem('access_token');
