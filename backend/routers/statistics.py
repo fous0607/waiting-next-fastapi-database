@@ -682,18 +682,19 @@ async def get_store_analytics_dashboard(
         ]
         
     else:
-        # DB Grouping for Daily/Weekly/Monthly
+        # DB Grouping for Daily/Weekly/Monthly -> Use business_date for consistency
         if is_sqlite:
+            date_fmt = "%Y-%m-%d"
             if period == "daily":
-                date_fmt = "%m-%d"
+                date_fmt = "%m-%d" # Frontend expects MM-DD for daily chart
             elif period == "weekly":
                 date_fmt = "%Y-%W"
             elif period == "monthly":
                 date_fmt = "%Y-%m"
             
-            # SQLite KST Adjustment - use registered_at for waiting counts
-            period_col = func.strftime(date_fmt, WaitingList.registered_at, '+9 hours').label("period")
-            period_col_attend = func.strftime(date_fmt, WaitingList.attended_at, '+9 hours').label("period")
+            # Use business_date for BOTH waiting and attendance counts to avoid mismatches
+            period_col = func.strftime(date_fmt, WaitingList.business_date).label("period")
+            period_col_attend = func.strftime(date_fmt, WaitingList.business_date).label("period")
         else:
             # Postgres
             fmt = 'YYYY-MM-DD'
@@ -701,9 +702,9 @@ async def get_store_analytics_dashboard(
             elif period == 'weekly': fmt = 'YYYY-IW'
             elif period == 'monthly': fmt = 'YYYY-MM'
             
-            # Postgres KST Adjustment (Simple interval add)
-            period_col = func.to_char(WaitingList.registered_at + text("INTERVAL '9 hours'"), fmt).label("period")
-            period_col_attend = func.to_char(WaitingList.attended_at + text("INTERVAL '9 hours'"), fmt).label("period")
+            # Use business_date for consistency
+            period_col = func.to_char(WaitingList.business_date, fmt).label("period")
+            period_col_attend = func.to_char(WaitingList.business_date, fmt).label("period")
 
         # 1. Waiting Counts
         w_groups = db.query(period_col, func.count(WaitingList.id)).filter(
