@@ -1,8 +1,8 @@
 
 "use client";
 
-import { useEffect, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, Suspense, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useSSE } from "@/hooks/useSSE";
 import { ManageHeader } from "@/components/manage/ManageHeader";
 import { QuickRegister } from "@/components/manage/QuickRegister";
@@ -19,7 +19,15 @@ import { cn } from "@/lib/utils";
 function ManageContent() {
     useSSE(); // Initialize Real-time connection
     const searchParams = useSearchParams();
-    const { fetchStoreStatus, fetchClasses, setStoreId, isLoading, isConnected } = useWaitingStore();
+    const router = useRouter();
+
+    // Selectors for specific state to ensure stability
+    const storeName = useWaitingStore(state => state.storeName);
+    const isConnected = useWaitingStore(state => state.isConnected);
+    const isLoading = useWaitingStore(state => state.isLoading);
+    const businessDate = useWaitingStore(state => state.businessDate);
+
+    const { fetchStoreStatus, fetchClasses, setStoreId } = useWaitingStore();
 
     useEffect(() => {
         const storeId = searchParams.get('store');
@@ -74,7 +82,7 @@ function ManageContent() {
                     <Button
                         variant="ghost"
                         className="mb-8 -ml-3 text-slate-500 hover:text-slate-900 w-full justify-start"
-                        onClick={() => (window.location.href = '/')}
+                        onClick={() => router.push('/')}
                     >
                         <Home className="w-5 h-5 mr-2" />
                         메인으로
