@@ -727,9 +727,12 @@ async def get_store_analytics_dashboard(
             start_hour = 7
             end_hour = 20
 
-        # Create trends_list from start_hour to end_hour
+        # Chart starts strictly at 7 AM as per user request
+        chart_start_hour = 7
+        
+        # Create trends_list from 7 AM to end_hour
         trends_list = []
-        for h in range(start_hour, end_hour + 1): 
+        for h in range(chart_start_hour, end_hour + 1): 
             v = hourly_map.get(h, {'waiting': 0, 'attendance': 0})
             trends_list.append(
                 schemas.HourlyStat(
