@@ -66,7 +66,7 @@ export function OwnerCharts({ data, title, type = 'bar', loading }: OwnerChartsP
                 fill: type === 'line',
             },
             {
-                label: '입장 완료',
+                label: '출석 완료',
                 data: data.map((d) => d.attendance_count),
                 backgroundColor: 'rgba(34, 197, 94, 0.5)',
                 borderColor: 'rgb(34, 197, 94)',

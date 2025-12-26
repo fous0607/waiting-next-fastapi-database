@@ -82,7 +82,7 @@ export default function OwnerDashboard() {
     return (
         <div className="min-h-screen bg-slate-50 pb-20">
             {/* Top Bar */}
-            <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-100 px-5 py-4">
+            <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-100 px-5 py-3">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <div className="bg-rose-500 p-1.5 rounded-lg">
@@ -112,9 +112,9 @@ export default function OwnerDashboard() {
                 </div>
             </header>
 
-            <main className="px-5 pt-6 space-y-6">
+            <main className="px-5 pt-4 space-y-4">
                 {/* Welcome Card */}
-                <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-5 text-white shadow-xl relative overflow-hidden mb-2">
+                <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-5 text-white shadow-xl relative overflow-hidden mb-1">
                     <div className="relative z-10 flex flex-col gap-1">
                         <div className="flex justify-between items-center mb-1">
                             <div className="flex items-center gap-2">
@@ -143,19 +143,19 @@ export default function OwnerDashboard() {
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                         <OwnerKpi
-                            title="현재 대기"
-                            value={stats?.store_stats?.[0]?.current_waiting || 0}
-                            unit="팀"
-                            icon={Users}
-                            color="blue"
-                            loading={loading}
-                        />
-                        <OwnerKpi
                             title="오늘 방문"
                             value={stats?.total_visitors || 0}
                             unit="명"
                             icon={UserPlus}
                             color="emerald"
+                            loading={loading}
+                        />
+                        <OwnerKpi
+                            title="현재 대기"
+                            value={stats?.store_stats?.[0]?.current_waiting || 0}
+                            unit="팀"
+                            icon={Users}
+                            color="blue"
                             loading={loading}
                         />
                     </div>
@@ -166,7 +166,7 @@ export default function OwnerDashboard() {
                     <div className="flex items-center justify-between mb-3 px-1">
                         <h3 className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
                             <Briefcase className="w-4 h-4 text-violet-500" />
-                            영업 성과
+                            출석 및 신규
                         </h3>
                     </div>
                     <div className="grid grid-cols-2 gap-3">

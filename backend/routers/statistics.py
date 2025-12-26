@@ -645,13 +645,15 @@ async def get_store_analytics_dashboard(
     
     # Label formatting helper
     # Label formatting helper
+    # Label formatting helper
     if period == "hourly":
         # Existing logic for hourly (0-23)
         hourly_map = {h: {'waiting': 0, 'attendance': 0} for h in range(24)}
         for w in waitings:
             # KST Adjustment (+9 hours)
-            if w.created_at:
-                h = (w.created_at + timedelta(hours=9)).hour
+            # Use registered_at instead of created_at for better consistency if created_at is skewed
+            if w.registered_at: 
+                h = (w.registered_at + timedelta(hours=9)).hour
                 hourly_map[h]['waiting'] += 1
             
             if w.attended_at:
@@ -678,8 +680,8 @@ async def get_store_analytics_dashboard(
             elif period == "monthly":
                 date_fmt = "%Y-%m"
             
-            # SQLite KST Adjustment
-            period_col = func.strftime(date_fmt, WaitingList.created_at, '+9 hours').label("period")
+            # SQLite KST Adjustment - use registered_at for waiting counts
+            period_col = func.strftime(date_fmt, WaitingList.registered_at, '+9 hours').label("period")
             period_col_attend = func.strftime(date_fmt, WaitingList.attended_at, '+9 hours').label("period")
         else:
             # Postgres
@@ -689,7 +691,7 @@ async def get_store_analytics_dashboard(
             
             # Postgres KST Adjustment (Simple interval add)
             from sqlalchemy import text
-            period_col = func.to_char(WaitingList.created_at + text("interval '9 hours'"), fmt).label("period")
+            period_col = func.to_char(WaitingList.registered_at + text("interval '9 hours'"), fmt).label("period")
             period_col_attend = func.to_char(WaitingList.attended_at + text("interval '9 hours'"), fmt).label("period")
 
         # 1. Waiting Counts
