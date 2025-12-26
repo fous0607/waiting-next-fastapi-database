@@ -16,7 +16,8 @@ import {
     ArrowRightLeft,
     ArrowUp,
     ArrowDown,
-    GripVertical
+    GripVertical,
+    UserPlus
 } from "lucide-react";
 import {
     DropdownMenu,
@@ -217,6 +218,17 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                                     </DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => handleStatusUpdate('cancelled')}>
                                         <XCircle className="w-4 h-4 mr-2" /> 취소 처리
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={async () => {
+                                        try {
+                                            await api.post('/board/insert-empty-seat', { waiting_id: item.id });
+                                            toast.success("빈 좌석이 삽입되었습니다.");
+                                            if (item.class_id) fetchWaitingList(item.class_id);
+                                        } catch (e) {
+                                            toast.error("빈 좌석 삽입 실패");
+                                        }
+                                    }}>
+                                        <UserPlus className="w-4 h-4 mr-2" /> 빈좌석 삽입
                                     </DropdownMenuItem>
                                     <DropdownMenuItem onSelect={() => setIsMoveDialogOpen(true)}>
                                         <ArrowRightLeft className="w-4 h-4 mr-2" /> 교시 이동
