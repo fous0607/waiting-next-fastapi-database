@@ -147,8 +147,29 @@ class StatsService:
 
         hourly_stats = []
         if period == "hourly":
-            # 7 AM to 7 PM (19:00)
-            for h in range(7, 20):
+            # Determine dynamic range based on start_hour (default 7) and last class (default 20)
+            end_hour = 20
+            try:
+                from models import ClassInfo
+                max_end_time = db.query(func.max(ClassInfo.end_time)).filter(
+                    ClassInfo.store_id.in_(target_store_ids),
+                    ClassInfo.is_active == True
+                ).scalar()
+                
+                if max_end_time:
+                    end_hour = max_end_time.hour
+                    if max_end_time.minute > 0:
+                        end_hour += 1
+            except Exception as e:
+                print(f"Error determining max end_hour in StatsService: {e}")
+
+            # Fallback/Sanity
+            if end_hour > 23: end_hour = 23
+            
+            # Start hour is simplified to 7 here for consistency if not specifically querying store_settings
+            # But let's at least follow the range logic.
+            s_hour = 7
+            for h in range(s_hour, end_hour + 1):
                 lbl = f"{h}"
                 data = trends_map.get(lbl, {"waiting": 0, "attendance": 0})
                 hourly_stats.append({

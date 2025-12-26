@@ -703,10 +703,34 @@ async def get_store_analytics_dashboard(
             print(f"Error determining start_hour: {e}")
             start_hour = business_start_setting
 
-        # Reorder hours: 7 AM to 7 PM (19:00) as per user request
+        # Determine End Hour based on last class
+        end_hour = 20 # Default fallback
+        try:
+            from models import ClassInfo
+            last_class = db.query(ClassInfo).filter(
+                ClassInfo.store_id == store_id,
+                ClassInfo.is_active == True
+            ).order_by(ClassInfo.end_time.desc()).first()
+            
+            if last_class and last_class.end_time:
+                # Use the hour of the last class end time
+                end_hour = last_class.end_time.hour
+                # If there are minutes, round up to include the full hour
+                if last_class.end_time.minute > 0:
+                    end_hour += 1
+        except Exception as e:
+            print(f"Error determining end_hour: {e}")
+
+        # Ensure reasonable bounds
+        if end_hour > 23: end_hour = 23
+        if start_hour >= end_hour: # If something is weird
+            start_hour = 7
+            end_hour = 20
+
+        # Create trends_list from start_hour to end_hour
         trends_list = []
-        for h in range(7, 20): # 7 to 19 inclusive
-            v = hourly_map[h]
+        for h in range(start_hour, end_hour + 1): 
+            v = hourly_map.get(h, {'waiting': 0, 'attendance': 0})
             trends_list.append(
                 schemas.HourlyStat(
                     hour=h, 
