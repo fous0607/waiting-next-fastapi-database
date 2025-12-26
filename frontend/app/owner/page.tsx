@@ -18,7 +18,8 @@ import {
     UserPlus,
     DollarSign,
     Info,
-    Store
+    Store,
+    BarChart3
 } from "lucide-react";
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
