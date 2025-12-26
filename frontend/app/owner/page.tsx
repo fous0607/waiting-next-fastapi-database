@@ -82,7 +82,7 @@ export default function OwnerDashboard() {
     return (
         <div className="min-h-screen bg-slate-50 pb-20">
             {/* Top Bar */}
-            <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-100 px-5 py-2">
+            <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-100 px-5 pt-2 pb-1">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <div className="bg-rose-500 p-1.5 rounded-lg">
