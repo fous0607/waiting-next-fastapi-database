@@ -68,8 +68,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 데이터베이스 테이블 생성
-Base.metadata.create_all(bind=engine)
+# 데이터베이스 테이블 생성 (Vercel 환경에서는 생략)
+if not os.environ.get("VERCEL"):
+    Base.metadata.create_all(bind=engine)
 
 # 정적 파일 및 템플릿 설정
 app.mount("/static", StaticFiles(directory="static"), name="static")
