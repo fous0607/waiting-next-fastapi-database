@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from starlette.responses import StreamingResponse
 from sqlalchemy.orm import Session
-from sqlalchemy import func, desc, case, and_, or_
+from sqlalchemy import func, desc, case, and_, or_, text
 from datetime import datetime, date, timedelta
 from typing import List, Optional
 
@@ -605,15 +605,7 @@ async def get_store_analytics_dashboard(
             start_date = today
             
     if not end_date:
-        if period == 'daily':
-            # End of week (Sunday) or just Today? User usually wants to see up to today or full week. 
-            # Given "This Week" context, showing up to Sunday is fine/standard, or just Today.
-            # Let's use Today to avoid future empty dates if strictly monitoring past performance, 
-            # but user might want to see the whole week axis.
-            # However, the aggregation only returns keys that exist in DB usually, unless we fill gaps.
-            # The current logic only returns existing data keys.
-            # Let's just set end_date to Today to match current behavior but extended start.
-            end_date = today
+        end_date = today
 
     store_id = current_store.id
 
@@ -710,7 +702,6 @@ async def get_store_analytics_dashboard(
             elif period == 'monthly': fmt = 'YYYY-MM'
             
             # Postgres KST Adjustment (Simple interval add)
-            from sqlalchemy import text
             period_col = func.to_char(WaitingList.registered_at + text("INTERVAL '9 hours'"), fmt).label("period")
             period_col_attend = func.to_char(WaitingList.attended_at + text("INTERVAL '9 hours'"), fmt).label("period")
 
