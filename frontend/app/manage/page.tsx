@@ -3,7 +3,7 @@
 
 import { useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { useSSE } from "@/hooks/useSSE";
+import { usePolling } from "@/hooks/usePolling";
 import { ManageHeader } from "@/components/manage/ManageHeader";
 import { QuickRegister } from "@/components/manage/QuickRegister";
 import { ClassTabs } from "@/components/manage/ClassTabs";
@@ -13,7 +13,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { GlobalLoader } from "@/components/ui/GlobalLoader";
 
 function ManageContent() {
-    useSSE(); // Initialize Real-time connection
+    usePolling(5000); // Poll every 5 seconds
     const searchParams = useSearchParams();
     const { fetchStoreStatus, fetchClasses, setStoreId, isLoading, isConnected } = useWaitingStore();
 
@@ -27,36 +27,7 @@ function ManageContent() {
         fetchClasses();
     }, [searchParams, setStoreId, fetchStoreStatus, fetchClasses]);
 
-    // Polling fallback when SSE is disconnected
-    useEffect(() => {
-        let timeoutId: NodeJS.Timeout;
-        let isActive = true;
-
-        const poll = async () => {
-            if (!isActive) return;
-
-            if (!isConnected) {
-                // console.log('Polling for updates...');
-                await Promise.all([
-                    fetchStoreStatus(),
-                    fetchClasses()
-                ]);
-
-                if (isActive) {
-                    timeoutId = setTimeout(poll, 20000); // 20s interval
-                }
-            }
-        };
-
-        if (!isConnected) {
-            poll();
-        }
-
-        return () => {
-            isActive = false;
-            clearTimeout(timeoutId);
-        };
-    }, [isConnected, fetchStoreStatus, fetchClasses]);
+    // Manual polling removed - replaced by usePolling (SWR)
 
     if (isLoading) {
         return <GlobalLoader message="데이터를 불러오는 중입니다..." />;

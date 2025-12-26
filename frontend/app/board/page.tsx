@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, useRef } from 'react';
+import useSWR from 'swr';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '@/lib/api';
 import { BoardCard } from '@/components/board/board-card';
@@ -140,142 +141,43 @@ export default function BoardPage() {
         loadData();
     }, [loadData]);
 
-    // SSE Connection
-    const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+    // SWR Polling Implementation
+    // Replaces SSE for Vercel Serverless environment
+    const fetcher = useCallback(async () => {
+        // Extract store code
+        const params = new URLSearchParams(window.location.search);
+        const storeCode = params.get('store') || localStorage.getItem('selected_store_code');
 
-    const debouncedReload = useCallback(() => {
-        if (debounceTimerRef.current) {
-            clearTimeout(debounceTimerRef.current);
-        }
+        if (!storeCode) return null;
 
-        debounceTimerRef.current = setTimeout(() => {
-            console.log('[BoardSSE] Debounced reload triggered');
-            loadData();
-            debounceTimerRef.current = null;
-        }, 500); // 500ms debounce window
-    }, [loadData]);
+        const res = await api.get(`/board/display?store_code=${storeCode}`);
+        return res.data;
+    }, []);
 
-    // SSE Connection
-    const sseRef = useRef<EventSource | null>(null);
-    useEffect(() => {
-        let reconnectTimeout: NodeJS.Timeout;
-
-        const connect = () => {
-            // 중복 연결 방지 가드
-            if (sseRef.current && (sseRef.current.readyState === EventSource.OPEN || sseRef.current.readyState === EventSource.CONNECTING)) {
-                console.log('[BoardSSE] Already connecting or connected, skipping...');
-                return;
-            }
-
-            // 이전 연결 정리
-            if (sseRef.current) {
-                sseRef.current.close();
-            }
-            // Check if board is enabled in settings
-            if (storeSettings && storeSettings.enable_waiting_board === false) {
-                console.log('[BoardSSE] Connection aborted: Waiting board is disabled in settings');
-                setIsConnected(false);
-                return;
-            }
-
-            // Resolve store ID from URL, fallback to localStorage, or default to '1'
-            let storeId = '1';
-            if (typeof window !== 'undefined') {
-                const params = new URLSearchParams(window.location.search);
-                storeId = params.get('store') || localStorage.getItem('selected_store_id') || '1';
-            }
-
-            const token = localStorage.getItem('access_token');
-            const params = new URLSearchParams();
-            params.append('store_id', storeId);
-            params.append('role', 'board'); // Explicitly set role as board
-            if (token) {
-                params.append('token', token);
-            }
-
-            // Use relative path to avoid Mixed Content errors
-            const url = `/api/sse/stream?${params.toString()}`;
-            console.log(`[BoardSSE] Connecting for store ${storeId} using URL: ${url}`);
-
-            const es = new EventSource(url);
-            sseRef.current = es;
-
-            es.onopen = () => {
-                console.log('[BoardSSE] Connected');
-                setIsConnected(true);
-            };
-
-            es.onmessage = (event) => {
-                try {
-                    const message = JSON.parse(event.data);
-                    if (message.event === 'ping') return;
-
-                    console.log('[BoardSSE] Event received:', message.event);
-
-                    // Reload data on any relevant event - Now Debounced
-                    switch (message.event) {
-                        case 'new_user':
-                        case 'status_changed':
-                        case 'order_changed':
-                        case 'class_moved':
-                        case 'empty_seat_inserted':
-                        case 'class_closed':
-                        case 'class_reopened':
-                            debouncedReload();
-                            break;
-                        case 'user_called':
-                            // Handle announcement
-                            if (message.data?.waiting_id) {
-                                const calledItem = dataRef.current?.waiting_list.find(item => item.id === message.data.waiting_id);
-                                if (calledItem) {
-                                    const customMsg = storeSettings?.waiting_call_voice_message || "{순번}번 {회원명}님, 데스크로 오시기 바랍니다.";
-                                    const announcement = customMsg
-                                        .replace('{회원명}', calledItem.display_name || '')
-                                        .replace('{순번}', calledItem.waiting_number?.toString() || '');
-                                    speak(announcement);
-                                }
-                            }
-                            debouncedReload();
-                            break;
-                        case 'batch_attendance':
-                        case 'name_updated':
-                            debouncedReload();
-                            break;
-                        default:
-                            break;
-                    }
-                } catch (e) {
-                    console.error('[BoardSSE] Failed to parse message', e);
+    // Use SWR for periodic updates (Interval: 5s)
+    // Board needs frequent updates for "new_user", "status_changed" etc.
+    // Note: We need to import useSWR at the top
+    const { data: swrData, error } = useSWR(
+        (typeof window !== 'undefined') ? 'board_data' : null,
+        fetcher,
+        {
+            refreshInterval: 5000,
+            onSuccess: (newData) => {
+                if (newData) {
+                    setData(newData);
+                    setIsConnected(true);
                 }
-            };
-
-            es.onerror = (err) => {
-                console.error('[BoardSSE] Connection error', err);
+            },
+            onError: () => {
                 setIsConnected(false);
-                if (es) es.close();
-
-                // Reconnect after 3s
-                reconnectTimeout = setTimeout(() => {
-                    console.log('[BoardSSE] Reconnecting...');
-                    connect();
-                }, 3000);
-            };
-        };
-
-        if (storeSettings) {
-            connect();
-        }
-
-        return () => {
-            if (sseRef.current) {
-                sseRef.current.close();
-                sseRef.current = null;
             }
-            if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-            clearTimeout(reconnectTimeout);
-            setIsConnected(false);
-        };
-    }, [storeSettings?.enable_waiting_board]);
+        }
+    );
+
+    // Initial load handling is done by SWR, but we rely on setData for the existing rendering logic
+    // Using useEffect to sync SWR data to local state if needed, or refactor to use swrData directly.
+    // existing rendering uses 'data' state.
+
 
     // Page Rotation Timer - respects store settings
     useEffect(() => {

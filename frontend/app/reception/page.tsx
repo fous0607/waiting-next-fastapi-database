@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, useRef } from 'react';
+import useSWR from 'swr';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -123,102 +124,22 @@ export default function ReceptionPage() {
         };
     }, [loadStatus, setStoreId, isConnected]);
 
-    // SSE Connection for Real-time Updates
-    const sseRef = useRef<EventSource | null>(null);
-    useEffect(() => {
-        let reconnectTimeout: NodeJS.Timeout;
+    // SWR Polling Implementation
+    const fetchStatusSWR = useCallback(async () => {
+        const res = await api.get('/waiting/next-slot');
+        return res.data;
+    }, []);
 
-        const connect = () => {
-            // 중복 연결 방지 가드
-            if (sseRef.current && (sseRef.current.readyState === EventSource.OPEN || sseRef.current.readyState === EventSource.CONNECTING)) {
-                console.log('[ReceptionSSE] Already connecting or connected, skipping...');
-                return;
-            }
-
-            // 이전 연결 확실히 정리
-            if (sseRef.current) {
-                sseRef.current.close();
-            }
-            let storeId = '1';
-            if (typeof window !== 'undefined') {
-                const params = new URLSearchParams(window.location.search);
-                storeId = params.get('store') || localStorage.getItem('selected_store_id') || '1';
-            }
-
-            // Check if reception desk is enabled in settings
-            if (storeSettings && storeSettings.enable_reception_desk === false) {
-                console.log('[ReceptionSSE] Connection aborted: Reception desk is disabled in settings');
-                setIsConnected(false);
-                return;
-            }
-
-            const token = localStorage.getItem('access_token');
-            const params = new URLSearchParams();
-            params.append('store_id', storeId);
-            params.append('role', 'reception'); // Explicitly set role as reception
-            if (token) {
-                params.append('token', token);
-            }
-
-            const url = `/api/sse/stream?${params.toString()}`;
-            console.log(`[ReceptionSSE] Connecting to ${url}`);
-
-            const es = new EventSource(url);
-            sseRef.current = es;
-
-            es.onopen = () => {
-                console.log('[ReceptionSSE] Connected');
-                setIsConnected(true);
-                loadStatus();
-            };
-
-            es.onmessage = (event) => {
-                try {
-                    const message = JSON.parse(event.data);
-                    if (message.event === 'ping') return;
-
-                    switch (message.event) {
-                        case 'new_user':
-                        case 'status_changed':
-                        case 'order_changed':
-                        case 'class_closed':
-                        case 'class_reopened':
-                            debouncedLoadStatus();
-                            break;
-                    }
-                } catch (e) {
-                    console.error('[ReceptionSSE] Parse error', e);
-                }
-            };
-
-            es.onerror = (err) => {
-                console.error('[ReceptionSSE] Error', err);
-                setIsConnected(false);
-                if (es) es.close();
-
-                // Reconnect logic
-                reconnectTimeout = setTimeout(() => {
-                    console.log('[ReceptionSSE] Attempting reconnect...');
-                    connect();
-                }, 3000);
-            };
-        };
-
-        if (storeSettings) {
-            connect();
-        } else {
-            loadStoreSettings();
-        }
-
-        return () => {
-            if (sseRef.current) {
-                sseRef.current.close();
-                sseRef.current = null;
-            }
-            if (reconnectTimeout) clearTimeout(reconnectTimeout);
+    useSWR('reception_status', fetchStatusSWR, {
+        refreshInterval: 5000,
+        onSuccess: (data) => {
+            setWaitingStatus(data);
+            setIsConnected(true);
+        },
+        onError: () => {
             setIsConnected(false);
-        };
-    }, [storeSettings?.enable_reception_desk, loadStoreSettings]);
+        }
+    });
 
     // Audio Context for Keypad Sounds
     const audioContextRef = useRef<AudioContext | null>(null);
