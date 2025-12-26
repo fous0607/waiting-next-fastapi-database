@@ -82,7 +82,7 @@ export default function OwnerDashboard() {
     return (
         <div className="min-h-screen bg-slate-50 pb-20">
             {/* Top Bar */}
-            <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-100 px-5 py-3">
+            <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-100 px-5 py-2">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <div className="bg-rose-500 p-1.5 rounded-lg">
@@ -112,7 +112,7 @@ export default function OwnerDashboard() {
                 </div>
             </header>
 
-            <main className="px-5 pt-4 space-y-3">
+            <main className="px-5 pt-3 space-y-3">
                 {/* Welcome Card */}
                 <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-4 text-white shadow-xl relative overflow-hidden">
                     <div className="relative z-10 flex flex-col gap-0.5">
