@@ -703,15 +703,14 @@ async def get_store_analytics_dashboard(
             print(f"Error determining start_hour: {e}")
             start_hour = business_start_setting
 
-        # Reorder hours based on start_hour
+        # Reorder hours: 7 AM to 7 PM (19:00) as per user request
         trends_list = []
-        for i in range(24):
-            h = (start_hour + i) % 24
+        for h in range(7, 20): # 7 to 19 inclusive
             v = hourly_map[h]
             trends_list.append(
                 schemas.HourlyStat(
                     hour=h, 
-                    label=f"{h}시",
+                    label=f"{h}", # Removing "시"
                     waiting_count=v['waiting'], 
                     attendance_count=v['attendance']
                 )
@@ -782,7 +781,8 @@ async def get_store_analytics_dashboard(
         schemas.StoreOperationStat(
             store_name=current_store.name,
             is_open=open_op is not None,
-            open_time=(open_op.opening_time or open_op.created_at).strftime("%H:%M") if open_op and (open_op.opening_time or open_op.created_at) else None,
+            # Adjust UTC to KST (+9h) for display
+            open_time=((open_op.opening_time or open_op.created_at) + timedelta(hours=9)).strftime("%H:%M") if open_op and (open_op.opening_time or open_op.created_at) else None,
             close_time=None,
             current_waiting=current_waiting_cnt,
             total_waiting=total_waiting_cnt,

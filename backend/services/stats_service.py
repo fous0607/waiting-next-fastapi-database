@@ -71,8 +71,9 @@ class StatsService:
             hour_val = 0
             
             if period == "hourly":
-                h = w.created_at.hour
-                label = f"{h}시"
+                # Adjust UTC to KST (+9h)
+                h = (w.created_at + timedelta(hours=9)).hour
+                label = f"{h}" # Numeric label
                 hour_val = h
             elif period == "daily":
                 label = w.business_date.strftime("%Y-%m-%d")
@@ -146,8 +147,9 @@ class StatsService:
 
         hourly_stats = []
         if period == "hourly":
-            for h in range(24):
-                lbl = f"{h}시"
+            # 7 AM to 7 PM (19:00)
+            for h in range(7, 20):
+                lbl = f"{h}"
                 data = trends_map.get(lbl, {"waiting": 0, "attendance": 0})
                 hourly_stats.append({
                     "hour": h,
@@ -226,8 +228,8 @@ class StatsService:
                 ).first()
                 
                 if today_closing and today_closing.opening_time:
-                    # Format to HH:MM
-                    real_open_time = today_closing.opening_time.strftime("%H:%M")
+                    # Adjust UTC to KST (+9h) for display
+                    real_open_time = (today_closing.opening_time + timedelta(hours=9)).strftime("%H:%M")
             except Exception as e:
                 print(f"Error fetching open time for store {store.id}: {e}")
                 # Fallback to empty string
