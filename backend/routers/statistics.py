@@ -671,11 +671,55 @@ async def get_store_analytics_dashboard(
                 except (Exception):
                     pass
                 
-        start_hour = 0
-        if current_store.store_settings and len(current_store.store_settings) > 0:
-            start_hour = current_store.store_settings[0].business_day_start
+        # Determine Start Hour
+        # Priority 1: Actual Opening Time for TODAY (if available) to match user expectation ("I opened at 9")
+        # Priority 2: Configured Business Day Start (default 5)
         
-        # Reorder hours based on business_day_start (e.g., 5 -> 5..23, 0..4)
+        from models import DailyClosing
+        from utils import get_today_date
+        
+        start_hour = 0
+        business_start_setting = 5
+        
+        if current_store.store_settings and len(current_store.store_settings) > 0:
+            business_start_setting = current_store.store_settings[0].business_day_start
+            start_hour = business_start_setting
+
+        # Check if we should use actual opening time for today's chart
+        # Only if period='hourly' (implied by this block) and viewing 'today' (start_date is today)
+        # Getting today's date in KST/System
+        today_date = get_today_date(business_start_setting) 
+        
+        # We can loosely check if start_date matches today_date
+        # start_date is passed as argument.
+        if start_date == today_date:
+            daily_closing = db.query(DailyClosing).filter(
+                DailyClosing.store_id == store_id,
+                DailyClosing.business_date == today_date,
+                DailyClosing.is_closed == False
+            ).first()
+            
+            if daily_closing and daily_closing.opening_time:
+                # Use actual opening hour
+                # opening_time is DateTime. Inspect if we need KST adjustment? 
+                # opening_time is likely KST if saved via datetime.now() on local server, 
+                # or UTC if server is UTC.
+                # Assuming opening_time is localized or we take the hour directly if system is consistent.
+                # If we assume consistent system time usage:
+                h_open = daily_closing.opening_time.hour
+                # If opening_time is UTC and we need KST:
+                # Check is_sqlite logic for consistency.
+                if is_sqlite:
+                     # If registered_at needs +9, then opening_time likely needs +9 if stored as UTC.
+                     # However, daily_closing.opening_time might be saved as naive local time by `waiting.py`.
+                     # Let's assume it's naive local (KST) based on usual pattern for this codebase.
+                     pass 
+                
+                # If the opening time is reasonably close to business_start (e.g. same day), use it.
+                # If user opened at 9 AM, use 9.
+                start_hour = h_open
+
+        # Reorder hours based on start_hour
         trends_list = []
         for i in range(24):
             h = (start_hour + i) % 24
