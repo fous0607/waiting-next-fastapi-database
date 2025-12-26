@@ -13,6 +13,7 @@ import {
     Trophy,
     UserX,
     LogOut,
+    Home,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -129,8 +130,17 @@ function AdminSidebar() {
     ];
 
     return (
-        <aside className="w-64 bg-white border-r border-slate-200 flex flex-col sticky top-0 h-screen">
+        <aside className="w-52 bg-white border-r border-slate-200 flex flex-col sticky top-0 h-screen">
             <div className="p-6 flex-1 overflow-y-auto no-scrollbar">
+                <Button
+                    variant="ghost"
+                    className="mb-8 -ml-3 text-slate-500 hover:text-slate-900 w-full justify-start"
+                    onClick={() => window.location.href = '/'}
+                >
+                    <Home className="w-5 h-5 mr-2" />
+                    메인으로
+                </Button>
+
                 <div className="flex items-center gap-3 mb-10 px-1">
                     <div className="bg-orange-100 p-2 rounded-lg">
                         <BarChart3 className="w-6 h-6 text-orange-600" />
@@ -271,18 +281,8 @@ export default function AdminLayout({
 
             {/* Main Content */}
             {/* Main Content */}
-            <main className="flex-1 overflow-x-hidden">
-                <div className="flex justify-end p-4">
-                    <Link href="/">
-                        <Button variant="outline" className="gap-2 bg-white text-slate-600 hover:text-indigo-600 hover:bg-slate-50 border-slate-200">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                            </svg>
-                            메인 대시보드
-                        </Button>
-                    </Link>
-                </div>
-                <div className="px-8 pb-8 max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <main className="flex-1 p-6 overflow-x-hidden">
+                <div className="max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
                     {children}
                 </div>
             </main>
