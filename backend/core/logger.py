@@ -7,9 +7,8 @@ from logging.handlers import RotatingFileHandler
 import os
 from datetime import datetime
 
-# 1. Ensure logs directory exists
+# 1. Ensure logs directory is defined (creation handled in setup_logging)
 LOG_DIR = "logs"
-os.makedirs(LOG_DIR, exist_ok=True)
 
 # 2. Custom JSON Formatter
 # 2. Custom JSON Formatter
@@ -113,6 +112,9 @@ def setup_logging():
     
     if not is_vercel:
         try:
+            # Create logs directory only if not in read-only environment
+            os.makedirs(LOG_DIR, exist_ok=True)
+
             # Handler 2: File (JSON Structured for Analysis)
             file_handler = RotatingFileHandler(
                 os.path.join(LOG_DIR, "system.json.log"),
