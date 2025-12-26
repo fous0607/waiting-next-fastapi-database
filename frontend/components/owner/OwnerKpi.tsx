@@ -27,27 +27,27 @@ export function OwnerKpi({ title, value, unit, icon: Icon, color, className, loa
 
     return (
         <div className={cn(
-            "relative overflow-hidden rounded-3xl border border-slate-100 bg-white/80 p-4 shadow-sm backdrop-blur-md transition-all hover:shadow-md active:scale-[0.98]",
+            "relative overflow-hidden rounded-2xl border border-slate-100 bg-white/80 p-3 shadow-sm backdrop-blur-md transition-all hover:shadow-md active:scale-[0.98]",
             className
         )}>
             {/* Background Accent */}
-            <div className={cn("absolute -right-4 -top-4 h-24 w-24 rounded-full opacity-10", colors.bg)} />
+            <div className={cn("absolute -right-4 -top-4 h-20 w-20 rounded-full opacity-10", colors.bg)} />
 
-            <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                    <div className={cn("p-2 rounded-xl", colors.bg, colors.text)}>
-                        <Icon className="h-5 w-5" />
+            <div className="flex flex-col">
+                <div className="flex items-center gap-2 mb-0">
+                    <div className={cn("p-1.5 rounded-lg", colors.bg, colors.text)}>
+                        <Icon className="h-4 w-4" />
                     </div>
-                    <p className="text-xs font-semibold text-slate-600">{title}</p>
+                    <p className="text-[11px] font-semibold text-slate-500">{title}</p>
                 </div>
 
-                <div className="flex items-baseline gap-1">
+                <div className="flex items-baseline gap-1 mt-1 pl-1">
                     {loading ? (
-                        <div className="h-8 w-20 animate-pulse rounded-md bg-slate-100" />
+                        <div className="h-7 w-16 animate-pulse rounded-md bg-slate-100" />
                     ) : (
                         <>
-                            <h3 className="text-3xl font-bold tracking-tight text-slate-900">{value}</h3>
-                            {unit && <span className="text-sm font-bold text-slate-400">{unit}</span>}
+                            <h3 className="text-2xl font-bold tracking-tight text-slate-900 leading-none">{value}</h3>
+                            {unit && <span className="text-xs font-bold text-slate-400">{unit}</span>}
                         </>
                     )}
                 </div>
