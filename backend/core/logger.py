@@ -98,7 +98,7 @@ def setup_logging():
     # Remove existing handlers to avoid duplicates
     logger.handlers = []
 
-    # Handler 1: Console (Human Readable)
+    # Handler 1: Console (Human Readable) - ALWAYS enabled
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(logging.INFO)
     console_format = logging.Formatter(
@@ -107,33 +107,45 @@ def setup_logging():
     console_handler.setFormatter(console_format)
     logger.addHandler(console_handler)
 
-    # Handler 2: File (JSON Structured for Analysis)
-    file_handler = RotatingFileHandler(
-        os.path.join(LOG_DIR, "system.json.log"),
-        maxBytes=10*1024*1024, # 10MB
-        backupCount=5,
-        encoding='utf-8'
-    )
-    file_handler.setLevel(logging.DEBUG)
-    file_handler.setFormatter(JsonFormatter())
-    logger.addHandler(file_handler)
+    # Check if we are in a read-only environment (like Vercel)
+    # Vercel sets 'VERCEL' env var to '1'
+    is_vercel = os.environ.get('VERCEL') == '1'
     
-    # Handler 3: Human Readable File (Legacy/Easy Read)
-    text_handler = RotatingFileHandler(
-        os.path.join(LOG_DIR, "system.log"),
-        maxBytes=10*1024*1024, # 10MB
-        backupCount=5,
-        encoding='utf-8'
-    )
-    text_handler.setLevel(logging.INFO)
-    text_handler.setFormatter(console_format)
-    logger.addHandler(text_handler)
+    if not is_vercel:
+        try:
+            # Handler 2: File (JSON Structured for Analysis)
+            file_handler = RotatingFileHandler(
+                os.path.join(LOG_DIR, "system.json.log"),
+                maxBytes=10*1024*1024, # 10MB
+                backupCount=5,
+                encoding='utf-8'
+            )
+            file_handler.setLevel(logging.DEBUG)
+            file_handler.setFormatter(JsonFormatter())
+            logger.addHandler(file_handler)
+            
+            # Handler 3: Human Readable File (Legacy/Easy Read)
+            text_handler = RotatingFileHandler(
+                os.path.join(LOG_DIR, "system.log"),
+                maxBytes=10*1024*1024, # 10MB
+                backupCount=5,
+                encoding='utf-8'
+            )
+            text_handler.setLevel(logging.INFO)
+            text_handler.setFormatter(console_format)
+            logger.addHandler(text_handler)
+        except (OSError, PermissionError):
+            # Fallback for read-only environments if detection failed
+            sys.stderr.write("WARNING: Could not create log files. File logging disabled.\n")
 
     # Handler 4: SSE Broadcast
-    sse_handler = SSELogHandler()
-    sse_handler.setLevel(logging.INFO) # Broadcast INFO and above to avoid flooding
-    sse_handler.setFormatter(JsonFormatter())
-    logger.addHandler(sse_handler)
+    try:
+        sse_handler = SSELogHandler()
+        sse_handler.setLevel(logging.INFO) # Broadcast INFO and above to avoid flooding
+        sse_handler.setFormatter(JsonFormatter())
+        logger.addHandler(sse_handler)
+    except Exception:
+        pass
 
     return logger
 
