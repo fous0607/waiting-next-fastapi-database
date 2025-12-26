@@ -671,15 +671,23 @@ async def get_store_analytics_dashboard(
                 except (Exception):
                     pass
                 
-        trends_list = [
-            schemas.HourlyStat(
-                hour=h, 
-                label=f"{h}시",
-                waiting_count=v['waiting'], 
-                attendance_count=v['attendance']
+        start_hour = 0
+        if current_store.store_settings and len(current_store.store_settings) > 0:
+            start_hour = current_store.store_settings[0].business_day_start
+        
+        # Reorder hours based on business_day_start (e.g., 5 -> 5..23, 0..4)
+        trends_list = []
+        for i in range(24):
+            h = (start_hour + i) % 24
+            v = hourly_map[h]
+            trends_list.append(
+                schemas.HourlyStat(
+                    hour=h, 
+                    label=f"{h}시",
+                    waiting_count=v['waiting'], 
+                    attendance_count=v['attendance']
+                )
             )
-            for h, v in hourly_map.items()
-        ]
         
     else:
         # DB Grouping for Daily/Weekly/Monthly -> Use business_date for consistency
