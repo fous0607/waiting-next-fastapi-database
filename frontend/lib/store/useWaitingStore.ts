@@ -145,52 +145,53 @@ export const useWaitingStore = create<WaitingState>((set, get) => ({
                 console.warn("No classes returned from API");
             }
 
-            class_id: number;
-            class_name: string;
-            class_number: number;
-            start_time: string;
-            end_time: string;
-            max_capacity: number;
-            current_count: number;
-            total_count ?: number;
-        }) => ({
-            id: cls.class_id,
-            class_name: cls.class_name,
-            class_number: cls.class_number,
-            start_time: cls.start_time,
-            end_time: cls.end_time,
-            max_capacity: cls.max_capacity,
-            current_count: cls.current_count,
-            total_count: cls.total_count || cls.current_count
-        }));
+            const classesData: ClassInfo[] = res.data.map((cls: {
+                class_id: number;
+                class_name: string;
+                class_number: number;
+                start_time: string;
+                end_time: string;
+                max_capacity: number;
+                current_count: number;
+                total_count?: number;
+            }) => ({
+                id: cls.class_id,
+                class_name: cls.class_name,
+                class_number: cls.class_number,
+                start_time: cls.start_time,
+                end_time: cls.end_time,
+                max_capacity: cls.max_capacity,
+                current_count: cls.current_count,
+                total_count: cls.total_count || cls.current_count
+            }));
 
-set({
-    classes: classesData,
-    closedClasses: closedIds
-});
-console.log("Classes state updated:", classesData);
+            set({
+                classes: classesData,
+                closedClasses: closedIds
+            });
+            console.log("Classes state updated:", classesData);
 
-// Auto-select first visible class if none selected
-if (!get().currentClassId && classesData.length > 0) {
-    const state = get();
-    // Determine which classes would be visible on screen
-    const visibleClasses = classesData.filter(c => !state.hideClosedClasses || !closedIds.has(c.id));
+            // Auto-select first visible class if none selected
+            if (!get().currentClassId && classesData.length > 0) {
+                const state = get();
+                // Determine which classes would be visible on screen
+                const visibleClasses = classesData.filter(c => !state.hideClosedClasses || !closedIds.has(c.id));
 
-    if (visibleClasses.length > 0) {
-        // Select the first class on the screen
-        set({ currentClassId: visibleClasses[0].id });
-        get().fetchWaitingList(visibleClasses[0].id);
-    }
-}
+                if (visibleClasses.length > 0) {
+                    // Select the first class on the screen
+                    set({ currentClassId: visibleClasses[0].id });
+                    get().fetchWaitingList(visibleClasses[0].id);
+                }
+            }
         } catch (error) {
-    console.error('Failed to fetch classes:', error);
-}
+            console.error('Failed to fetch classes:', error);
+        }
     },
 
-selectClass: (classId) => {
-    set({ currentClassId: classId });
-    get().fetchWaitingList(classId);
-},
+    selectClass: (classId) => {
+        set({ currentClassId: classId });
+        get().fetchWaitingList(classId);
+    },
 
     fetchWaitingList: async (classId) => {
         try {
@@ -206,128 +207,128 @@ selectClass: (classId) => {
         }
     },
 
-        handleNewUser: async () => {
-            await get().fetchClasses();
-            // Re-check currentClassId from fresh state after fetchClasses might have auto-selected one
-            const freshState = get();
-            if (freshState.currentClassId) {
-                await get().fetchWaitingList(freshState.currentClassId!);
-            }
-        },
+    handleNewUser: async () => {
+        await get().fetchClasses();
+        // Re-check currentClassId from fresh state after fetchClasses might have auto-selected one
+        const freshState = get();
+        if (freshState.currentClassId) {
+            await get().fetchWaitingList(freshState.currentClassId!);
+        }
+    },
 
-            handleStatusChange: async () => {
-                await get().fetchClasses();
-                const freshState = get();
-                if (freshState.currentClassId) {
-                    await get().fetchWaitingList(freshState.currentClassId!);
-                }
-            },
+    handleStatusChange: async () => {
+        await get().fetchClasses();
+        const freshState = get();
+        if (freshState.currentClassId) {
+            await get().fetchWaitingList(freshState.currentClassId!);
+        }
+    },
 
-                handleOrderChange: () => {
-                    if (get().currentClassId) {
-                        get().fetchWaitingList(get().currentClassId!);
+    handleOrderChange: () => {
+        if (get().currentClassId) {
+            get().fetchWaitingList(get().currentClassId!);
+        }
+    },
+
+    refreshAll: async () => {
+        // Optimized refresh: Fetch classes once, then fetch waiting list for current class once
+        await get().fetchClasses();
+        const freshState = get();
+        if (freshState.currentClassId) {
+            await get().fetchWaitingList(freshState.currentClassId!);
+        }
+    },
+
+    handleClassClosed: (classId) => {
+        set((state) => {
+            const newClosed = new Set(state.closedClasses);
+            newClosed.add(classId);
+            return { closedClasses: newClosed };
+        });
+        // If the closed class is currently selected, refresh the list (it should be empty now)
+        if (get().currentClassId === classId) {
+            get().fetchWaitingList(classId);
+        }
+    },
+
+    handleClassReopened: (classId) => {
+        set((state) => {
+            const newClosed = new Set(state.closedClasses);
+            newClosed.delete(classId);
+            return { closedClasses: newClosed };
+        });
+        if (get().currentClassId === classId) {
+            get().fetchWaitingList(classId);
+        }
+    },
+
+    closeClass: async (classId) => {
+        try {
+            await api.post('/board/batch-attendance', { class_id: classId });
+            await get().fetchClasses(); // Refresh to update closed status
+            get().fetchWaitingList(classId); // Refresh to clear the list
+
+            // Auto-switch to next active class if hiding is enabled and we just closed the current one
+            const state = get();
+            if (state.hideClosedClasses && state.currentClassId === classId) {
+                const classes = state.classes;
+                const closed = state.closedClasses;
+
+                // Find current index
+                const currentIndex = classes.findIndex(c => c.id === classId);
+                if (currentIndex !== -1) {
+                    // Try to find next open class after current
+                    let nextClass = classes.slice(currentIndex + 1).find(c => !closed.has(c.id));
+
+                    // If not found, try from beginning
+                    if (!nextClass) {
+                        nextClass = classes.find(c => !closed.has(c.id));
                     }
-                },
 
-                    refreshAll: async () => {
-                        // Optimized refresh: Fetch classes once, then fetch waiting list for current class once
-                        await get().fetchClasses();
-                        const freshState = get();
-                        if (freshState.currentClassId) {
-                            await get().fetchWaitingList(freshState.currentClassId!);
-                        }
-                    },
+                    if (nextClass) {
+                        get().selectClass(nextClass.id);
+                    } else {
+                        // If no open class found (all closed), deselect current so it disappears from filtered view
+                        set({ currentClassId: null });
+                        get().fetchWaitingList(-1); // Clear waiting list (or handle null)
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Failed to close class:', error);
+            throw error; // Re-throw for UI to handle
+        }
+    },
 
-                        handleClassClosed: (classId) => {
-                            set((state) => {
-                                const newClosed = new Set(state.closedClasses);
-                                newClosed.add(classId);
-                                return { closedClasses: newClosed };
-                            });
-                            // If the closed class is currently selected, refresh the list (it should be empty now)
-                            if (get().currentClassId === classId) {
-                                get().fetchWaitingList(classId);
-                            }
-                        },
+    reorderWaitingList: (classId: number, fromIndex: number, toIndex: number) => {
+        set((state) => {
+            const list = state.waitingList[classId] || [];
+            if (fromIndex < 0 || fromIndex >= list.length || toIndex < 0 || toIndex >= list.length) {
+                return state;
+            }
 
-                            handleClassReopened: (classId) => {
-                                set((state) => {
-                                    const newClosed = new Set(state.closedClasses);
-                                    newClosed.delete(classId);
-                                    return { closedClasses: newClosed };
-                                });
-                                if (get().currentClassId === classId) {
-                                    get().fetchWaitingList(classId);
-                                }
-                            },
+            const newList = [...list];
+            const [movedItem] = newList.splice(fromIndex, 1);
+            newList.splice(toIndex, 0, movedItem);
 
-                                closeClass: async (classId) => {
-                                    try {
-                                        await api.post('/board/batch-attendance', { class_id: classId });
-                                        await get().fetchClasses(); // Refresh to update closed status
-                                        get().fetchWaitingList(classId); // Refresh to clear the list
+            return {
+                waitingList: {
+                    ...state.waitingList,
+                    [classId]: newList
+                }
+            };
+        });
+    },
 
-                                        // Auto-switch to next active class if hiding is enabled and we just closed the current one
-                                        const state = get();
-                                        if (state.hideClosedClasses && state.currentClassId === classId) {
-                                            const classes = state.classes;
-                                            const closed = state.closedClasses;
-
-                                            // Find current index
-                                            const currentIndex = classes.findIndex(c => c.id === classId);
-                                            if (currentIndex !== -1) {
-                                                // Try to find next open class after current
-                                                let nextClass = classes.slice(currentIndex + 1).find(c => !closed.has(c.id));
-
-                                                // If not found, try from beginning
-                                                if (!nextClass) {
-                                                    nextClass = classes.find(c => !closed.has(c.id));
-                                                }
-
-                                                if (nextClass) {
-                                                    get().selectClass(nextClass.id);
-                                                } else {
-                                                    // If no open class found (all closed), deselect current so it disappears from filtered view
-                                                    set({ currentClassId: null });
-                                                    get().fetchWaitingList(-1); // Clear waiting list (or handle null)
-                                                }
-                                            }
-                                        }
-                                    } catch (error) {
-                                        console.error('Failed to close class:', error);
-                                        throw error; // Re-throw for UI to handle
-                                    }
-                                },
-
-                                    reorderWaitingList: (classId: number, fromIndex: number, toIndex: number) => {
-                                        set((state) => {
-                                            const list = state.waitingList[classId] || [];
-                                            if (fromIndex < 0 || fromIndex >= list.length || toIndex < 0 || toIndex >= list.length) {
-                                                return state;
-                                            }
-
-                                            const newList = [...list];
-                                            const [movedItem] = newList.splice(fromIndex, 1);
-                                            newList.splice(toIndex, 0, movedItem);
-
-                                            return {
-                                                waitingList: {
-                                                    ...state.waitingList,
-                                                    [classId]: newList
-                                                }
-                                            };
-                                        });
-                                    },
-
-                                        reset: () => set({
-                                            classes: [],
-                                            waitingList: {},
-                                            storeName: '',
-                                            businessDate: '',
-                                            currentClassId: null,
-                                            closedClasses: new Set(),
-                                            isConnected: false,
-                                            connectionBlockState: null,
-                                            isLoading: false
-                                        })
+    reset: () => set({
+        classes: [],
+        waitingList: {},
+        storeName: '',
+        businessDate: '',
+        currentClassId: null,
+        closedClasses: new Set(),
+        isConnected: false,
+        connectionBlockState: null,
+        isLoading: false
+    })
 }));
