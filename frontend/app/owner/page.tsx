@@ -114,30 +114,34 @@ export default function OwnerDashboard() {
 
             <main className="px-5 pt-6 space-y-6">
                 {/* Welcome Card */}
-                <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-[2rem] p-6 text-white shadow-xl relative overflow-hidden">
-                    <div className="relative z-10">
-                        <p className="text-slate-400 text-sm font-medium mb-1">{dateStr}</p>
-                        <h2 className="text-2xl font-bold mb-4">관리자님, 안녕하세요!</h2>
-                        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/10 rounded-full border border-white/10 backdrop-blur-sm">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                            <span className="text-xs font-semibold">매장 현재 영업 중</span>
+                <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-5 text-white shadow-xl relative overflow-hidden mb-2">
+                    <div className="relative z-10 flex flex-col gap-1">
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <p className="text-slate-400 text-xs font-medium mb-0.5">{dateStr}</p>
+                                <h2 className="text-xl font-bold">관리자님, 안녕하세요!</h2>
+                            </div>
+                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white/10 rounded-full border border-white/10 backdrop-blur-sm">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                <span className="text-[10px] font-semibold">영업중</span>
+                            </div>
                         </div>
                     </div>
                     {/* Decorative Circles */}
-                    <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/5 rounded-full blur-2xl" />
-                    <div className="absolute right-10 top-0 w-20 h-20 bg-rose-500/10 rounded-full blur-xl" />
+                    <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-white/5 rounded-full blur-2xl" />
+                    <div className="absolute right-6 top-0 w-16 h-16 bg-rose-500/10 rounded-full blur-xl" />
                 </div>
 
                 {/* Real-time KPI Section */}
                 <section>
-                    <div className="flex items-center justify-between mb-4 px-1">
-                        <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                    <div className="flex items-center justify-between mb-3 px-1">
+                        <h3 className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
                             <TrendingUp className="w-4 h-4 text-blue-500" />
                             실시간 현황
                         </h3>
                         <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-bold">LIVE</span>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-3">
                         <OwnerKpi
                             title="현재 대기"
                             value={stats?.store_stats?.[0]?.current_waiting || 0}
@@ -159,26 +163,26 @@ export default function OwnerDashboard() {
 
                 {/* Business Stats Section */}
                 <section>
-                    <div className="flex items-center justify-between mb-4 px-1">
-                        <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                    <div className="flex items-center justify-between mb-3 px-1">
+                        <h3 className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
                             <Briefcase className="w-4 h-4 text-violet-500" />
                             영업 성과
                         </h3>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-3">
                         <OwnerKpi
-                            title="예상 매출"
-                            value={(stats?.total_revenue || 0).toLocaleString()}
-                            unit="원"
-                            icon={DollarSign}
+                            title="출석 인원"
+                            value={stats?.total_attendance || 0}
+                            unit="명"
+                            icon={Users}
                             color="orange"
                             loading={loading}
                         />
                         <OwnerKpi
-                            title="재방문율"
-                            value={stats?.retention_rate || 0}
-                            unit="%"
-                            icon={TrendingUp}
+                            title="신규 회원"
+                            value={stats?.new_members || 0}
+                            unit="명"
+                            icon={UserPlus}
                             color="violet"
                             loading={loading}
                         />
