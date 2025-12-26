@@ -26,7 +26,6 @@ export function OwnerKpi({ title, value, unit, icon: Icon, color, className, loa
     const colors = colorClasses[color] || colorClasses.blue;
 
     return (
-    return (
         <div className={cn(
             "relative overflow-hidden rounded-2xl border border-slate-100 bg-white/80 p-2.5 shadow-sm backdrop-blur-md transition-all hover:shadow-md active:scale-[0.98]",
             className
