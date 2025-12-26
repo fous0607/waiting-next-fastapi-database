@@ -598,9 +598,22 @@ async def get_store_analytics_dashboard(
     """
     today = date.today()
     if not start_date:
-        start_date = today
+        if period == 'daily':
+            # "This Week" (Monday to Sunday)
+            start_date = today - timedelta(days=today.weekday())
+        else:
+            start_date = today
+            
     if not end_date:
-        end_date = today
+        if period == 'daily':
+            # End of week (Sunday) or just Today? User usually wants to see up to today or full week. 
+            # Given "This Week" context, showing up to Sunday is fine/standard, or just Today.
+            # Let's use Today to avoid future empty dates if strictly monitoring past performance, 
+            # but user might want to see the whole week axis.
+            # However, the aggregation only returns keys that exist in DB usually, unless we fill gaps.
+            # The current logic only returns existing data keys.
+            # Let's just set end_date to Today to match current behavior but extended start.
+            end_date = today
 
     store_id = current_store.id
 
@@ -644,8 +657,6 @@ async def get_store_analytics_dashboard(
     is_sqlite = 'sqlite' in str(db.get_bind().url)
     
     # Label formatting helper
-    # Label formatting helper
-    # Label formatting helper
     if period == "hourly":
         # Existing logic for hourly (0-23)
         hourly_map = {h: {'waiting': 0, 'attendance': 0} for h in range(24)}
@@ -674,7 +685,7 @@ async def get_store_analytics_dashboard(
         # DB Grouping for Daily/Weekly/Monthly
         if is_sqlite:
             if period == "daily":
-                date_fmt = "%Y-%m-%d"
+                date_fmt = "%m-%d"
             elif period == "weekly":
                 date_fmt = "%Y-%W"
             elif period == "monthly":
@@ -686,7 +697,8 @@ async def get_store_analytics_dashboard(
         else:
             # Postgres
             fmt = 'YYYY-MM-DD'
-            if period == 'weekly': fmt = 'YYYY-IW'  # Use IW for ISO Week
+            if period == 'daily': fmt = 'MM-DD'
+            elif period == 'weekly': fmt = 'YYYY-IW'  # Use IW for ISO Week
             elif period == 'monthly': fmt = 'YYYY-MM'
             
             # Postgres KST Adjustment (Simple interval add)

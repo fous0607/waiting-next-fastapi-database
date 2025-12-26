@@ -216,7 +216,7 @@ export default function OwnerDashboard() {
                         title={period === 'hourly' ? "오늘 시간대별 패턴" : "최근 방문 추이"}
                         data={stats?.hourly_stats || []}
                         loading={loading}
-                        type={period === 'hourly' ? 'bar' : 'line'}
+                        type={period === 'hourly' || period === 'daily' ? 'bar' : 'line'}
                     />
                 </section>
 
