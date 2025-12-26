@@ -216,11 +216,22 @@ class StatsService:
                 "conversion_rate": round(conversion, 1)
             })
 
+            # Get actual open time for today
+            today_closing = db.query(DailyClosing).filter(
+                DailyClosing.store_id == store.id,
+                DailyClosing.business_date == today
+            ).first()
+            
+            real_open_time = ""
+            if today_closing and today_closing.opening_time:
+                # Format to HH:MM
+                real_open_time = today_closing.opening_time.strftime("%H:%M")
+
             # Minimal stats for legacy/other components
             store_stats.append({
                 "store_name": store.name,
                 "is_open": store.is_active, # Simplified
-                "open_time": "09:00", 
+                "open_time": real_open_time, 
                 "close_time": "22:00",
                 "current_waiting": 0, # Not calculating real-time current for this dashboard view
                 "total_waiting": s_waiting_count,

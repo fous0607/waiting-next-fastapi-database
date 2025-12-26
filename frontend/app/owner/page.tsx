@@ -118,7 +118,14 @@ export default function OwnerDashboard() {
                     <div className="relative z-10 flex flex-col gap-0.5">
                         <div className="flex justify-between items-center">
                             <div className="flex items-center gap-2">
-                                <p className="text-slate-400 text-xs font-medium">{dateStr}</p>
+                                <p className="text-slate-400 text-xs font-medium">
+                                    {dateStr}
+                                    {stats?.store_stats?.[0]?.open_time && (
+                                        <span className="ml-2 py-0.5 px-1.5 rounded bg-white/5">
+                                            {stats.store_stats[0].open_time}
+                                        </span>
+                                    )}
+                                </p>
                                 <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-white/10 rounded-full border border-white/10 backdrop-blur-sm">
                                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                                     <span className="text-[10px] font-semibold">영업중</span>
