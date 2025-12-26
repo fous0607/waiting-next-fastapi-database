@@ -59,10 +59,10 @@ export function ClassTabs() {
                             {isClosed && <span className="text-xs ml-1">(마감)</span>}
                         </span>
                         <span className={cn(
-                            "text-sm font-medium px-2 py-0.5 rounded-full",
+                            "text-xs font-medium px-2 py-0.5 rounded-full",
                             isActive ? "bg-primary-foreground/20" : "bg-secondary text-secondary-foreground"
                         )}>
-                            {cls.current_count}명
+                            대기 {cls.current_count} (총 {cls.total_count}/{cls.max_capacity})
                         </span>
                     </button>
                 );

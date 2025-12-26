@@ -519,6 +519,45 @@ export function GeneralSettings() {
                                     )}
                                 />
                             </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <FormField
+                                    control={form.control}
+                                    name="use_max_waiting_limit"
+                                    render={({ field }) => (
+                                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                                            <div className="space-y-0.5">
+                                                <FormLabel className="text-base">최대 대기 인원 제한</FormLabel>
+                                                <FormDescription>
+                                                    전체 대기 인원이 일정 수를 넘으면 접수를 차단합니다.
+                                                </FormDescription>
+                                            </div>
+                                            <FormControl>
+                                                <Checkbox
+                                                    checked={field.value}
+                                                    onCheckedChange={field.onChange}
+                                                />
+                                            </FormControl>
+                                        </FormItem>
+                                    )}
+                                />
+                                {form.watch('use_max_waiting_limit') && (
+                                    <FormField
+                                        control={form.control}
+                                        name="max_waiting_limit"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>최대 대기 허용 인원</FormLabel>
+                                                <FormControl>
+                                                    <Input type="number" min={0} {...field} />
+                                                </FormControl>
+                                                <FormDescription>
+                                                    이 인원수만큼 대기가 차면 더 이상 접수를 받지 않습니다.
+                                                </FormDescription>
+                                            </FormItem>
+                                        )}
+                                    />
+                                )}
+                            </div>
                             <div className="flex gap-4">
                                 <FormField
                                     control={form.control}

@@ -22,7 +22,6 @@ export function ManageHeader() {
                         {selectedStoreId && <span className="text-xs px-2 py-0.5 bg-slate-100 rounded text-slate-500 font-mono">ID: {selectedStoreId}</span>}
                     </div>
                     <span>대기자 관리</span>
-                    <span className="text-xs text-muted-foreground font-normal">(Next.js v1.0)</span>
                     {businessDate && (
                         <span className="text-lg font-bold bg-secondary px-4 py-1 rounded-full text-secondary-foreground">
                             {businessDate}
