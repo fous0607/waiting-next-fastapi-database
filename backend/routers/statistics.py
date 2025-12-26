@@ -662,14 +662,22 @@ async def get_store_analytics_dashboard(
         hourly_map = {h: {'waiting': 0, 'attendance': 0} for h in range(24)}
         for w in waitings:
             # KST Adjustment (+9 hours)
-            # Use registered_at instead of created_at for better consistency if created_at is skewed
-            if w.registered_at: 
-                h = (w.registered_at + timedelta(hours=9)).hour
-                hourly_map[h]['waiting'] += 1
+            # Use registered_at instead of created_at for better consistency
+            if w.registered_at and hasattr(w.registered_at, 'hour'): 
+                try:
+                    h = (w.registered_at + timedelta(hours=9)).hour
+                    if 0 <= h < 24:
+                        hourly_map[h]['waiting'] += 1
+                except (Exception):
+                    pass
             
-            if w.attended_at:
-                ah = (w.attended_at + timedelta(hours=9)).hour
-                hourly_map[ah]['attendance'] += 1
+            if w.attended_at and hasattr(w.attended_at, 'hour'):
+                try:
+                    ah = (w.attended_at + timedelta(hours=9)).hour
+                    if 0 <= ah < 24:
+                        hourly_map[ah]['attendance'] += 1
+                except (Exception):
+                    pass
                 
         trends_list = [
             schemas.HourlyStat(
@@ -698,13 +706,13 @@ async def get_store_analytics_dashboard(
             # Postgres
             fmt = 'YYYY-MM-DD'
             if period == 'daily': fmt = 'MM-DD'
-            elif period == 'weekly': fmt = 'YYYY-IW'  # Use IW for ISO Week
+            elif period == 'weekly': fmt = 'YYYY-IW'
             elif period == 'monthly': fmt = 'YYYY-MM'
             
             # Postgres KST Adjustment (Simple interval add)
             from sqlalchemy import text
-            period_col = func.to_char(WaitingList.registered_at + text("interval '9 hours'"), fmt).label("period")
-            period_col_attend = func.to_char(WaitingList.attended_at + text("interval '9 hours'"), fmt).label("period")
+            period_col = func.to_char(WaitingList.registered_at + text("INTERVAL '9 hours'"), fmt).label("period")
+            period_col_attend = func.to_char(WaitingList.attended_at + text("INTERVAL '9 hours'"), fmt).label("period")
 
         # 1. Waiting Counts
         w_groups = db.query(period_col, func.count(WaitingList.id)).filter(
@@ -712,7 +720,7 @@ async def get_store_analytics_dashboard(
             WaitingList.business_date >= start_date,
             WaitingList.business_date <= end_date
         ).group_by(period_col).all()
-        w_map = {r[0]: r[1] for r in w_groups if r[0]}
+        w_map = {str(r[0]): r[1] for r in w_groups if r[0] is not None}
 
         # 2. Attendance Counts
         a_groups = db.query(period_col_attend, func.count(WaitingList.id)).filter(
@@ -721,44 +729,38 @@ async def get_store_analytics_dashboard(
             WaitingList.business_date >= start_date,
             WaitingList.business_date <= end_date 
         ).group_by(period_col_attend).all()
-        a_map = {r[0]: r[1] for r in a_groups if r[0]}
+        a_map = {str(r[0]): r[1] for r in a_groups if r[0] is not None}
 
         # Merge keys
         all_keys = sorted(set(w_map.keys()) | set(a_map.keys()))
         
-        trends_list = []
-        for k in all_keys:
-             trends_list.append(
-                 schemas.HourlyStat(
-                     label=k,
-                     waiting_count=w_map.get(k, 0),
-                     attendance_count=a_map.get(k, 0)
-                 )
-             )
+        trends_list = [
+            schemas.HourlyStat(
+                label=k,
+                waiting_count=w_map.get(k, 0),
+                attendance_count=a_map.get(k, 0)
+            )
+            for k in all_keys
+        ]
 
-    # 4. Store Stats (Single store entry for format consistency)
+    # 4. Store Stats
     current_waiting_cnt = db.query(func.count(WaitingList.id)).filter(
         WaitingList.store_id == store_id,
         WaitingList.status == 'waiting',
         WaitingList.business_date == today
-    ).scalar()
+    ).scalar() or 0
 
     store_stats_list = [
         schemas.StoreOperationStat(
             store_name=current_store.name,
             is_open=open_op is not None,
-            open_time=open_op.created_at.strftime("%H:%M") if open_op else None,
+            open_time=open_op.created_at.strftime("%H:%M") if open_op and open_op.created_at else None,
             close_time=None,
             current_waiting=current_waiting_cnt,
             total_waiting=total_waiting_cnt,
             total_attendance=total_attendance_cnt
         )
     ]
-
-    # Temporary: Map chart data to 'hourly_stats' for backward compatibility 
-    # BUT with a caveat: 'hour' field is int. 
-    # If period != hourly, we might crash client if we force string into int.
-    # I should update the schema `HourlyStat` to allow string or add `label` field.
     
     # 신규 회원 수 계산
     new_members_cnt = db.query(Member).filter(
