@@ -39,6 +39,7 @@ interface WaitingState {
     closedClasses: Set<number>;
     isConnected: boolean;
     hideClosedClasses: boolean;
+    sequentialClosing: boolean;
 
     // Connection Blocking State (For Ejection/Blocking UI)
     connectionBlockState: { type: 'ejected' | 'blocked', message: string } | null;
@@ -79,6 +80,7 @@ export const useWaitingStore = create<WaitingState>((set, get) => ({
     closedClasses: new Set(),
     isConnected: false,
     hideClosedClasses: true, // Default to hidden
+    sequentialClosing: false,
     connectionBlockState: null,
     isLoading: true,
 
@@ -114,7 +116,8 @@ export const useWaitingStore = create<WaitingState>((set, get) => ({
             const dateRes = await api.get('/daily/predict-date');
             set({
                 storeName: storeName,
-                businessDate: dateRes.data.business_date || '미개점'
+                businessDate: dateRes.data.business_date || '미개점',
+                sequentialClosing: storeData?.sequential_closing ?? false
             });
 
         } catch (error) {

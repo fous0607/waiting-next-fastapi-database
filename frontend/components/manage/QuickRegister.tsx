@@ -17,7 +17,7 @@ export function QuickRegister() {
     const [inputValue, setInputValue] = useState("");
     const [displayValue, setDisplayValue] = useState("");
     const [isLoading, setIsLoading] = useState(false);
-    const { fetchWaitingList, currentClassId, fetchClasses, classes, waitingList, closedClasses, closeClass } = useWaitingStore();
+    const { fetchWaitingList, currentClassId, fetchClasses, classes, waitingList, closedClasses, closeClass, sequentialClosing } = useWaitingStore();
 
     const currentClass = classes.find(c => c.id === currentClassId);
     const currentClassWaitingCount = currentClassId && waitingList[currentClassId] ? waitingList[currentClassId].length : 0;
@@ -25,6 +25,23 @@ export function QuickRegister() {
 
     const handleCloseClassClick = () => {
         if (!currentClassId || !currentClass) return;
+
+        // Sequential Closing Check
+        if (sequentialClosing) {
+            const currentNumber = currentClass.class_number;
+            const openPrecedingClass = classes.find(c =>
+                c.class_number < currentNumber && !closedClasses.has(c.id)
+            );
+
+            if (openPrecedingClass) {
+                toast.error(`${openPrecedingClass.class_name}가 마감이 되지 않았습니다.`, {
+                    description: "이전 교시를 먼저 마감해주세요.",
+                    duration: 5000,
+                });
+                return;
+            }
+        }
+
         setCloseDialogOpen(true);
     };
 

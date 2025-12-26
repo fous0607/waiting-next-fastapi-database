@@ -76,6 +76,9 @@ class StoreSettingsBase(BaseModel):
     # 테마 설정
     theme: str = "zinc"  # zinc, blue, green
 
+    # 순차적 마감 설정
+    sequential_closing: bool = False
+
     # 클래스 시간 설정
     default_class_minute: int = 50
     default_break_minute: int = 10
@@ -159,6 +162,9 @@ class StoreSettingsUpdate(BaseModel):
     
     # 테마 설정
     theme: Optional[str] = None
+
+    # 순차적 마감 설정
+    sequential_closing: Optional[bool] = None
 
     # 클래스 시간 설정
     default_class_minute: Optional[int] = None

@@ -87,6 +87,8 @@ const settingsSchema = z.object({
     max_dashboard_connections: z.coerce.number().min(1).max(10).default(2),
     dashboard_connection_policy: z.enum(['eject_old', 'block_new']).default('eject_old'),
 
+    sequential_closing: z.boolean().default(false),
+
     admin_password: z.string().optional(), // For verification if needed, usually just loaded
     registration_message: z.string().default("처음 방문하셨네요!\n성함을 입력해 주세요."),
 
@@ -146,6 +148,7 @@ export function GeneralSettings() {
             enable_reception_desk: true,
             max_dashboard_connections: 2,
             dashboard_connection_policy: 'eject_old',
+            sequential_closing: false,
             registration_message: "처음 방문하셨네요!\n성함을 입력해 주세요.",
         },
     });
@@ -195,6 +198,7 @@ export function GeneralSettings() {
                     auto_closing: data.auto_closing ?? true,
                     use_max_waiting_limit: data.use_max_waiting_limit ?? true,
                     block_last_class_registration: data.block_last_class_registration ?? false,
+                    sequential_closing: data.sequential_closing ?? false,
                     show_waiting_number: data.show_waiting_number ?? true,
                     mask_customer_name: data.mask_customer_name ?? false,
                     show_order_number: data.show_order_number ?? true,
@@ -540,6 +544,16 @@ export function GeneralSettings() {
                                                 <FormItem className="flex flex-row items-start space-x-2 space-y-0 p-2">
                                                     <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
                                                     <FormLabel className='font-normal'>마지막 교시 정원초과 시 차단</FormLabel>
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control}
+                                            name="sequential_closing"
+                                            render={({ field }) => (
+                                                <FormItem className="flex flex-row items-start space-x-2 space-y-0 p-2">
+                                                    <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
+                                                    <FormLabel className='font-normal'>순차적 마감 사용</FormLabel>
                                                 </FormItem>
                                             )}
                                         />

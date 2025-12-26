@@ -172,6 +172,9 @@ class StoreSettings(Base):
     # 테마 설정
     theme = Column(String, default="zinc")  # zinc, blue, green
 
+    # 순차적 마감 설정
+    sequential_closing = Column(Boolean, default=False)  # 순차적 마감 사용 여부
+
     # 클래스 시간 설정
     default_class_minute = Column(Integer, default=50)  # 기본 수업 시간 (분)
     default_break_minute = Column(Integer, default=10)  # 기본 쉬는 시간 (분)

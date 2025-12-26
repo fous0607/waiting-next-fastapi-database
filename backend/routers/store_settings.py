@@ -74,7 +74,8 @@ async def get_store_settings(
             defer(StoreSettings.require_member_registration),
             defer(StoreSettings.registration_message),
             defer(StoreSettings.max_dashboard_connections),
-            defer(StoreSettings.dashboard_connection_policy)
+            defer(StoreSettings.dashboard_connection_policy),
+            defer(StoreSettings.sequential_closing)
         ).filter(
             StoreSettings.store_id == current_store.id
         ).first()
@@ -113,6 +114,7 @@ async def get_store_settings(
             set_default(settings, 'registration_message', "처음 방문하셨네요!\n성함을 입력해 주세요.")
             set_default(settings, 'max_dashboard_connections', 2)
             set_default(settings, 'dashboard_connection_policy', "eject_old")
+            set_default(settings, 'sequential_closing', False)
 
     if not settings:
         # 기본 설정 생성
@@ -404,7 +406,8 @@ async def clone_store_settings(
         # 프랜차이즈 모니터링 (이미 제거됨, but keeping code clean means ignore/remove if present in dict, but DB model has it)
         # Note: We removed it from UI, but model still has it. Currently defer/migrated logic handles it. 
         # We can copy it or skip it. Let's copy it to be safe in case it's used backend-side.
-        "enable_franchise_monitoring": source_settings.enable_franchise_monitoring
+        "enable_franchise_monitoring": source_settings.enable_franchise_monitoring,
+        "sequential_closing": source_settings.sequential_closing
     }
 
     if target_settings:
