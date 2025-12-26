@@ -217,15 +217,20 @@ class StatsService:
             })
 
             # Get actual open time for today
-            today_closing = db.query(DailyClosing).filter(
-                DailyClosing.store_id == store.id,
-                DailyClosing.business_date == today
-            ).first()
-            
+            # Get actual open time for today
             real_open_time = ""
-            if today_closing and today_closing.opening_time:
-                # Format to HH:MM
-                real_open_time = today_closing.opening_time.strftime("%H:%M")
+            try:
+                today_closing = db.query(DailyClosing).filter(
+                    DailyClosing.store_id == store.id,
+                    DailyClosing.business_date == today
+                ).first()
+                
+                if today_closing and today_closing.opening_time:
+                    # Format to HH:MM
+                    real_open_time = today_closing.opening_time.strftime("%H:%M")
+            except Exception as e:
+                print(f"Error fetching open time for store {store.id}: {e}")
+                # Fallback to empty string
 
             # Minimal stats for legacy/other components
             store_stats.append({
