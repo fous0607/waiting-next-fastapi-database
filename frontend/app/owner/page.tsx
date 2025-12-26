@@ -143,7 +143,7 @@ export default function OwnerDashboard() {
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                         <OwnerKpi
-                            title="오늘 방문"
+                            title="총 대기 인원"
                             value={stats?.total_visitors || 0}
                             unit="명"
                             icon={UserPlus}
@@ -153,7 +153,7 @@ export default function OwnerDashboard() {
                         <OwnerKpi
                             title="현재 대기"
                             value={stats?.store_stats?.[0]?.current_waiting || 0}
-                            unit="팀"
+                            unit="명"
                             icon={Users}
                             color="blue"
                             loading={loading}
