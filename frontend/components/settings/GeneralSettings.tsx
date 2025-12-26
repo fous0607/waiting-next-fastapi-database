@@ -885,5 +885,4 @@ export function GeneralSettings() {
         </form>
                 </Form >
     );
-    );
 }
