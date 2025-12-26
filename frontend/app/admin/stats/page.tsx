@@ -62,27 +62,25 @@ type Period = 'daily' | 'weekly' | 'monthly';
 
 function StatCard({ title, value, unit, trend, icon: Icon, color }: any) {
     return (
-        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden group hover:shadow-md transition-all duration-300">
-            <div className="flex justify-between items-start mb-4">
-                <div className={`p-3 rounded-xl bg-${color}-50 text-${color}-600 group-hover:scale-110 transition-transform`}>
-                    <Icon className="w-6 h-6" />
-                </div>
-                {trend !== undefined && (
-                    <div className={cn(
-                        "flex items-center text-xs font-bold px-2 py-1 rounded-full",
-                        trend > 0 ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600"
-                    )}>
-                        {trend > 0 ? "+" : ""}{trend}%
-                    </div>
-                )}
+        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden group hover:shadow-md transition-all duration-300 flex items-center gap-4">
+            <div className={`p-3 rounded-xl bg-${color}-50 text-${color}-600 group-hover:scale-110 transition-transform flex-shrink-0`}>
+                <Icon className="w-6 h-6" />
             </div>
-            <div>
-                <p className="text-sm font-medium text-slate-500 mb-1">{title}</p>
+            <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium text-slate-500 mb-0.5 truncate">{title}</p>
                 <div className="flex items-baseline gap-1">
-                    <h3 className="text-2xl font-bold text-slate-900 tracking-tight">{value}</h3>
-                    <span className="text-sm font-bold text-slate-400">{unit}</span>
+                    <h3 className="text-xl font-bold text-slate-900 tracking-tight">{value}</h3>
+                    <span className="text-[11px] font-bold text-slate-400">{unit}</span>
                 </div>
             </div>
+            {trend !== undefined && (
+                <div className={cn(
+                    "flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded-full absolute top-3 right-3",
+                    trend > 0 ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600"
+                )}>
+                    {trend > 0 ? "+" : ""}{trend}%
+                </div>
+            )}
         </div>
     );
 }
@@ -90,19 +88,23 @@ function StatCard({ title, value, unit, trend, icon: Icon, color }: any) {
 function StatsContent(): React.JSX.Element {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const view = searchParams.get('view') || 'period';
-    const [period, setPeriod] = useState<Period>('daily');
+    const view = searchParams.get('view') || 'hourly';
+    const [period, setPeriod] = useState<Period>('weekly');
     const [dateRange, setDateRange] = useState({ start: '', end: '' });
     const [stats, setStats] = useState<AnalyticsDashboard | null>(null);
     const [loading, setLoading] = useState(true);
     const [selectedStoreId, setSelectedStoreId] = useState<number | 'all'>('all');
     const [refetchKey, setRefetchKey] = useState(0);
 
-    // Initial date range setup
+    // Initial date range setup (Default to This Week)
     useEffect(() => {
         const today = new Date();
-        const start = format(today, 'yyyy-MM-dd');
-        const end = format(today, 'yyyy-MM-dd');
+        const day = today.getDay();
+        const diff = today.getDate() - (day === 0 ? 6 : day - 1);
+        const monday = new Date(today.setDate(diff));
+
+        const start = format(monday, 'yyyy-MM-dd');
+        const end = format(new Date(), 'yyyy-MM-dd');
         setDateRange({ start, end });
     }, []);
 

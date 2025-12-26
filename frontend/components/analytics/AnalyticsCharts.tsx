@@ -53,7 +53,7 @@ interface AnalyticsChartsProps {
 }
 
 const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({ data, periodType = 'hourly' }) => {
-    const [chartType, setChartType] = React.useState<'line' | 'bar' | 'area' | 'radar' | 'doughnut' | 'horizontalBar'>('line');
+    const [chartType, setChartType] = React.useState<'line' | 'bar' | 'area' | 'radar' | 'doughnut' | 'horizontalBar'>('bar');
 
     React.useEffect(() => {
         if (periodType === 'store') {
@@ -61,11 +61,10 @@ const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({ data, periodType = 'h
         } else if (periodType === 'ranking') {
             setChartType('horizontalBar');
         } else {
-            // Logic for time-based periods (hourly, daily, etc.)
-            // If the current chart type is geared towards categories (bar/radar/etc), reset to line for time-series.
-            const categoricalCharts = ['bar', 'horizontalBar', 'radar', 'doughnut'];
+            // Default behavior for time-series: prefer 'bar' if already set or not specifically requested
+            const categoricalCharts = ['radar', 'doughnut'];
             if (categoricalCharts.includes(chartType)) {
-                setChartType('line');
+                setChartType('bar');
             }
         }
     }, [periodType]);
