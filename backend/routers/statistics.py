@@ -644,14 +644,18 @@ async def get_store_analytics_dashboard(
     is_sqlite = 'sqlite' in str(db.get_bind().url)
     
     # Label formatting helper
+    # Label formatting helper
     if period == "hourly":
         # Existing logic for hourly (0-23)
         hourly_map = {h: {'waiting': 0, 'attendance': 0} for h in range(24)}
         for w in waitings:
-            h = w.created_at.hour
-            hourly_map[h]['waiting'] += 1
+            # KST Adjustment (+9 hours)
+            if w.created_at:
+                h = (w.created_at + timedelta(hours=9)).hour
+                hourly_map[h]['waiting'] += 1
+            
             if w.attended_at:
-                ah = w.attended_at.hour
+                ah = (w.attended_at + timedelta(hours=9)).hour
                 hourly_map[ah]['attendance'] += 1
                 
         trends_list = [
@@ -674,16 +678,19 @@ async def get_store_analytics_dashboard(
             elif period == "monthly":
                 date_fmt = "%Y-%m"
             
-            period_col = func.strftime(date_fmt, WaitingList.created_at).label("period")
-            period_col_attend = func.strftime(date_fmt, WaitingList.attended_at).label("period")
+            # SQLite KST Adjustment
+            period_col = func.strftime(date_fmt, WaitingList.created_at, '+9 hours').label("period")
+            period_col_attend = func.strftime(date_fmt, WaitingList.attended_at, '+9 hours').label("period")
         else:
             # Postgres
             fmt = 'YYYY-MM-DD'
             if period == 'weekly': fmt = 'YYYY-IW'  # Use IW for ISO Week
             elif period == 'monthly': fmt = 'YYYY-MM'
             
-            period_col = func.to_char(WaitingList.created_at, fmt).label("period")
-            period_col_attend = func.to_char(WaitingList.attended_at, fmt).label("period")
+            # Postgres KST Adjustment (Simple interval add)
+            from sqlalchemy import text
+            period_col = func.to_char(WaitingList.created_at + text("interval '9 hours'"), fmt).label("period")
+            period_col_attend = func.to_char(WaitingList.attended_at + text("interval '9 hours'"), fmt).label("period")
 
         # 1. Waiting Counts
         w_groups = db.query(period_col, func.count(WaitingList.id)).filter(
