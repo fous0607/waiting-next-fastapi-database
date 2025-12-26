@@ -34,10 +34,7 @@ export function QuickRegister() {
             );
 
             if (openPrecedingClass) {
-                toast.error(`${openPrecedingClass.class_name}가 마감이 되지 않았습니다.`, {
-                    description: "이전 교시를 먼저 마감해주세요.",
-                    duration: 5000,
-                });
+                setSequentialWarningDialog({ open: true, className: openPrecedingClass.class_name });
                 return;
             }
         }
@@ -65,6 +62,8 @@ export function QuickRegister() {
     const [candidateDialog, setCandidateDialog] = useState<{ open: boolean, items: MemberCandidate[] }>({ open: false, items: [] });
     // Close Class Confirmation State
     const [closeDialogOpen, setCloseDialogOpen] = useState(false);
+    // Sequential Closing Warning State
+    const [sequentialWarningDialog, setSequentialWarningDialog] = useState<{ open: boolean, className: string }>({ open: false, className: '' });
 
     // Format phone number based on input length
     const formatPhoneNumber = (value: string) => {
@@ -222,6 +221,30 @@ export function QuickRegister() {
                         <Button variant="destructive" onClick={handleConfirmClose} disabled={isLoading}>
                             {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                             마감하기
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Sequential Closing Warning Modal */}
+            <Dialog open={sequentialWarningDialog.open} onOpenChange={(open) => setSequentialWarningDialog(prev => ({ ...prev, open }))}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>순차적 마감 알림</DialogTitle>
+                        <DialogDescription className="space-y-3 pt-2" asChild>
+                            <div>
+                                <p className="text-base text-foreground">
+                                    <span className="font-bold text-red-600">{sequentialWarningDialog.className}</span>가 마감이 되지 않았습니다.
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                    이전 교시를 먼저 마감해주세요.
+                                </p>
+                            </div>
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="flex justify-end gap-2 mt-4">
+                        <Button onClick={() => setSequentialWarningDialog({ open: false, className: '' })}>
+                            확인
                         </Button>
                     </div>
                 </DialogContent>
