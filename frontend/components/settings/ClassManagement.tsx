@@ -306,7 +306,7 @@ export function ClassManagement() {
     return (
         <div className="flex gap-6 min-h-[600px]">
             {/* Left Sidebar */}
-            <div className="w-64 shrink-0 space-y-2">
+            <div className="w-48 shrink-0 space-y-2">
                 <div className="font-semibold text-lg px-2 mb-4 text-muted-foreground">
                     클래스/일정 목록
                 </div>
@@ -344,11 +344,6 @@ export function ClassManagement() {
                             {activeTab === 'weekend' && '주말 클래스 관리'}
                             {activeTab === 'holiday' && '공휴일 일정 관리'}
                         </h2>
-                        <p className="text-muted-foreground text-sm mt-1">
-                            {activeTab === 'weekday' && '월요일부터 금요일까지 운영되는 클래스입니다.'}
-                            {activeTab === 'weekend' && '토요일, 일요일에 운영되는 클래스입니다.'}
-                            {activeTab === 'holiday' && '법정 공휴일 및 임시 공휴일 일정을 관리합니다.'}
-                        </p>
                     </div>
                 </div>
 
@@ -489,7 +484,7 @@ export function ClassManagement() {
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead className="w-[80px]">순서</TableHead>
+                                        <TableHead className="w-[60px]">순서</TableHead>
                                         <TableHead>클래스명</TableHead>
                                         <TableHead>시간</TableHead>
                                         <TableHead className="text-right">인원</TableHead>
