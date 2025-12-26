@@ -27,7 +27,7 @@ const settingsSchema = z.object({
     list_direction: z.enum(['vertical', 'horizontal']).default('vertical'),
 
     // Business Logic
-    business_day_start: z.coerce.number().min(0).max(23).default(5),
+    business_day_start: z.coerce.number().min(0).max(23).default(7),
     daily_opening_rule: z.enum(['strict', 'flexible']).default('strict'),
     auto_closing: z.boolean().default(true),
     closing_action: z.enum(['reset', 'attended']).default('reset'),
@@ -111,7 +111,7 @@ export function GeneralSettings() {
             display_classes_count: 3,
             rows_per_class: 1,
             list_direction: 'vertical',
-            business_day_start: 5,
+            business_day_start: 7,
             daily_opening_rule: 'strict',
             auto_closing: true,
             closing_action: 'reset',
@@ -180,7 +180,7 @@ export function GeneralSettings() {
                     rows_per_class: data.rows_per_class || 1,
                     waiting_board_page_size: data.waiting_board_page_size || 12,
                     waiting_board_rotation_interval: data.waiting_board_rotation_interval || 5,
-                    business_day_start: data.business_day_start ?? 5,
+                    business_day_start: data.business_day_start ?? 7,
                     waiting_manager_max_width: data.waiting_manager_max_width || null,
                     manager_button_size: data.manager_button_size || 'medium',
                     waiting_list_box_size: data.waiting_list_box_size || 'medium',
@@ -281,618 +281,609 @@ export function GeneralSettings() {
     };
 
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle>기본 설정</CardTitle>
-                <CardDescription>매장의 모든 시스템 설정을 관리합니다.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <Form {...form}>
-                    <form
-                        onSubmit={(e) => {
-                            console.log("Form submit event triggered");
-                            form.handleSubmit(onSubmit, onError)(e);
-                        }}
-                        className="space-y-6"
-                    >
+        <form
+            onSubmit={(e) => {
+                console.log("Form submit event triggered");
+                form.handleSubmit(onSubmit, onError)(e);
+            }}
+            className="space-y-6"
+        >
 
-                        {/* Section 1: Basic Information */}
-                        <div className="space-y-4 border-b pb-4">
-                            <h3 className="text-lg font-medium">매장 기본 정보</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Section 1: Basic Information */}
+            <div className="space-y-4 pb-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                        control={form.control}
+                        name="store_name"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>매장명</FormLabel>
+                                <FormControl>
+                                    <Input {...field} />
+                                </FormControl>
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="theme"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>테마</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value as string || ''}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="테마 선택" />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        <SelectItem value="zinc">Zinc (Gray)</SelectItem>
+                                        <SelectItem value="blue">Blue</SelectItem>
+                                        <SelectItem value="green">Green</SelectItem>
+                                        <SelectItem value="orange">Orange</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </FormItem>
+                        )}
+                    />
+                </div>
+            </div>
+
+            <Accordion type="single" collapsible className="w-full">
+                {/* Section 2: Display Configuration */}
+                <AccordionItem value="display">
+                    <AccordionTrigger>화면 표시 설정 (현황판/사이즈)</AccordionTrigger>
+                    <AccordionContent className="space-y-4 p-2">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="display_classes_count"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>현황판 표시 클래스 수</FormLabel>
+                                        <FormControl><Input type="number" {...field} /></FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="rows_per_class"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>클래스 당 줄 수</FormLabel>
+                                        <FormControl><Input type="number" {...field} /></FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="list_direction"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>대기자 리스트 방향</FormLabel>
+                                        <Select onValueChange={field.onChange} value={field.value as string || ''}>
+                                            <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="vertical">세로 방향</SelectItem>
+                                                <SelectItem value="horizontal">가로 방향</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="manager_button_size"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>대기관리자 버튼 크기</FormLabel>
+                                        <Select onValueChange={field.onChange} value={field.value as string || ''}>
+                                            <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="xsmall">더 작게</SelectItem>
+                                                <SelectItem value="small">작게</SelectItem>
+                                                <SelectItem value="medium">중간 (기본)</SelectItem>
+                                                <SelectItem value="large">크게</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+
+                        <h4 className="font-medium mt-4 mb-2 text-sm text-gray-500">대기현황판 페이지네이션 (자동 회전)</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <FormField
+                                control={form.control}
+                                name="waiting_board_page_size"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>페이지 당 표시 개수</FormLabel>
+                                        <FormControl><Input type="number" {...field} /></FormControl>
+                                        <FormDescription>한 화면에 표시할 대기자 수</FormDescription>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="waiting_board_rotation_interval"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>페이지 회전 간격 (초)</FormLabel>
+                                        <FormControl><Input type="number" {...field} /></FormControl>
+                                        <FormDescription>페이지가 자동 전환되는 시간 간격</FormDescription>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="waiting_board_transition_effect"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>페이지 전환 효과</FormLabel>
+                                        <Select onValueChange={field.onChange} value={field.value as string || ''}>
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="효과 선택" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="slide">슬라이드 (기본)</SelectItem>
+                                                <SelectItem value="fade">페이드</SelectItem>
+                                                <SelectItem value="scale">스케일</SelectItem>
+                                                <SelectItem value="none">없음</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <FormDescription>
+                                            현황판 페이지 전환 시 적용할 애니메이션
+                                        </FormDescription>
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="board_font_family"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>현황판 폰트</FormLabel>
+                                        <Select onValueChange={field.onChange} value={field.value as string || ''}>
+                                            <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="Nanum Gothic">나눔고딕</SelectItem>
+                                                <SelectItem value="Gowun Dodum">고운돋움</SelectItem>
+                                                <SelectItem value="Noto Sans KR">Noto Sans</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="board_font_size"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>현황판 글자 크기</FormLabel>
+                                        <Select onValueChange={field.onChange} value={field.value as string || ''}>
+                                            <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="20px">20px (작음)</SelectItem>
+                                                <SelectItem value="24px">24px (보통)</SelectItem>
+                                                <SelectItem value="32px">32px (큼)</SelectItem>
+                                                <SelectItem value="40px">40px (매우 큼)</SelectItem>
+                                                <SelectItem value="50px">50px (매우 매우 큼)</SelectItem>
+                                                <SelectItem value="60px">60px (초대형 1)</SelectItem>
+                                                <SelectItem value="70px">70px (초대형 2)</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+                    </AccordionContent>
+                </AccordionItem>
+
+                {/* Section 3: Operation Rules */}
+                <AccordionItem value="rules">
+                    <AccordionTrigger>운영 규칙 (영업시간/마감/규칙)</AccordionTrigger>
+                    <AccordionContent className="space-y-4 p-2">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="business_day_start"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>영업 시작 기준 (새벽 시간)</FormLabel>
+                                        <FormControl><Input type="number" min={0} max={23} {...field} /></FormControl>
+                                        <FormDescription>예: 5 = 05:00. 이 시간 이전 접수는 전날로 기록.</FormDescription>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="daily_opening_rule"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>개점 설정</FormLabel>
+                                        <Select onValueChange={field.onChange} value={field.value as string || ''}>
+                                            <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="strict">1일 1회만 개점 (엄격)</SelectItem>
+                                                <SelectItem value="flexible">자동 날짜 변경 (유연)</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+                        <div className="flex gap-4">
+                            <FormField
+                                control={form.control}
+                                name="auto_closing"
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-row items-start space-x-2 space-y-0 p-2">
+                                        <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
+                                        <FormLabel className='font-normal'>자동 마감 및 리셋 사용</FormLabel>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="block_last_class_registration"
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-row items-start space-x-2 space-y-0 p-2">
+                                        <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
+                                        <FormLabel className='font-normal'>마지막 교시 정원초과 시 차단</FormLabel>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="sequential_closing"
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-row items-start space-x-2 space-y-0 p-2">
+                                        <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
+                                        <FormLabel className='font-normal'>순차적 마감 사용</FormLabel>
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+                    </AccordionContent>
+                </AccordionItem>
+
+                {/* Section 4: Modal & Reception */}
+                <AccordionItem value="reception">
+                    <AccordionTrigger>대기접수 및 알림 설정 (v2.0)</AccordionTrigger>
+                    <AccordionContent className="space-y-4 p-2">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="waiting_modal_timeout"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>접수완료 모달 시간 (초)</FormLabel>
+                                        <FormControl><Input type="number" {...field} /></FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="keypad_style"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>키패드 스타일</FormLabel>
+                                        <Select onValueChange={field.onChange} value={field.value as string || ''}>
+                                            <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="modern">Modern</SelectItem>
+                                                <SelectItem value="bold">Bold (어르신 추천)</SelectItem>
+                                                <SelectItem value="dark">Dark</SelectItem>
+                                                <SelectItem value="colorful">Colorful</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="keypad_sound_type"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>키패드 효과음 종류</FormLabel>
+                                        <Select onValueChange={field.onChange} value={field.value as string || ''}>
+                                            <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="button">Button (현대적 클릭음)</SelectItem>
+                                                <SelectItem value="soft">Soft (부드러운 버튼음)</SelectItem>
+                                                <SelectItem value="atm">ATM (전화기 스타일)</SelectItem>
+                                                <SelectItem value="elevator">Elevator (엘리베이터 버튼)</SelectItem>
+                                                <SelectItem value="touch">Touch (터치스크린)</SelectItem>
+                                                <SelectItem value="classic_beep">Classic Beep (전통적인 삐 소리)</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <FormDescription className="text-xs">
+                                            각 키마다 다른 소리로 실제 키보드 타이핑 느낌을 제공합니다
+                                        </FormDescription>
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+                        <div className="flex flex-col gap-2">
+                            <FormField
+                                control={form.control}
+                                name="keypad_sound_enabled"
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                                        <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
+                                        <FormLabel className='font-normal'>키패드 효과음 사용</FormLabel>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="show_member_name_in_waiting_modal"
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                                        <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
+                                        <FormLabel className='font-normal'>완료 모달에 회원 이름 표시</FormLabel>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="show_new_member_text_in_waiting_modal"
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                                        <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
+                                        <FormLabel className='font-normal'>완료 모달에 신규회원 안내 문구 표시</FormLabel>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="enable_waiting_voice_alert"
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                                        <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
+                                        <FormLabel className='font-normal'>음성 안내 사용</FormLabel>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="waiting_voice_message"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>접수 완료 안내 메시지</FormLabel>
+                                        <FormControl><Input placeholder="예: {클래스명}  {회원명}님 대기 접수 되었습니다." {...field} value={field.value ?? ''} /></FormControl>
+                                        <FormDescription className="text-[10px]">
+                                            {`{클래스명}, {회원명}, {순번}을 사용할 수 있습니다. 공백을 2번 연속 입력하면 0.5초간 쉬고 읽어줍니다.`}
+                                        </FormDescription>
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="waiting_call_voice_message"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>호출 시 안내 메시지</FormLabel>
+                                        <FormControl><Input placeholder="예: {순번}번 {회원명}님, 데스크로 오시기 바랍니다." {...field} value={field.value ?? ''} /></FormControl>
+                                        <FormDescription className="text-[10px]">
+                                            {`{회원명}, {순번}을 사용할 수 있습니다. (대기현황판 전용)`}
+                                        </FormDescription>
+                                    </FormItem>
+                                )}
+                            />
+
+                            {form.watch('enable_waiting_voice_alert') && (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2 p-4 bg-slate-50 rounded-lg border border-slate-100">
+                                    <FormField
+                                        control={form.control}
+                                        name="waiting_voice_name"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="text-xs">목소리 선택 (성별/유형)</FormLabel>
+                                                <Select onValueChange={field.onChange} value={field.value || ''}>
+                                                    <FormControl>
+                                                        <SelectTrigger className="h-9 text-xs">
+                                                            <SelectValue placeholder="목소리를 선택하세요" />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        {voices.length === 0 && <SelectItem value="default">시스템 기본값</SelectItem>}
+                                                        {voices.map((voice) => (
+                                                            <SelectItem key={voice.name} value={voice.name} className="text-xs">
+                                                                {voice.name.includes('Female') || voice.name.includes('Yuna') || voice.name.includes('Jiyoung') || voice.name.includes('Soyeon') ? ' [여성] ' : (voice.name.includes('Male') || voice.name.includes('Minsang') ? ' [남성] ' : ' [공공/기타] ')} {voice.name}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="waiting_voice_rate"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="text-xs">말하기 속도</FormLabel>
+                                                <Select onValueChange={(val) => field.onChange(parseFloat(val))} value={field.value?.toString()}>
+                                                    <FormControl>
+                                                        <SelectTrigger className="h-9 text-xs">
+                                                            <SelectValue />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        <SelectItem value="0.7">느리게 (0.7x)</SelectItem>
+                                                        <SelectItem value="0.8">조금 느리게 (0.8x)</SelectItem>
+                                                        <SelectItem value="1.0">보통 (1.0x)</SelectItem>
+                                                        <SelectItem value="1.2">조금 빠르게 (1.2x)</SelectItem>
+                                                        <SelectItem value="1.5">빠르게 (1.5x)</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <div className="md:col-span-2 flex justify-end">
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            className="text-xs h-8"
+                                            onClick={handlePreviewVoice}
+                                        >
+                                            미리듣기 (Preview)
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
+                            <FormField
+                                control={form.control}
+                                name="require_member_registration"
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 bg-blue-50/30">
+                                        <FormControl>
+                                            <Checkbox checked={!!field.value} onCheckedChange={field.onChange} />
+                                        </FormControl>
+                                        <div className="space-y-1 leading-none">
+                                            <FormLabel className="text-blue-700 font-bold">신규고객 자동 회원가입 사용</FormLabel>
+                                            <FormDescription>
+                                                처음 방문한 고객의 핸드폰 번호 입력 시, 이름 입력 화면을 띄워 회원으로 자동 등록합니다.
+                                            </FormDescription>
+                                        </div>
+                                    </FormItem>
+                                )}
+                            />
+                            {form.watch('require_member_registration') && (
                                 <FormField
                                     control={form.control}
-                                    name="store_name"
+                                    name="registration_message"
                                     render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>매장명</FormLabel>
+                                        <FormItem className="pl-4">
+                                            <FormLabel className="text-xs font-semibold text-blue-600">신규회원 등록 안내 문구</FormLabel>
                                             <FormControl>
-                                                <Input {...field} />
+                                                <textarea
+                                                    className="flex min-h-[60px] w-full rounded-md border border-blue-100 bg-blue-50/10 px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-400 disabled:cursor-not-allowed disabled:opacity-50"
+                                                    placeholder="예: 처음 방문하셨네요!\n성함을 입력해 주세요."
+                                                    {...field}
+                                                    value={field.value || ''}
+                                                />
                                             </FormControl>
+                                            <FormDescription className="text-[10px]">이름 입력 화면에 표시될 커스텀 메시지입니다. (\n으로 줄바꿈 가능)</FormDescription>
                                         </FormItem>
                                     )}
                                 />
-                                <FormField
-                                    control={form.control}
-                                    name="theme"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>테마</FormLabel>
-                                            <Select onValueChange={field.onChange} value={field.value as string || ''}>
+                            )}
+                            <FormField
+                                control={form.control}
+                                name="auto_register_member"
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-row items-center space-x-2 space-y-0 opacity-60">
+                                        <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
+                                        <FormLabel className='font-normal text-xs text-slate-500'>[고급] 이름 입력 없이 번호만으로 자동 등록 (비활성 권장)</FormLabel>
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+                    </AccordionContent>
+                </AccordionItem>
+
+                {/* Section 5: Traffic & Features */}
+                <AccordionItem value="feature">
+                    <AccordionTrigger>기능 활성화 (트래픽 관리)</AccordionTrigger>
+                    <AccordionContent className="p-2">
+                        <div className="space-y-4">
+                            <FormField
+                                control={form.control}
+                                name="enable_waiting_board"
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm">
+                                        <FormControl>
+                                            <Checkbox checked={!!field.value} onCheckedChange={field.onChange} />
+                                        </FormControl>
+                                        <div className="space-y-1 leading-none">
+                                            <FormLabel>대기현황판 사용</FormLabel>
+                                            <FormDescription>실시간 대기 현황판 기능을 활성화합니다.</FormDescription>
+                                        </div>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="enable_reception_desk"
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm">
+                                        <FormControl>
+                                            <Checkbox checked={!!field.value} onCheckedChange={field.onChange} />
+                                        </FormControl>
+                                        <div className="space-y-1 leading-none">
+                                            <FormLabel>대기접수 데스크 사용</FormLabel>
+                                            <FormDescription>키오스크/태블릿 접수 기능을 활성화합니다.</FormDescription>
+                                        </div>
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+                        <div className="space-y-4">
+                            <FormField
+                                control={form.control}
+                                name="max_dashboard_connections"
+                                render={({ field }) => (
+                                    <FormItem className="rounded-md border p-4 shadow-sm bg-orange-50/20">
+                                        <div className="flex flex-row items-center justify-between gap-4">
+                                            <div className="space-y-1">
+                                                <FormLabel className="text-orange-700 font-bold">동시 대시보드 접속 허용 대수</FormLabel>
+                                                <FormDescription className="text-xs">
+                                                    한 매장에서 동시에 관리자 화면을 열 수 있는 최대 기기 수입니다.
+                                                    (권장: 2대)
+                                                </FormDescription>
+                                            </div>
+                                            <FormControl>
+                                                <div className="w-24">
+                                                    <Input type="number" {...field} className="text-right font-bold" />
+                                                </div>
+                                            </FormControl>
+                                        </div>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="dashboard_connection_policy"
+                                render={({ field }) => (
+                                    <FormItem className="rounded-md border p-4 shadow-sm bg-orange-50/10">
+                                        <div className="flex flex-col gap-2">
+                                            <FormLabel className="text-orange-900 font-semibold">접속 초과 시 처리 방법</FormLabel>
+                                            <FormDescription className="text-xs mb-2">
+                                                허용된 대수를 초과하여 새로운 기기가 접속할 때의 처리 방식을 선택합니다.
+                                            </FormDescription>
+                                            <Select onValueChange={field.onChange} value={field.value || 'eject_old'}>
                                                 <FormControl>
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="테마 선택" />
+                                                    <SelectTrigger className="bg-white">
+                                                        <SelectValue placeholder="처리 방법 선택" />
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    <SelectItem value="zinc">Zinc (Gray)</SelectItem>
-                                                    <SelectItem value="blue">Blue</SelectItem>
-                                                    <SelectItem value="green">Green</SelectItem>
-                                                    <SelectItem value="orange">Orange</SelectItem>
+                                                    <SelectItem value="eject_old">기존 기기 접속 끊기 (가장 오래된 기기 종료)</SelectItem>
+                                                    <SelectItem value="block_new">신규 접속 차단 (먼저 접속한 기기 우선)</SelectItem>
                                                 </SelectContent>
                                             </Select>
-                                        </FormItem>
-                                    )}
-                                />
-                            </div>
+                                        </div>
+                                    </FormItem>
+                                )}
+                            />
                         </div>
+                    </AccordionContent>
+                </AccordionItem>
+            </Accordion>
 
-                        <Accordion type="single" collapsible className="w-full">
-                            {/* Section 2: Display Configuration */}
-                            <AccordionItem value="display">
-                                <AccordionTrigger>화면 표시 설정 (현황판/사이즈)</AccordionTrigger>
-                                <AccordionContent className="space-y-4 p-2">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <FormField
-                                            control={form.control}
-                                            name="display_classes_count"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>현황판 표시 클래스 수</FormLabel>
-                                                    <FormControl><Input type="number" {...field} /></FormControl>
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={form.control}
-                                            name="rows_per_class"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>클래스 당 줄 수</FormLabel>
-                                                    <FormControl><Input type="number" {...field} /></FormControl>
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={form.control}
-                                            name="list_direction"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>대기자 리스트 방향</FormLabel>
-                                                    <Select onValueChange={field.onChange} value={field.value as string || ''}>
-                                                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                                                        <SelectContent>
-                                                            <SelectItem value="vertical">세로 방향</SelectItem>
-                                                            <SelectItem value="horizontal">가로 방향</SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={form.control}
-                                            name="manager_button_size"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>대기관리자 버튼 크기</FormLabel>
-                                                    <Select onValueChange={field.onChange} value={field.value as string || ''}>
-                                                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                                                        <SelectContent>
-                                                            <SelectItem value="xsmall">더 작게</SelectItem>
-                                                            <SelectItem value="small">작게</SelectItem>
-                                                            <SelectItem value="medium">중간 (기본)</SelectItem>
-                                                            <SelectItem value="large">크게</SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                </FormItem>
-                                            )}
-                                        />
-                                    </div>
-
-                                    <h4 className="font-medium mt-4 mb-2 text-sm text-gray-500">대기현황판 페이지네이션 (자동 회전)</h4>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                        <FormField
-                                            control={form.control}
-                                            name="waiting_board_page_size"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>페이지 당 표시 개수</FormLabel>
-                                                    <FormControl><Input type="number" {...field} /></FormControl>
-                                                    <FormDescription>한 화면에 표시할 대기자 수</FormDescription>
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={form.control}
-                                            name="waiting_board_rotation_interval"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>페이지 회전 간격 (초)</FormLabel>
-                                                    <FormControl><Input type="number" {...field} /></FormControl>
-                                                    <FormDescription>페이지가 자동 전환되는 시간 간격</FormDescription>
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={form.control}
-                                            name="waiting_board_transition_effect"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>페이지 전환 효과</FormLabel>
-                                                    <Select onValueChange={field.onChange} value={field.value as string || ''}>
-                                                        <FormControl>
-                                                            <SelectTrigger>
-                                                                <SelectValue placeholder="효과 선택" />
-                                                            </SelectTrigger>
-                                                        </FormControl>
-                                                        <SelectContent>
-                                                            <SelectItem value="slide">슬라이드 (기본)</SelectItem>
-                                                            <SelectItem value="fade">페이드</SelectItem>
-                                                            <SelectItem value="scale">스케일</SelectItem>
-                                                            <SelectItem value="none">없음</SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                    <FormDescription>
-                                                        현황판 페이지 전환 시 적용할 애니메이션
-                                                    </FormDescription>
-                                                </FormItem>
-                                            )}
-                                        />
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <FormField
-                                            control={form.control}
-                                            name="board_font_family"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>현황판 폰트</FormLabel>
-                                                    <Select onValueChange={field.onChange} value={field.value as string || ''}>
-                                                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                                                        <SelectContent>
-                                                            <SelectItem value="Nanum Gothic">나눔고딕</SelectItem>
-                                                            <SelectItem value="Gowun Dodum">고운돋움</SelectItem>
-                                                            <SelectItem value="Noto Sans KR">Noto Sans</SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={form.control}
-                                            name="board_font_size"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>현황판 글자 크기</FormLabel>
-                                                    <Select onValueChange={field.onChange} value={field.value as string || ''}>
-                                                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                                                        <SelectContent>
-                                                            <SelectItem value="20px">20px (작음)</SelectItem>
-                                                            <SelectItem value="24px">24px (보통)</SelectItem>
-                                                            <SelectItem value="32px">32px (큼)</SelectItem>
-                                                            <SelectItem value="40px">40px (매우 큼)</SelectItem>
-                                                            <SelectItem value="50px">50px (매우 매우 큼)</SelectItem>
-                                                            <SelectItem value="60px">60px (초대형 1)</SelectItem>
-                                                            <SelectItem value="70px">70px (초대형 2)</SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                </FormItem>
-                                            )}
-                                        />
-                                    </div>
-                                </AccordionContent>
-                            </AccordionItem>
-
-                            {/* Section 3: Operation Rules */}
-                            <AccordionItem value="rules">
-                                <AccordionTrigger>운영 규칙 (영업시간/마감/규칙)</AccordionTrigger>
-                                <AccordionContent className="space-y-4 p-2">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <FormField
-                                            control={form.control}
-                                            name="business_day_start"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>영업 시작 기준 (새벽 시간)</FormLabel>
-                                                    <FormControl><Input type="number" min={0} max={23} {...field} /></FormControl>
-                                                    <FormDescription>예: 5 = 05:00. 이 시간 이전 접수는 전날로 기록.</FormDescription>
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={form.control}
-                                            name="daily_opening_rule"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>개점 설정</FormLabel>
-                                                    <Select onValueChange={field.onChange} value={field.value as string || ''}>
-                                                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                                                        <SelectContent>
-                                                            <SelectItem value="strict">1일 1회만 개점 (엄격)</SelectItem>
-                                                            <SelectItem value="flexible">자동 날짜 변경 (유연)</SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                </FormItem>
-                                            )}
-                                        />
-                                    </div>
-                                    <div className="flex gap-4">
-                                        <FormField
-                                            control={form.control}
-                                            name="auto_closing"
-                                            render={({ field }) => (
-                                                <FormItem className="flex flex-row items-start space-x-2 space-y-0 p-2">
-                                                    <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
-                                                    <FormLabel className='font-normal'>자동 마감 및 리셋 사용</FormLabel>
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={form.control}
-                                            name="block_last_class_registration"
-                                            render={({ field }) => (
-                                                <FormItem className="flex flex-row items-start space-x-2 space-y-0 p-2">
-                                                    <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
-                                                    <FormLabel className='font-normal'>마지막 교시 정원초과 시 차단</FormLabel>
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={form.control}
-                                            name="sequential_closing"
-                                            render={({ field }) => (
-                                                <FormItem className="flex flex-row items-start space-x-2 space-y-0 p-2">
-                                                    <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
-                                                    <FormLabel className='font-normal'>순차적 마감 사용</FormLabel>
-                                                </FormItem>
-                                            )}
-                                        />
-                                    </div>
-                                </AccordionContent>
-                            </AccordionItem>
-
-                            {/* Section 4: Modal & Reception */}
-                            <AccordionItem value="reception">
-                                <AccordionTrigger>대기접수 및 알림 설정 (v2.0)</AccordionTrigger>
-                                <AccordionContent className="space-y-4 p-2">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <FormField
-                                            control={form.control}
-                                            name="waiting_modal_timeout"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>접수완료 모달 시간 (초)</FormLabel>
-                                                    <FormControl><Input type="number" {...field} /></FormControl>
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={form.control}
-                                            name="keypad_style"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>키패드 스타일</FormLabel>
-                                                    <Select onValueChange={field.onChange} value={field.value as string || ''}>
-                                                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                                                        <SelectContent>
-                                                            <SelectItem value="modern">Modern</SelectItem>
-                                                            <SelectItem value="bold">Bold (어르신 추천)</SelectItem>
-                                                            <SelectItem value="dark">Dark</SelectItem>
-                                                            <SelectItem value="colorful">Colorful</SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={form.control}
-                                            name="keypad_sound_type"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>키패드 효과음 종류</FormLabel>
-                                                    <Select onValueChange={field.onChange} value={field.value as string || ''}>
-                                                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                                                        <SelectContent>
-                                                            <SelectItem value="button">Button (현대적 클릭음)</SelectItem>
-                                                            <SelectItem value="soft">Soft (부드러운 버튼음)</SelectItem>
-                                                            <SelectItem value="atm">ATM (전화기 스타일)</SelectItem>
-                                                            <SelectItem value="elevator">Elevator (엘리베이터 버튼)</SelectItem>
-                                                            <SelectItem value="touch">Touch (터치스크린)</SelectItem>
-                                                            <SelectItem value="classic_beep">Classic Beep (전통적인 삐 소리)</SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                    <FormDescription className="text-xs">
-                                                        각 키마다 다른 소리로 실제 키보드 타이핑 느낌을 제공합니다
-                                                    </FormDescription>
-                                                </FormItem>
-                                            )}
-                                        />
-                                    </div>
-                                    <div className="flex flex-col gap-2">
-                                        <FormField
-                                            control={form.control}
-                                            name="keypad_sound_enabled"
-                                            render={({ field }) => (
-                                                <FormItem className="flex flex-row items-center space-x-2 space-y-0">
-                                                    <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
-                                                    <FormLabel className='font-normal'>키패드 효과음 사용</FormLabel>
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={form.control}
-                                            name="show_member_name_in_waiting_modal"
-                                            render={({ field }) => (
-                                                <FormItem className="flex flex-row items-center space-x-2 space-y-0">
-                                                    <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
-                                                    <FormLabel className='font-normal'>완료 모달에 회원 이름 표시</FormLabel>
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={form.control}
-                                            name="show_new_member_text_in_waiting_modal"
-                                            render={({ field }) => (
-                                                <FormItem className="flex flex-row items-center space-x-2 space-y-0">
-                                                    <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
-                                                    <FormLabel className='font-normal'>완료 모달에 신규회원 안내 문구 표시</FormLabel>
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={form.control}
-                                            name="enable_waiting_voice_alert"
-                                            render={({ field }) => (
-                                                <FormItem className="flex flex-row items-center space-x-2 space-y-0">
-                                                    <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
-                                                    <FormLabel className='font-normal'>음성 안내 사용</FormLabel>
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={form.control}
-                                            name="waiting_voice_message"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>접수 완료 안내 메시지</FormLabel>
-                                                    <FormControl><Input placeholder="예: {클래스명}  {회원명}님 대기 접수 되었습니다." {...field} value={field.value ?? ''} /></FormControl>
-                                                    <FormDescription className="text-[10px]">
-                                                        {`{클래스명}, {회원명}, {순번}을 사용할 수 있습니다. 공백을 2번 연속 입력하면 0.5초간 쉬고 읽어줍니다.`}
-                                                    </FormDescription>
-                                                </FormItem>
-                                            )}
-                                        />
-
-                                        <FormField
-                                            control={form.control}
-                                            name="waiting_call_voice_message"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>호출 시 안내 메시지</FormLabel>
-                                                    <FormControl><Input placeholder="예: {순번}번 {회원명}님, 데스크로 오시기 바랍니다." {...field} value={field.value ?? ''} /></FormControl>
-                                                    <FormDescription className="text-[10px]">
-                                                        {`{회원명}, {순번}을 사용할 수 있습니다. (대기현황판 전용)`}
-                                                    </FormDescription>
-                                                </FormItem>
-                                            )}
-                                        />
-
-                                        {form.watch('enable_waiting_voice_alert') && (
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2 p-4 bg-slate-50 rounded-lg border border-slate-100">
-                                                <FormField
-                                                    control={form.control}
-                                                    name="waiting_voice_name"
-                                                    render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormLabel className="text-xs">목소리 선택 (성별/유형)</FormLabel>
-                                                            <Select onValueChange={field.onChange} value={field.value || ''}>
-                                                                <FormControl>
-                                                                    <SelectTrigger className="h-9 text-xs">
-                                                                        <SelectValue placeholder="목소리를 선택하세요" />
-                                                                    </SelectTrigger>
-                                                                </FormControl>
-                                                                <SelectContent>
-                                                                    {voices.length === 0 && <SelectItem value="default">시스템 기본값</SelectItem>}
-                                                                    {voices.map((voice) => (
-                                                                        <SelectItem key={voice.name} value={voice.name} className="text-xs">
-                                                                            {voice.name.includes('Female') || voice.name.includes('Yuna') || voice.name.includes('Jiyoung') || voice.name.includes('Soyeon') ? ' [여성] ' : (voice.name.includes('Male') || voice.name.includes('Minsang') ? ' [남성] ' : ' [공공/기타] ')} {voice.name}
-                                                                        </SelectItem>
-                                                                    ))}
-                                                                </SelectContent>
-                                                            </Select>
-                                                        </FormItem>
-                                                    )}
-                                                />
-                                                <FormField
-                                                    control={form.control}
-                                                    name="waiting_voice_rate"
-                                                    render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormLabel className="text-xs">말하기 속도</FormLabel>
-                                                            <Select onValueChange={(val) => field.onChange(parseFloat(val))} value={field.value?.toString()}>
-                                                                <FormControl>
-                                                                    <SelectTrigger className="h-9 text-xs">
-                                                                        <SelectValue />
-                                                                    </SelectTrigger>
-                                                                </FormControl>
-                                                                <SelectContent>
-                                                                    <SelectItem value="0.7">느리게 (0.7x)</SelectItem>
-                                                                    <SelectItem value="0.8">조금 느리게 (0.8x)</SelectItem>
-                                                                    <SelectItem value="1.0">보통 (1.0x)</SelectItem>
-                                                                    <SelectItem value="1.2">조금 빠르게 (1.2x)</SelectItem>
-                                                                    <SelectItem value="1.5">빠르게 (1.5x)</SelectItem>
-                                                                </SelectContent>
-                                                            </Select>
-                                                        </FormItem>
-                                                    )}
-                                                />
-                                                <div className="md:col-span-2 flex justify-end">
-                                                    <Button
-                                                        type="button"
-                                                        variant="outline"
-                                                        size="sm"
-                                                        className="text-xs h-8"
-                                                        onClick={handlePreviewVoice}
-                                                    >
-                                                        미리듣기 (Preview)
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        )}
-                                        <FormField
-                                            control={form.control}
-                                            name="require_member_registration"
-                                            render={({ field }) => (
-                                                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 bg-blue-50/30">
-                                                    <FormControl>
-                                                        <Checkbox checked={!!field.value} onCheckedChange={field.onChange} />
-                                                    </FormControl>
-                                                    <div className="space-y-1 leading-none">
-                                                        <FormLabel className="text-blue-700 font-bold">신규고객 자동 회원가입 사용</FormLabel>
-                                                        <FormDescription>
-                                                            처음 방문한 고객의 핸드폰 번호 입력 시, 이름 입력 화면을 띄워 회원으로 자동 등록합니다.
-                                                        </FormDescription>
-                                                    </div>
-                                                </FormItem>
-                                            )}
-                                        />
-                                        {form.watch('require_member_registration') && (
-                                            <FormField
-                                                control={form.control}
-                                                name="registration_message"
-                                                render={({ field }) => (
-                                                    <FormItem className="pl-4">
-                                                        <FormLabel className="text-xs font-semibold text-blue-600">신규회원 등록 안내 문구</FormLabel>
-                                                        <FormControl>
-                                                            <textarea
-                                                                className="flex min-h-[60px] w-full rounded-md border border-blue-100 bg-blue-50/10 px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-400 disabled:cursor-not-allowed disabled:opacity-50"
-                                                                placeholder="예: 처음 방문하셨네요!\n성함을 입력해 주세요."
-                                                                {...field}
-                                                                value={field.value || ''}
-                                                            />
-                                                        </FormControl>
-                                                        <FormDescription className="text-[10px]">이름 입력 화면에 표시될 커스텀 메시지입니다. (\n으로 줄바꿈 가능)</FormDescription>
-                                                    </FormItem>
-                                                )}
-                                            />
-                                        )}
-                                        <FormField
-                                            control={form.control}
-                                            name="auto_register_member"
-                                            render={({ field }) => (
-                                                <FormItem className="flex flex-row items-center space-x-2 space-y-0 opacity-60">
-                                                    <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
-                                                    <FormLabel className='font-normal text-xs text-slate-500'>[고급] 이름 입력 없이 번호만으로 자동 등록 (비활성 권장)</FormLabel>
-                                                </FormItem>
-                                            )}
-                                        />
-                                    </div>
-                                </AccordionContent>
-                            </AccordionItem>
-
-                            {/* Section 5: Traffic & Features */}
-                            <AccordionItem value="feature">
-                                <AccordionTrigger>기능 활성화 (트래픽 관리)</AccordionTrigger>
-                                <AccordionContent className="p-2">
-                                    <div className="space-y-4">
-                                        <FormField
-                                            control={form.control}
-                                            name="enable_waiting_board"
-                                            render={({ field }) => (
-                                                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm">
-                                                    <FormControl>
-                                                        <Checkbox checked={!!field.value} onCheckedChange={field.onChange} />
-                                                    </FormControl>
-                                                    <div className="space-y-1 leading-none">
-                                                        <FormLabel>대기현황판 사용</FormLabel>
-                                                        <FormDescription>실시간 대기 현황판 기능을 활성화합니다.</FormDescription>
-                                                    </div>
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={form.control}
-                                            name="enable_reception_desk"
-                                            render={({ field }) => (
-                                                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm">
-                                                    <FormControl>
-                                                        <Checkbox checked={!!field.value} onCheckedChange={field.onChange} />
-                                                    </FormControl>
-                                                    <div className="space-y-1 leading-none">
-                                                        <FormLabel>대기접수 데스크 사용</FormLabel>
-                                                        <FormDescription>키오스크/태블릿 접수 기능을 활성화합니다.</FormDescription>
-                                                    </div>
-                                                </FormItem>
-                                            )}
-                                        />
-                                    </div>
-                                    <div className="space-y-4">
-                                        <FormField
-                                            control={form.control}
-                                            name="max_dashboard_connections"
-                                            render={({ field }) => (
-                                                <FormItem className="rounded-md border p-4 shadow-sm bg-orange-50/20">
-                                                    <div className="flex flex-row items-center justify-between gap-4">
-                                                        <div className="space-y-1">
-                                                            <FormLabel className="text-orange-700 font-bold">동시 대시보드 접속 허용 대수</FormLabel>
-                                                            <FormDescription className="text-xs">
-                                                                한 매장에서 동시에 관리자 화면을 열 수 있는 최대 기기 수입니다.
-                                                                (권장: 2대)
-                                                            </FormDescription>
-                                                        </div>
-                                                        <FormControl>
-                                                            <div className="w-24">
-                                                                <Input type="number" {...field} className="text-right font-bold" />
-                                                            </div>
-                                                        </FormControl>
-                                                    </div>
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={form.control}
-                                            name="dashboard_connection_policy"
-                                            render={({ field }) => (
-                                                <FormItem className="rounded-md border p-4 shadow-sm bg-orange-50/10">
-                                                    <div className="flex flex-col gap-2">
-                                                        <FormLabel className="text-orange-900 font-semibold">접속 초과 시 처리 방법</FormLabel>
-                                                        <FormDescription className="text-xs mb-2">
-                                                            허용된 대수를 초과하여 새로운 기기가 접속할 때의 처리 방식을 선택합니다.
-                                                        </FormDescription>
-                                                        <Select onValueChange={field.onChange} value={field.value || 'eject_old'}>
-                                                            <FormControl>
-                                                                <SelectTrigger className="bg-white">
-                                                                    <SelectValue placeholder="처리 방법 선택" />
-                                                                </SelectTrigger>
-                                                            </FormControl>
-                                                            <SelectContent>
-                                                                <SelectItem value="eject_old">기존 기기 접속 끊기 (가장 오래된 기기 종료)</SelectItem>
-                                                                <SelectItem value="block_new">신규 접속 차단 (먼저 접속한 기기 우선)</SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
-                                                    </div>
-                                                </FormItem>
-                                            )}
-                                        />
-                                    </div>
-                                </AccordionContent>
-                            </AccordionItem>
-                        </Accordion>
-
-                        <Button type="submit" size="lg" className="w-full">설정 저장</Button>
-                    </form>
-                </Form>
-            </CardContent>
-        </Card >
+            <Button type="submit" size="lg" className="w-full">설정 저장</Button>
+        </form>
+                </Form >
+    );
     );
 }
