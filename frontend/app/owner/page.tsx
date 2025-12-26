@@ -112,11 +112,11 @@ export default function OwnerDashboard() {
                 </div>
             </header>
 
-            <main className="px-5 pt-4 space-y-4">
+            <main className="px-5 pt-4 space-y-3">
                 {/* Welcome Card */}
-                <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-5 text-white shadow-xl relative overflow-hidden mb-1">
-                    <div className="relative z-10 flex flex-col gap-1">
-                        <div className="flex justify-between items-center mb-1">
+                <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-4 text-white shadow-xl relative overflow-hidden">
+                    <div className="relative z-10 flex flex-col gap-0.5">
+                        <div className="flex justify-between items-center">
                             <div className="flex items-center gap-2">
                                 <p className="text-slate-400 text-xs font-medium">{dateStr}</p>
                                 <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-white/10 rounded-full border border-white/10 backdrop-blur-sm">

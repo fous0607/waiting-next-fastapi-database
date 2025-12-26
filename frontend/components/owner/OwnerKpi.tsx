@@ -27,31 +27,29 @@ export function OwnerKpi({ title, value, unit, icon: Icon, color, className, loa
 
     return (
         <div className={cn(
-            "relative overflow-hidden rounded-3xl border border-slate-100 bg-white/80 p-5 shadow-sm backdrop-blur-md transition-all hover:shadow-md active:scale-[0.98]",
+            "relative overflow-hidden rounded-3xl border border-slate-100 bg-white/80 p-4 shadow-sm backdrop-blur-md transition-all hover:shadow-md active:scale-[0.98]",
             className
         )}>
             {/* Background Accent */}
             <div className={cn("absolute -right-4 -top-4 h-24 w-24 rounded-full opacity-10", colors.bg)} />
 
-            <div className="flex flex-col gap-3">
-                <div className="flex items-center justify-between">
-                    <div className={cn("p-3 rounded-2xl", colors.bg, colors.text)}>
-                        <Icon className="h-6 w-6" />
+            <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                    <div className={cn("p-2 rounded-xl", colors.bg, colors.text)}>
+                        <Icon className="h-5 w-5" />
                     </div>
+                    <p className="text-xs font-semibold text-slate-600">{title}</p>
                 </div>
 
-                <div className="space-y-1">
-                    <p className="text-sm font-medium text-slate-500">{title}</p>
-                    <div className="flex items-baseline gap-1">
-                        {loading ? (
-                            <div className="h-8 w-20 animate-pulse rounded-md bg-slate-100" />
-                        ) : (
-                            <>
-                                <h3 className="text-3xl font-bold tracking-tight text-slate-900">{value}</h3>
-                                {unit && <span className="text-sm font-bold text-slate-400">{unit}</span>}
-                            </>
-                        )}
-                    </div>
+                <div className="flex items-baseline gap-1">
+                    {loading ? (
+                        <div className="h-8 w-20 animate-pulse rounded-md bg-slate-100" />
+                    ) : (
+                        <>
+                            <h3 className="text-3xl font-bold tracking-tight text-slate-900">{value}</h3>
+                            {unit && <span className="text-sm font-bold text-slate-400">{unit}</span>}
+                        </>
+                    )}
                 </div>
             </div>
         </div>
