@@ -220,12 +220,12 @@ const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({ data, periodType = 'h
 
     const getTitle = () => {
         switch (periodType) {
-            case 'daily': return '일별 대기/출석 추이';
-            case 'weekly': return '주별 대기/출석 추이';
-            case 'monthly': return '월별 대기/출석 추이';
-            case 'quarterly': return '분기별 대기/출석 추이';
-            case 'store': return '매장별 대기/출석 현황';
-            default: return '시간대별 대기/출석 추이';
+            case 'daily': return '일별 대기 및 출석 추이';
+            case 'weekly': return '주별 대기 및 출석 추이';
+            case 'monthly': return '월별 대기 및 출석 추이';
+            case 'quarterly': return '분기별 대기 및 출석 추이';
+            case 'store': return '매장별 대기 및 출석 현황';
+            default: return '시간대별 대기 및 출석 현황';
         }
     };
 

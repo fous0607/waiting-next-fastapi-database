@@ -118,7 +118,7 @@ function StatsContent(): React.JSX.Element {
             if (dateRange.end) params.append('end_date', dateRange.end);
 
             // Set period based on view
-            const effectivePeriod = view === 'hourly' ? 'daily' : period;
+            const effectivePeriod = view === 'hourly' ? 'hourly' : period;
             params.append('period', effectivePeriod);
 
             if (selectedStoreId !== 'all') params.append('store_id', selectedStoreId.toString());
@@ -237,7 +237,7 @@ function StatsContent(): React.JSX.Element {
                             {/* Hourly Stats Chart */}
                             <Card className="border-none shadow-sm lg:col-span-2">
                                 <CardHeader>
-                                    <CardTitle className="text-lg font-bold text-slate-800">시간대별 대기 현황</CardTitle>
+                                    <CardTitle className="text-lg font-bold text-slate-800">시간대별 대기 및 출석 현황</CardTitle>
                                 </CardHeader>
                                 <CardContent>
                                     {stats.hourly_stats && stats.hourly_stats.length > 0 ? (
