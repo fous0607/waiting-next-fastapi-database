@@ -384,7 +384,7 @@ export default function UsersPage() {
                                 </Select>
                             </div>
 
-                            {['store_admin', 'store_reception', 'store_board'].includes(createForm.role) && (
+                            {['store_admin', 'store_reception', 'store_board', 'store_owner'].includes(createForm.role) && (
                                 <div className="grid gap-2">
                                     <Label htmlFor="store">매장 (필수)</Label>
                                     <Select
