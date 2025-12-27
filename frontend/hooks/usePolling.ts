@@ -1,5 +1,6 @@
 
 import useSWR from 'swr';
+import { api } from '../lib/api';
 import { useWaitingStore } from '../lib/store/useWaitingStore';
 import { useCallback, useEffect } from 'react';
 
