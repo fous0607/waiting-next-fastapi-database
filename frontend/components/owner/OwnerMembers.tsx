@@ -34,7 +34,7 @@ export function OwnerMembers() {
     // Fetch members
     const { data: members, isLoading } = useSWR<Member[]>(
         debouncedSearch ? `/members?search=${debouncedSearch}` : '/members?limit=20',
-        async (url) => {
+        async (url: string) => {
             const res = await api.get(url);
             return res.data;
         }
