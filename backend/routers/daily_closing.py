@@ -139,20 +139,9 @@ async def open_business(
 
         # 마감된 기록이 있는 경우
         if opening_rule == 'strict':
-            # 당일 개점 1회 제한 (엄격 모드) -> 수정: 당일 재개점 허용
+            # 당일 개점 1회 제한 (엄격 모드)
             if target_date == today:
-                 # 이미 마감된 기록을 다시 활성화 (재개점)
-                 print(f"[OPEN] Reactivating closed business day {target_date} for store {current_store.id}")
-                 
-                 existing.is_closed = False
-                 existing.closing_time = None
-                 # 기존 통계는 유지하거나 리셋? -> 일단 유지하고, 마감 시 다시 덮어씌워짐.
-                 # 필요하다면 total_waiting 등을 리셋할 수도 있지만, 
-                 # "잠깐 닫았다가 다시 여는" 실수 상황을 고려하면 유지가 더 안전함.
-                 
-                 db.commit()
-                 db.refresh(existing)
-                 return existing
+                 raise HTTPException(status_code=400, detail="당일 개점은 1회만 가능합니다.\n내일 개점을 해주세요.")
             else:
                  # 미래 날짜의 마감 기록이 있다면? (이론상 드묾) -> 다음 날짜 확인
                  target_date = target_date + timedelta(days=1)
