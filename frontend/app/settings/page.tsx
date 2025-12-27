@@ -84,7 +84,7 @@ function SettingsContent() {
         <div className="flex min-h-screen bg-slate-50">
             {/* Sidebar */}
             <aside className="w-52 bg-white border-r border-slate-200 flex flex-col sticky top-0 h-screen">
-                <div className="p-6 flex-1 overflow-y-auto no-scrollbar">
+                <div className="p-4 flex-1 overflow-y-auto no-scrollbar">
                     <Button
                         variant="ghost"
                         className="mb-8 -ml-3 text-slate-500 hover:text-slate-900 w-full justify-start"
@@ -94,11 +94,11 @@ function SettingsContent() {
                         메인으로
                     </Button>
 
-                    <div className="flex items-center gap-3 mb-10 px-1">
+                    <div className="flex items-center gap-2 mb-6 px-1">
                         <div className="bg-blue-100 p-2 rounded-lg">
                             <Settings className="w-6 h-6 text-blue-600" />
                         </div>
-                        <div>
+                        <div className="flex flex-col justify-center -space-y-0.5">
                             <h1 className="font-bold text-slate-900 tracking-tight">매장 설정</h1>
                             <p className="text-[11px] text-slate-500 font-medium">관리자 패널</p>
                         </div>
@@ -148,7 +148,7 @@ function SettingsContent() {
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 p-6 overflow-auto">
+            <main className="flex-1 p-4 overflow-auto">
                 <div className="max-w-5xl mx-auto space-y-6">
                     <div className="flex items-end justify-between mb-6">
                         <div>

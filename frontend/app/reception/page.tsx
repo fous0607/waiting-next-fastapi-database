@@ -395,8 +395,17 @@ export default function ReceptionPage() {
         return formatted;
     };
 
+    // Timeout reference to clear existing timers
+    const modalTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
     const processRegistration = async (targetPhone: string, name?: string) => {
         setIsSubmitting(true);
+        // Clear any existing modal close timers to prevent premature closing
+        if (modalTimeoutRef.current) {
+            clearTimeout(modalTimeoutRef.current);
+            modalTimeoutRef.current = null;
+        }
+
         try {
             const payload: any = { phone: targetPhone };
             if (name) payload.name = name;
@@ -409,24 +418,34 @@ export default function ReceptionPage() {
             setRegistrationDialog({ open: false, phone: '' }); // Close registration if open
             loadStatus();
 
-            // Speak success
+            // Speak success (Non-blocking)
             if (storeSettings?.enable_waiting_voice_alert) {
-                const customMsg = storeSettings?.waiting_voice_message;
-                const memberName = data.name || '';
-                const message = customMsg
-                    ? customMsg
-                        .replace('{클래스명}', data.class_name)
-                        .replace('{순번}', data.class_order)
-                        .replace('{회원명}', memberName)
-                    : `${data.class_name} ${memberName ? memberName + '님 ' : ''}${data.class_order}번째 대기 접수 되었습니다.`;
-                speak(message);
+                setTimeout(() => {
+                    const customMsg = storeSettings?.waiting_voice_message;
+                    // Use data.name directly from response
+                    const memberName = data.name || '';
+                    const message = customMsg
+                        ? customMsg
+                            .replace('{클래스명}', data.class_name)
+                            .replace('{순번}', data.class_order)
+                            .replace('{회원명}', memberName)
+                        : `${data.class_name} ${memberName ? memberName + '님 ' : ''}${data.class_order}번째 대기 접수 되었습니다.`;
+                    speak(message);
+                }, 0);
             }
 
-            // Custom timeout from settings
-            const timeout = (storeSettings?.waiting_modal_timeout || 5) * 1000;
-            setTimeout(() => {
+            // Custom timeout from settings - Ensure it's a number
+            // Default 5s if missing or invalid
+            let timeoutSeconds = 5;
+            if (storeSettings?.waiting_modal_timeout !== undefined && storeSettings?.waiting_modal_timeout !== null) {
+                timeoutSeconds = Number(storeSettings.waiting_modal_timeout);
+            }
+
+            console.log(`[Modal] Auto-close in ${timeoutSeconds} seconds`);
+
+            modalTimeoutRef.current = setTimeout(() => {
                 setResultDialog(prev => ({ ...prev, open: false }));
-            }, timeout);
+            }, timeoutSeconds * 1000);
 
         } catch (error) {
             const err = error as any;
@@ -436,9 +455,10 @@ export default function ReceptionPage() {
             if (err.response?.status === 400 || errorMessage.includes('이미') || errorMessage.includes('대기')) {
                 setErrorDialog({ open: true, message: errorMessage });
 
-                // Auto-close after 5 seconds
+                // Auto-close error dialog too
                 const timeout = (storeSettings?.waiting_modal_timeout || 5) * 1000;
-                setTimeout(() => {
+                if (modalTimeoutRef.current) clearTimeout(modalTimeoutRef.current); // safe clear
+                modalTimeoutRef.current = setTimeout(() => {
                     setErrorDialog(prev => ({ ...prev, open: false }));
                 }, timeout);
             } else {

@@ -72,7 +72,7 @@ const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({ data, periodType = 'h
     // Labels
     const labels = data.map(d => {
         if (d.label && d.label.match(/^\d{4}-\d{2}-\d{2}$/)) {
-            return d.label.substring(2); // "2025-12-04" -> "25-12-04"
+            return d.label.substring(5); // "2025-12-04" -> "12-04"
         }
         return d.label || `${d.hour}시`;
     });

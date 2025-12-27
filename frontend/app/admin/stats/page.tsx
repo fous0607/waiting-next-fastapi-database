@@ -117,8 +117,9 @@ function StatsContent(): React.JSX.Element {
             if (dateRange.start) params.append('start_date', dateRange.start);
             if (dateRange.end) params.append('end_date', dateRange.end);
 
-            // Set period based on view
-            const effectivePeriod = view === 'hourly' ? 'hourly' : period;
+            // Force 'daily' period when in 'period' view (Date Range View)
+            // Hourly view uses 'hourly'
+            const effectivePeriod = view === 'hourly' ? 'hourly' : 'daily';
             params.append('period', effectivePeriod);
 
             if (selectedStoreId !== 'all') params.append('store_id', selectedStoreId.toString());
@@ -136,7 +137,7 @@ function StatsContent(): React.JSX.Element {
         if (dateRange.start && dateRange.end) {
             fetchStats();
         }
-    }, [dateRange, period, selectedStoreId, refetchKey, view]);
+    }, [dateRange, selectedStoreId, refetchKey, view]); // Removed 'period' dependency as it's no longer used
 
     const handleRangeChange = (range: { start: string; end: string }) => {
         setDateRange(range);
@@ -155,38 +156,7 @@ function StatsContent(): React.JSX.Element {
                     </div>
                 </div>
 
-                {/* Period selector for 'period' view */}
-                {view === 'period' && (
-                    <div className="flex items-center gap-2 bg-white p-1 rounded-xl border border-slate-200">
-                        <button
-                            onClick={() => setPeriod('daily')}
-                            className={cn(
-                                "px-4 py-2 rounded-lg text-sm font-medium transition-all",
-                                period === 'daily' ? "bg-blue-500 text-white shadow-sm" : "text-slate-600 hover:bg-slate-50"
-                            )}
-                        >
-                            일별
-                        </button>
-                        <button
-                            onClick={() => setPeriod('weekly')}
-                            className={cn(
-                                "px-4 py-2 rounded-lg text-sm font-medium transition-all",
-                                period === 'weekly' ? "bg-blue-500 text-white shadow-sm" : "text-slate-600 hover:bg-slate-50"
-                            )}
-                        >
-                            주별
-                        </button>
-                        <button
-                            onClick={() => setPeriod('monthly')}
-                            className={cn(
-                                "px-4 py-2 rounded-lg text-sm font-medium transition-all",
-                                period === 'monthly' ? "bg-blue-500 text-white shadow-sm" : "text-slate-600 hover:bg-slate-50"
-                            )}
-                        >
-                            월별
-                        </button>
-                    </div>
-                )}
+                {/* Period selector removed as requested by user */}
             </div>
 
             {loading ? (

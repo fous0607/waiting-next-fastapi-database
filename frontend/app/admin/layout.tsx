@@ -79,14 +79,14 @@ function AdminSidebar() {
 
     const statsSubItems = [
         {
-            title: '기간별 조회',
-            href: '/admin/stats?view=period',
-            active: (pathname === '/admin' || pathname === '/admin/stats') && (!viewParam || viewParam === 'period'),
-        },
-        {
             title: '시간대별 조회',
             href: '/admin/stats?view=hourly',
-            active: (pathname === '/admin' || pathname === '/admin/stats') && viewParam === 'hourly',
+            active: (pathname === '/admin' || pathname === '/admin/stats') && (!viewParam || viewParam === 'hourly'),
+        },
+        {
+            title: '기간별 조회',
+            href: '/admin/stats?view=period',
+            active: pathname === '/admin/stats' && viewParam === 'period',
         }
     ];
 
@@ -131,7 +131,7 @@ function AdminSidebar() {
 
     return (
         <aside className="w-52 bg-white border-r border-slate-200 flex flex-col sticky top-0 h-screen">
-            <div className="p-6 flex-1 overflow-y-auto no-scrollbar">
+            <div className="p-4 flex-1 overflow-y-auto no-scrollbar"> {/* Reduced padding from p-6 to p-4 */}
                 <Button
                     variant="ghost"
                     className="mb-8 -ml-3 text-slate-500 hover:text-slate-900 w-full justify-start"
@@ -141,11 +141,11 @@ function AdminSidebar() {
                     메인으로
                 </Button>
 
-                <div className="flex items-center gap-3 mb-10 px-1">
+                <div className="flex items-center gap-2 mb-6 px-1"> {/* Reduced gap and margin-bottom */}
                     <div className="bg-orange-100 p-2 rounded-lg">
                         <BarChart3 className="w-6 h-6 text-orange-600" />
                     </div>
-                    <div>
+                    <div className="flex flex-col justify-center -space-y-0.5"> {/* Reduced vertical space */}
                         <h1 className="font-bold text-slate-900 tracking-tight">{storeName}</h1>
                         <p className="text-[11px] text-slate-500 font-medium">매장 관리</p>
                     </div>
@@ -154,6 +154,7 @@ function AdminSidebar() {
 
                 <nav className="space-y-6">
                     {/* Stats Section */}
+                    {/* ... (rest of nav is same structure, but I need to return it to match ReplacementChunk) */}
                     <div className="space-y-1">
                         <button
                             onClick={() => setIsStatsMenuOpen(!isStatsMenuOpen)}
@@ -194,8 +195,7 @@ function AdminSidebar() {
                             </div>
                         )}
                     </div>
-
-                    {/* Member Analysis Section */}
+                    {/* Member Section is same */}
                     <div className="space-y-1">
                         <button
                             onClick={() => setIsMemberMenuOpen(!isMemberMenuOpen)}
@@ -279,9 +279,8 @@ export default function AdminLayout({
                 <AdminSidebar />
             </React.Suspense>
 
-            {/* Main Content */}
-            {/* Main Content */}
-            <main className="flex-1 p-6 overflow-x-hidden">
+            {/* Main Content - Reduced gap from p-6 to p-4 */}
+            <main className="flex-1 p-4 overflow-x-hidden">
                 <div className="max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
                     {children}
                 </div>
