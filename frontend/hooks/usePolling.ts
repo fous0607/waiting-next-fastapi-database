@@ -13,7 +13,7 @@ export function usePolling(interval = 5000) {
     const { syncToken, setSyncToken, refreshAll, selectedStoreId, isConnected, setConnected } = useWaitingStore();
 
     // Key includes storeId to unique identify the poll
-    const key = selectedStoreId ? `/api/polling/sync-check/${selectedStoreId}` : null;
+    const key = selectedStoreId ? `/polling/sync-check/${selectedStoreId}` : null;
 
     const fetcher = useCallback(async (url: string) => {
         try {

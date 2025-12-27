@@ -1341,16 +1341,20 @@ async def get_closed_classes(
     """
     오늘 마감된 교시 목록 조회
     """
-    today = get_current_business_date(db, current_store.id)
+    try:
+        today = get_current_business_date(db, current_store.id)
 
-    closed_classes = db.query(ClassClosure).filter(
-        ClassClosure.business_date == today,
-        ClassClosure.store_id == current_store.id
-    ).all()
+        closed_classes = db.query(ClassClosure).filter(
+            ClassClosure.business_date == today,
+            ClassClosure.store_id == current_store.id
+        ).all()
 
-    return {
-        "closed_class_ids": [c.class_id for c in closed_classes]
-    }
+        return {
+            "closed_class_ids": [c.class_id for c in closed_classes]
+        }
+    except Exception as e:
+        logger.error(f"[API ERROR] get_closed_classes failed: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/insert-empty-seat")
 async def insert_empty_seat(
