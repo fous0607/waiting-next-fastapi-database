@@ -230,8 +230,13 @@ async def get_waiting_board(
     classes_with_waiting_list = [c for c in all_classes if c.id in classes_with_waiting and c.id not in closed_class_ids]
     classes_without_waiting = [c for c in all_classes if c.id not in classes_with_waiting and c.id not in completed_class_ids and c.id not in closed_class_ids]
 
-    classes_without_waiting = [c for c in all_classes if c.id not in classes_with_waiting and c.id not in completed_class_ids and c.id not in closed_class_ids]
-
+    # 순차적 마감(sequential_closing) 설정 데이터 반영
+    # 대기가 있는 교시가 있다면, 그 이전의 빈 교시는 화면에서 숨김 (1교시가 12교시를 가리는 현상 방지)
+    if settings.sequential_closing and classes_with_waiting_list:
+        min_active_number = min(c.class_number for c in classes_with_waiting_list)
+        # 현재 활성 교시보다 이전 번호이면서 대기자가 없는 교시는 제외
+        classes_without_waiting = [c for c in classes_without_waiting if c.class_number >= min_active_number]
+    
     # 대기자 있는 클래스 우선 배치 + 부족한 만큼 다음 교시로 채우기
     selected_classes = classes_with_waiting_list[:settings.display_classes_count]
     
