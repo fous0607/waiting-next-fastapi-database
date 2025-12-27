@@ -232,13 +232,13 @@ async def get_waiting_board(
 
     # 빈 교시 정렬 개선: 현재 시간 기준 미래/진행 중 교시 우선
     if today == date.today():
-        current_time_str = datetime.now().strftime("%H:%M")
+        now_time = datetime.now().time()
         
         future_classes = []
         past_classes = []
         
         for cls in classes_without_waiting:
-            if cls.end_time > current_time_str:
+            if cls.end_time > now_time:
                 future_classes.append(cls)
             else:
                 past_classes.append(cls)
