@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session, defer, joinedload
 from sqlalchemy import func, and_
-from datetime import datetime, date
+from datetime import datetime, date, timedelta, timezone
 from typing import List, Dict
 import json
 
@@ -230,9 +230,11 @@ async def get_waiting_board(
     classes_with_waiting_list = [c for c in all_classes if c.id in classes_with_waiting and c.id not in closed_class_ids]
     classes_without_waiting = [c for c in all_classes if c.id not in classes_with_waiting and c.id not in completed_class_ids and c.id not in closed_class_ids]
 
-    # 빈 교시 정렬 개선: 현재 시간 기준 미래/진행 중 교시 우선
+    # 빈 교시 정렬 개선: 현재 시간 기준 미래/진행 중 교시 우선 (KST 기준)
     if today == date.today():
-        now_time = datetime.now().time()
+        # KST(UTC+9) 시간 적용
+        kst_timezone = timezone(timedelta(hours=9))
+        now_time = datetime.now(kst_timezone).time()
         
         future_classes = []
         past_classes = []
