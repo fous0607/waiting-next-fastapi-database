@@ -66,6 +66,7 @@ interface WaitingState {
     handleClassReopened: (classId: number) => void;
 
 
+    syncCheck: () => Promise<void>;
     refreshAll: () => Promise<void>; // Consolidated refresh action
 
     // Admin Actions
@@ -232,6 +233,29 @@ export const useWaitingStore = create<WaitingState>((set, get) => ({
     handleOrderChange: () => {
         if (get().currentClassId) {
             get().fetchWaitingList(get().currentClassId!);
+        }
+    },
+
+    syncCheck: async () => {
+        const { selectedStoreId, syncToken, refreshAll } = get();
+
+        // Robust ID validation
+        if (!selectedStoreId || typeof selectedStoreId !== 'string' || selectedStoreId === '[object Object]') {
+            return;
+        }
+
+        try {
+            const res = await api.get(`/polling/sync-check/${selectedStoreId}`);
+            const newToken = res.data.sync_token;
+
+            if (newToken && newToken !== syncToken) {
+                console.log(`[Polling] Data changed (Token: ${newToken}). Refreshing...`);
+                await refreshAll();
+                set({ syncToken: newToken });
+            }
+        } catch (error) {
+            console.error('[Polling] Sync check failed:', error);
+            // Optionally clear token on persistent errors to force refresh on next success
         }
     },
 

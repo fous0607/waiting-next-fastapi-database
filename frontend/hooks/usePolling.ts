@@ -1,8 +1,6 @@
-
 import useSWR from 'swr';
-import { api } from '../lib/api';
 import { useWaitingStore } from '../lib/store/useWaitingStore';
-import { useCallback, useEffect } from 'react';
+import { useEffect } from 'react';
 
 /**
  * usePolling Hook
@@ -10,37 +8,18 @@ import { useCallback, useEffect } from 'react';
  * Fetches data every 5 seconds to keep the UI in sync.
  */
 export function usePolling(interval = 5000) {
-    const { syncToken, setSyncToken, refreshAll, selectedStoreId, isConnected, setConnected } = useWaitingStore();
+    const { syncCheck, selectedStoreId, isConnected, setConnected } = useWaitingStore();
 
-    // Key includes storeId to unique identify the poll
-    const key = selectedStoreId ? `/polling/sync-check/${selectedStoreId}` : null;
+    // Stable key for SWR
+    const key = (selectedStoreId && typeof selectedStoreId === 'string' && selectedStoreId !== '[object Object]')
+        ? `polling-check-${selectedStoreId}`
+        : null;
 
-    const fetcher = useCallback(async (url: string) => {
-        try {
-            const res = await api.get(url);
-            const newToken = res.data.sync_token;
-
-            // If token is different, or we don't have one, refresh all data
-            if (newToken !== syncToken) {
-                console.log(`[Polling] Data changed (Token: ${newToken}). Refreshing...`);
-                await refreshAll();
-                setSyncToken(newToken);
-            } else {
-                // console.log('[Polling] No changes detected. Skipping refresh.');
-            }
-            return newToken;
-        } catch (err) {
-            console.error('[Polling] Sync check failed:', err);
-            throw err;
-        }
-    }, [refreshAll, syncToken, setSyncToken]);
-
-    const { error } = useSWR(key, fetcher, {
+    const { error } = useSWR(key, syncCheck, {
         refreshInterval: interval,
         revalidateOnFocus: true,
         revalidateOnReconnect: true,
-        dedupingInterval: 2000,
-        focusThrottleInterval: 5000,
+        dedupingInterval: interval / 2,
     });
 
     // Emulate "Connected" state for UI compatibility
