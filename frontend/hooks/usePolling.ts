@@ -9,29 +9,37 @@ import { useCallback, useEffect } from 'react';
  * Fetches data every 5 seconds to keep the UI in sync.
  */
 export function usePolling(interval = 5000) {
-    const {
-        refreshAll,
-        selectedStoreId,
-        currentClassId,
-        setConnected,
-        isConnected
-    } = useWaitingStore();
+    const { syncToken, setSyncToken, refreshAll, selectedStoreId, isConnected, setConnected } = useWaitingStore();
 
-    // Key includes storeId and classId to force re-poll on change
-    const key = selectedStoreId ? `/api/polling/${selectedStoreId}` : null;
+    // Key includes storeId to unique identify the poll
+    const key = selectedStoreId ? `/api/polling/sync-check/${selectedStoreId}` : null;
 
-    const fetcher = useCallback(async () => {
-        // console.log('[Polling] Refreshing data...');
-        await refreshAll();
-        return true;
-    }, [refreshAll]);
+    const fetcher = useCallback(async (url: string) => {
+        try {
+            const res = await api.get(url);
+            const newToken = res.data.sync_token;
+
+            // If token is different, or we don't have one, refresh all data
+            if (newToken !== syncToken) {
+                console.log(`[Polling] Data changed (Token: ${newToken}). Refreshing...`);
+                await refreshAll();
+                setSyncToken(newToken);
+            } else {
+                // console.log('[Polling] No changes detected. Skipping refresh.');
+            }
+            return newToken;
+        } catch (err) {
+            console.error('[Polling] Sync check failed:', err);
+            throw err;
+        }
+    }, [refreshAll, syncToken, setSyncToken]);
 
     const { error } = useSWR(key, fetcher, {
         refreshInterval: interval,
-        revalidateOnFocus: true,     // Refresh when window gets focus
-        revalidateOnReconnect: true, // Refresh when network reconnects
-        dedupingInterval: 2000,      // Prevent duplicate calls within 2s
-        focusThrottleInterval: 5000, // Throttle focus events
+        revalidateOnFocus: true,
+        revalidateOnReconnect: true,
+        dedupingInterval: 2000,
+        focusThrottleInterval: 5000,
     });
 
     // Emulate "Connected" state for UI compatibility

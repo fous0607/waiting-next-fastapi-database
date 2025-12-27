@@ -44,7 +44,8 @@ from routers import (
     holidays, # New Holidays Router
     notices, # New Notices Router
     file_upload, # File Upload Router
-    system # System/SSE Monitoring Router
+    system, # System/SSE Monitoring Router
+    polling # Polling Optimization Router
 )
 from core.logger import logger
 import time
@@ -140,6 +141,7 @@ app.include_router(holidays.router, prefix="/api/holidays", tags=["Holiday Manag
 app.include_router(notices.router)
 app.include_router(file_upload.router, prefix="/api/files", tags=["File Upload"])
 app.include_router(system.router, prefix="/api/system", tags=["System Monitoring"])
+app.include_router(polling.router, prefix="/api/polling", tags=["Polling Optimization"])
 
 @app.get("/")
 async def main_page(request: Request):

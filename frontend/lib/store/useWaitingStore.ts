@@ -42,6 +42,9 @@ interface WaitingState {
     hideClosedClasses: boolean;
     sequentialClosing: boolean;
 
+    syncToken: string | null;
+    setSyncToken: (token: string | null) => void;
+
     // Connection Blocking State (For Ejection/Blocking UI)
     connectionBlockState: { type: 'ejected' | 'blocked', message: string } | null;
 
@@ -82,6 +85,7 @@ export const useWaitingStore = create<WaitingState>((set, get) => ({
     isConnected: false,
     hideClosedClasses: true, // Default to hidden
     sequentialClosing: false,
+    syncToken: null,
     connectionBlockState: null,
     isLoading: true,
 
@@ -93,6 +97,7 @@ export const useWaitingStore = create<WaitingState>((set, get) => ({
     },
 
     setConnected: (status) => set({ isConnected: status }),
+    setSyncToken: (token) => set({ syncToken: token }),
     setConnectionBlockState: (state) => set({ connectionBlockState: state }),
     toggleHideClosedClasses: () => set((state) => ({ hideClosedClasses: !state.hideClosedClasses })),
 
