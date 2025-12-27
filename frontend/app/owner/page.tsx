@@ -27,6 +27,8 @@ import { toast } from "sonner";
 import api from "@/lib/api";
 import { OwnerKpi } from '@/components/owner/OwnerKpi';
 import { OwnerCharts } from '@/components/owner/OwnerCharts';
+import { OwnerAnalytics } from '@/components/owner/OwnerAnalytics';
+import { OwnerMembers } from '@/components/owner/OwnerMembers';
 import { cn } from '@/lib/utils';
 
 export default function OwnerDashboard() {
@@ -35,6 +37,7 @@ export default function OwnerDashboard() {
     const [refreshing, setRefreshing] = useState(false);
     const [stats, setStats] = useState<any>(null);
     const [storeName, setStoreName] = useState('');
+    const [activeTab, setActiveTab] = useState<'dashboard' | 'analytics' | 'members'>('dashboard');
     const [period, setPeriod] = useState<'hourly' | 'daily' | 'weekly' | 'monthly'>('hourly');
 
     // Today for display
@@ -64,8 +67,8 @@ export default function OwnerDashboard() {
     };
 
     useEffect(() => {
-        if (!loading) fetchStats();
-    }, [period]);
+        if (!loading && activeTab !== 'members') fetchStats();
+    }, [period, activeTab]);
 
     const handleLogout = async () => {
         try {
@@ -80,7 +83,7 @@ export default function OwnerDashboard() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 pb-20">
+        <div className="min-h-screen bg-slate-50 relative">
             {/* Top Bar */}
             <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-100 px-5 pt-2 pb-1">
                 <div className="flex items-center justify-between">
@@ -112,153 +115,165 @@ export default function OwnerDashboard() {
                 </div>
             </header>
 
-            <main className="px-5 pt-2 space-y-3">
-                {/* Welcome Card */}
-                <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-3 text-white shadow-xl relative overflow-hidden">
-                    <div className="relative z-10 flex flex-col gap-0.5">
-                        <div className="flex justify-between items-center">
-                            <div className="flex items-center gap-2">
-                                <p className="text-slate-400 text-xs font-medium">
-                                    {dateStr}
-                                    {stats?.store_stats?.[0]?.open_time && (
-                                        <span className="ml-2 py-0.5 px-1.5 rounded bg-white/5">
-                                            {stats.store_stats[0].open_time}
-                                        </span>
-                                    )}
-                                </p>
-                                <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-white/10 rounded-full border border-white/10 backdrop-blur-sm">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                    <span className="text-[10px] font-semibold">영업중</span>
+            <main className="px-5 pt-4 pb-24 min-h-[calc(100vh-64px)]">
+                {activeTab === 'dashboard' && (
+                    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        {/* Welcome Card */}
+                        <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-4 text-white shadow-xl relative overflow-hidden">
+                            <div className="relative z-10 flex flex-col gap-1">
+                                <div className="flex justify-between items-center">
+                                    <div className="flex items-center gap-2">
+                                        <p className="text-slate-400 text-xs font-medium">
+                                            {dateStr}
+                                            {stats?.store_stats?.[0]?.open_time && (
+                                                <span className="ml-2 py-0.5 px-1.5 rounded bg-white/5">
+                                                    {stats.store_stats[0].open_time}
+                                                </span>
+                                            )}
+                                        </p>
+                                        <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-white/10 rounded-full border border-white/10 backdrop-blur-sm">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                            <span className="text-[10px] font-semibold">영업중</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <h2 className="text-xl font-bold">관리자님, 안녕하세요!</h2>
+                            </div>
+                            {/* Decorative Circles */}
+                            <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-white/5 rounded-full blur-2xl" />
+                            <div className="absolute right-6 top-0 w-16 h-16 bg-rose-500/10 rounded-full blur-xl" />
+                        </div>
+
+                        {/* Real-time KPI Section */}
+                        <section>
+                            <div className="flex items-center justify-between mb-3 px-1">
+                                <h3 className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                                    <TrendingUp className="w-4 h-4 text-blue-500" />
+                                    실시간 현황
+                                </h3>
+                                <div className="flex gap-2">
+                                    <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-bold">LIVE</span>
                                 </div>
                             </div>
-                        </div>
-                        <h2 className="text-xl font-bold">관리자님, 안녕하세요!</h2>
-                    </div>
-                    {/* Decorative Circles */}
-                    <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-white/5 rounded-full blur-2xl" />
-                    <div className="absolute right-6 top-0 w-16 h-16 bg-rose-500/10 rounded-full blur-xl" />
-                </div>
+                            <div className="grid grid-cols-2 gap-3">
+                                <OwnerKpi
+                                    title="총 대기 인원"
+                                    value={stats?.total_visitors || 0}
+                                    unit="명"
+                                    icon={UserPlus}
+                                    color="emerald"
+                                    loading={loading}
+                                />
+                                <OwnerKpi
+                                    title="현재 대기"
+                                    value={stats?.store_stats?.[0]?.current_waiting || 0}
+                                    unit="명"
+                                    icon={Users}
+                                    color="blue"
+                                    loading={loading}
+                                />
+                            </div>
+                        </section>
 
-                {/* Real-time KPI Section */}
-                <section>
-                    <div className="flex items-center justify-between mb-3 px-1">
-                        <h3 className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
-                            <TrendingUp className="w-4 h-4 text-blue-500" />
-                            실시간 현황
-                        </h3>
-                        <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-bold">LIVE</span>
+                        {/* Business Stats Section */}
+                        <section>
+                            <div className="flex items-center justify-between mb-3 px-1">
+                                <h3 className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                                    <Briefcase className="w-4 h-4 text-violet-500" />
+                                    출석 및 신규
+                                </h3>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                                <OwnerKpi
+                                    title="출석 인원"
+                                    value={stats?.total_attendance || 0}
+                                    unit="명"
+                                    icon={Users}
+                                    color="orange"
+                                    loading={loading}
+                                />
+                                <OwnerKpi
+                                    title="신규 회원"
+                                    value={stats?.new_members || 0}
+                                    unit="명"
+                                    icon={UserPlus}
+                                    color="violet"
+                                    loading={loading}
+                                />
+                            </div>
+                        </section>
+
+                        {/* Analysis Chart Section - Simplified for Dashboard */}
+                        <section className="space-y-4">
+                            <div className="flex items-center justify-between px-1">
+                                <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                                    <Calendar className="w-4 h-4 text-rose-500" />
+                                    오늘의 패턴
+                                </h3>
+                                <button
+                                    onClick={() => setActiveTab('analytics')}
+                                    className="text-xs text-slate-400 font-medium flex items-center gap-1 hover:text-slate-600"
+                                >
+                                    더보기 <ChevronRight className="w-3 h-3" />
+                                </button>
+                            </div>
+
+                            <OwnerCharts
+                                title="시간대별 분포"
+                                data={stats?.hourly_stats || []}
+                                loading={loading}
+                                type="bar"
+                            />
+                        </section>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                        <OwnerKpi
-                            title="총 대기 인원"
-                            value={stats?.total_visitors || 0}
-                            unit="명"
-                            icon={UserPlus}
-                            color="emerald"
+                )}
+
+                {activeTab === 'analytics' && (
+                    <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+                        <OwnerAnalytics
+                            stats={stats}
                             loading={loading}
-                        />
-                        <OwnerKpi
-                            title="현재 대기"
-                            value={stats?.store_stats?.[0]?.current_waiting || 0}
-                            unit="명"
-                            icon={Users}
-                            color="blue"
-                            loading={loading}
+                            period={period}
+                            setPeriod={setPeriod}
                         />
                     </div>
-                </section>
+                )}
 
-                {/* Business Stats Section */}
-                <section>
-                    <div className="flex items-center justify-between mb-3 px-1">
-                        <h3 className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
-                            <Briefcase className="w-4 h-4 text-violet-500" />
-                            출석 및 신규
-                        </h3>
+                {activeTab === 'members' && (
+                    <div className="animate-in fade-in slide-in-from-right-4 duration-300 h-full">
+                        <OwnerMembers />
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                        <OwnerKpi
-                            title="출석 인원"
-                            value={stats?.total_attendance || 0}
-                            unit="명"
-                            icon={Users}
-                            color="orange"
-                            loading={loading}
-                        />
-                        <OwnerKpi
-                            title="신규 회원"
-                            value={stats?.new_members || 0}
-                            unit="명"
-                            icon={UserPlus}
-                            color="violet"
-                            loading={loading}
-                        />
-                    </div>
-                </section>
-
-                {/* Analysis Chart Section */}
-                <section className="space-y-4">
-                    <div className="flex items-center justify-between px-1">
-                        <h3 className="font-bold text-slate-800 flex items-center gap-2">
-                            <Calendar className="w-4 h-4 text-rose-500" />
-                            방문 통계
-                        </h3>
-                        <div className="flex bg-slate-200/50 p-1 rounded-xl">
-                            <button
-                                onClick={() => setPeriod('hourly')}
-                                className={cn("px-3 py-1 rounded-lg text-[11px] font-bold transition-all", period === 'hourly' ? "bg-white text-slate-900 shadow-sm" : "text-slate-500")}
-                            >
-                                시간대
-                            </button>
-                            <button
-                                onClick={() => setPeriod('daily')}
-                                className={cn("px-3 py-1 rounded-lg text-[11px] font-bold transition-all", period === 'daily' ? "bg-white text-slate-900 shadow-sm" : "text-slate-500")}
-                            >
-                                일단위
-                            </button>
-                        </div>
-                    </div>
-
-                    <OwnerCharts
-                        title={period === 'hourly' ? "오늘 시간대별 패턴" : "최근 방문 추이"}
-                        data={stats?.hourly_stats || []}
-                        loading={loading}
-                        type={period === 'hourly' || period === 'daily' ? 'bar' : 'line'}
-                    />
-                </section>
-
-                {/* Quick Info / Tips */}
-                <div className="bg-blue-50/50 rounded-3xl p-5 border border-blue-100 flex gap-4">
-                    <div className="shrink-0 bg-blue-100/50 p-2 rounded-2xl h-fit">
-                        <Info className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <div>
-                        <h4 className="text-sm font-bold text-blue-900 mb-1">인사이트 팁</h4>
-                        <p className="text-xs text-blue-700 leading-relaxed font-medium">
-                            {stats?.total_visitors > 50
-                                ? "오늘은 평소보다 많은 분들이 찾아주셨네요! 신규 회원 유치에 힘써보시는 건 어떨까요?"
-                                : "비교적 한산한 하루네요. 재방문 고객분들에게 특별한 혜택을 제공해보세요."}
-                        </p>
-                    </div>
-                </div>
+                )}
             </main>
 
-            {/* Bottom Tab Bar (Placeholder / Future Nav) */}
-            <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/80 backdrop-blur-lg border-t border-slate-100 px-6 py-3 pb-8 flex justify-around">
-                <button className="flex flex-col items-center gap-1 text-rose-500">
+            {/* Bottom Tab Bar */}
+            <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-lg border-t border-slate-100 px-6 py-2 pb-6 flex justify-around shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.02)]">
+                <button
+                    onClick={() => setActiveTab('dashboard')}
+                    className={cn(
+                        "flex flex-col items-center gap-1 transition-colors p-2 rounded-xl w-16",
+                        activeTab === 'dashboard' ? "text-rose-500 bg-rose-50" : "text-slate-400 hover:text-slate-600"
+                    )}
+                >
                     <TrendingUp className="w-6 h-6" />
-                    <span className="text-[10px] font-bold">데이터</span>
+                    <span className="text-[10px] font-bold">홈</span>
                 </button>
                 <button
-                    onClick={() => toast.info("상세 분석 기능은 곧 추가될 예정입니다.")}
-                    className="flex flex-col items-center gap-1 text-slate-400"
+                    onClick={() => setActiveTab('analytics')}
+                    className={cn(
+                        "flex flex-col items-center gap-1 transition-colors p-2 rounded-xl w-16",
+                        activeTab === 'analytics' ? "text-rose-500 bg-rose-50" : "text-slate-400 hover:text-slate-600"
+                    )}
                 >
                     <BarChart3 className="w-6 h-6" />
                     <span className="text-[10px] font-bold">상세분석</span>
                 </button>
                 <button
-                    onClick={() => toast.info("회원 관리 기능은 준비 중입니다.")}
-                    className="flex flex-col items-center gap-1 text-slate-400"
+                    onClick={() => setActiveTab('members')}
+                    className={cn(
+                        "flex flex-col items-center gap-1 transition-colors p-2 rounded-xl w-16",
+                        activeTab === 'members' ? "text-rose-500 bg-rose-50" : "text-slate-400 hover:text-slate-600"
+                    )}
                 >
                     <Users className="w-6 h-6" />
                     <span className="text-[10px] font-bold">회원관리</span>
