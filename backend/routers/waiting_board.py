@@ -230,6 +230,23 @@ async def get_waiting_board(
     classes_with_waiting_list = [c for c in all_classes if c.id in classes_with_waiting and c.id not in closed_class_ids]
     classes_without_waiting = [c for c in all_classes if c.id not in classes_with_waiting and c.id not in completed_class_ids and c.id not in closed_class_ids]
 
+    # 빈 교시 정렬 개선: 현재 시간 기준 미래/진행 중 교시 우선
+    if today == date.today():
+        now_time = datetime.now().time()
+        
+        future_classes = []
+        past_classes = []
+        
+        for cls in classes_without_waiting:
+            # cls.end_time이 Time 객체인지 확인 (models.py 확인 결과 맞음)
+            if cls.end_time >= now_time:
+                future_classes.append(cls)
+            else:
+                past_classes.append(cls)
+        
+        # 미래/진행중 교시 우선 + 과거 교시 순으로 재배치
+        classes_without_waiting = future_classes + past_classes
+
     # 대기자 있는 클래스 우선 배치 + 부족한 만큼 다음 교시로 채우기
     selected_classes = classes_with_waiting_list[:settings.display_classes_count]
     
@@ -238,7 +255,8 @@ async def get_waiting_board(
     if remaining_slots > 0:
         selected_classes.extend(classes_without_waiting[:remaining_slots])
     
-    classes = selected_classes
+    # 최종적으로 화면에는 교시 번호 순서대로 정렬하여 표시
+    classes = sorted(selected_classes, key=lambda c: c.class_number)
 
     # 표시 데이터 변환
     board_items = []
