@@ -21,7 +21,7 @@ import {
     Store,
     BarChart3
 } from "lucide-react";
-import { format } from 'date-fns';
+import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { toast } from "sonner";
 import api from "@/lib/api";
@@ -30,6 +30,7 @@ import { OwnerCharts } from '@/components/owner/OwnerCharts';
 import { OwnerAnalytics } from '@/components/owner/OwnerAnalytics';
 import { OwnerMembers } from '@/components/owner/OwnerMembers';
 import { cn } from '@/lib/utils';
+import { DateRange } from "react-day-picker";
 
 export default function OwnerDashboard() {
     const router = useRouter();
@@ -39,7 +40,12 @@ export default function OwnerDashboard() {
     const [storeName, setStoreName] = useState('');
     const [activeTab, setActiveTab] = useState<'dashboard' | 'analytics' | 'members'>('dashboard');
     const [period, setPeriod] = useState<'hourly' | 'daily' | 'weekly' | 'monthly'>('hourly');
-    const [startDate, setStartDate] = useState<Date>(new Date());
+
+    // Default range: This week for hourly/daily
+    const [dateRange, setDateRange] = useState<DateRange | undefined>({
+        from: startOfWeek(new Date(), { weekStartsOn: 1 }), // Monday
+        to: endOfWeek(new Date(), { weekStartsOn: 1 }) // Sunday
+    });
 
     // Today for display
     const today = new Date();
@@ -54,47 +60,12 @@ export default function OwnerDashboard() {
     const fetchStats = async () => {
         setRefreshing(true);
         try {
-            // Format dates for API
-            // For monthly: start_date should be first day of month, end_date last day (or backend handles it by period)
-            // For daily: usually means "recent daily trend" -> typically 7 days ending on startDate? 
-            // Or if backend expects a range. Let's send start_date as the anchor.
-            const formattedDate = format(startDate, 'yyyy-MM-dd');
+            const startStr = dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : '';
+            const endStr = dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : startStr;
 
-            // Construct query string
             let query = `/franchise/stats/store-dashboard?period=${period}`;
-
-            // If period is specific, maybe pass start/end. 
-            // Previous code review suggests backend uses start_date/end_date.
-            // Let's pass 'end_date' as selected date for 'hourly' (today) and 'daily' (recent until today).
-            // For monthly, usually we just need to know the month.
-
-            // Strategy:
-            // Hourly: Show data for 'startDate' (single day)
-            // Daily: Show trend ending at 'startDate' (e.g. last 7 days from startDate)
-            // Monthly: Show trend for the year containing 'startDate' or just the month? 
-            // Based on UI "Monthly Trend", likely means show data FOR that month or last 6 months?
-            // Let's stick to simplest interpretation:
-            // Pass 'end_date' = startDate. Backend defaults range based on period if start_date missing.
-            // Or better: pass `start_date` and `end_date`.
-
-            // Let's rely on backend defaults but override if needed. 
-            // Actually, if I look at backend code `get_store_analytics_dashboard`:
-            // if not start_date: if period == 'daily': start = today - 7 days.
-
-            // So to support date navigation:
-            // Hourly: start=startDate, end=startDate
-            // Daily: end=startDate, start=startDate - 6 days
-            // Monthly: start=startDate (first day), end=startDate (last day) -> show daily stats for that month?
-            // OR Monthly Trend (Jan, Feb, Mar...): end=startDate, start=startDate - 5 months?
-
-            // Let's try passing just 'end_date' as the selected 'anchor' date.
-            query += `&end_date=${formattedDate}`;
-
-            // For daily view (which shows trend), we want end_date to be the selected date.
-            // Backend logic needs to receive start_date too if we want a specific range.
-            // But let's start with just end_date and see if backend defaults logic works well with it (it uses today if missing).
-            // Actually wait, backend uses `today = date.today()` as default for end_date.
-            // If we provide end_date, it uses that.
+            if (startStr) query += `&start_date=${startStr}`;
+            if (endStr) query += `&end_date=${endStr}`;
 
             const response = await api.get(query);
             setStats(response.data);
@@ -107,9 +78,25 @@ export default function OwnerDashboard() {
         }
     };
 
+    // Handle period changes and set defaults
+    const handleSetPeriod = (newPeriod: 'hourly' | 'daily' | 'weekly' | 'monthly') => {
+        setPeriod(newPeriod);
+        if (newPeriod === 'monthly') {
+            setDateRange({
+                from: startOfMonth(new Date()),
+                to: endOfMonth(new Date())
+            });
+        } else {
+            setDateRange({
+                from: startOfWeek(new Date(), { weekStartsOn: 1 }),
+                to: endOfWeek(new Date(), { weekStartsOn: 1 })
+            });
+        }
+    };
+
     useEffect(() => {
         if (!loading && activeTab !== 'members') fetchStats();
-    }, [period, activeTab, startDate]);
+    }, [period, activeTab, dateRange]);
 
     const handleLogout = async () => {
         try {
@@ -325,5 +312,3 @@ export default function OwnerDashboard() {
         </div>
     );
 }
-
-// Sub-components can be moved to separate files as planned

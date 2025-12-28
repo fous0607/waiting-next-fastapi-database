@@ -2,23 +2,23 @@ import React, { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { OwnerCharts } from '@/components/owner/OwnerCharts';
 import { cn } from '@/lib/utils';
-import { Clock, TrendingUp, Users, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
-import { format, subDays, subMonths, addDays, addMonths, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
+import { Clock, TrendingUp, Users, Calendar as CalendarIcon, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
+import { format, subDays, subMonths, addDays, addMonths, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isSameMonth } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { Button } from "@/components/ui/button";
+import { DateRange } from "react-day-picker";
 
 interface OwnerAnalyticsProps {
     stats: any;
     loading: boolean;
     period: 'hourly' | 'daily' | 'weekly' | 'monthly';
     setPeriod: (period: 'hourly' | 'daily' | 'weekly' | 'monthly') => void;
-    startDate: Date;
-    setStartDate: (date: Date) => void;
+    dateRange: DateRange | undefined;
+    setDateRange: (range: DateRange | undefined) => void;
 }
 
-export function OwnerAnalytics({ stats, loading, period, setPeriod, startDate, setStartDate }: OwnerAnalyticsProps) {
+export function OwnerAnalytics({ stats, loading, period, setPeriod, dateRange, setDateRange }: OwnerAnalyticsProps) {
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
     // Helper to calculate peak hours
@@ -26,7 +26,6 @@ export function OwnerAnalytics({ stats, loading, period, setPeriod, startDate, s
         if (!stats?.hourly_stats?.length) return '-';
         const sorted = [...stats.hourly_stats].sort((a: any, b: any) => b.waiting_count - a.waiting_count);
         const peak = sorted[0];
-        // If the count is 0, it's not really a peak time
         if (peak.waiting_count === 0) return '-';
         return `${peak.hour}시`;
     };
@@ -38,32 +37,98 @@ export function OwnerAnalytics({ stats, loading, period, setPeriod, startDate, s
 
     // Helper to format date range display
     const getDateRangeDisplay = () => {
-        if (period === 'hourly') {
-            return format(startDate, 'yyyy.MM.dd (eee)', { locale: ko });
+        if (!dateRange?.from) return "날짜 선택";
+        const fromStr = format(dateRange.from, period === 'monthly' ? 'yyyy.MM' : 'yyyy.MM.dd', { locale: ko });
+        if (!dateRange.to || (period !== 'monthly' && format(dateRange.from, 'yyyy-MM-dd') === format(dateRange.to, 'yyyy-MM-dd'))) {
+            return fromStr;
         }
-        if (period === 'daily') {
-            // "Recent Daily" usually implies a range (e.g. last 7 days). 
-            // Here we assume startDate is the end of the range or start. 
-            // Let's assume startDate determines the anchor.
-            // For now, let's just show the anchor date or month.
-            return format(startDate, 'yyyy.MM.dd', { locale: ko }) + " 기준 7일";
-        }
-        if (period === 'monthly') {
-            return format(startDate, 'yyyy년 MM월', { locale: ko });
-        }
-        return format(startDate, 'yyyy.MM.dd', { locale: ko });
+        const toStr = format(dateRange.to, period === 'monthly' ? 'yyyy.MM' : 'yyyy.MM.dd', { locale: ko });
+        return `${fromStr} ~ ${toStr}`;
     };
 
     const handlePrevDate = () => {
-        if (period === 'hourly') setStartDate(subDays(startDate, 1));
-        else if (period === 'daily') setStartDate(subDays(startDate, 7));
-        else if (period === 'monthly') setStartDate(subMonths(startDate, 1));
+        if (!dateRange?.from || !dateRange?.to) return;
+        if (period === 'monthly') {
+            setDateRange({
+                from: startOfMonth(subMonths(dateRange.from, 1)),
+                to: endOfMonth(subMonths(dateRange.to, 1))
+            });
+        } else {
+            setDateRange({
+                from: subDays(dateRange.from, 7),
+                to: subDays(dateRange.to, 7)
+            });
+        }
     };
 
     const handleNextDate = () => {
-        if (period === 'hourly') setStartDate(addDays(startDate, 1));
-        else if (period === 'daily') setStartDate(addDays(startDate, 7));
-        else if (period === 'monthly') setStartDate(addMonths(startDate, 1));
+        if (!dateRange?.from || !dateRange?.to) return;
+        if (period === 'monthly') {
+            setDateRange({
+                from: startOfMonth(addMonths(dateRange.from, 1)),
+                to: endOfMonth(addMonths(dateRange.to, 1))
+            });
+        } else {
+            setDateRange({
+                from: addDays(dateRange.from, 7),
+                to: addDays(dateRange.to, 7)
+            });
+        }
+    };
+
+    // Custom Month Selection UI for Monthly period
+    const MonthPicker = () => {
+        const currentYear = 2025; // User specifically asked to fix 2026 year bug
+        const months = Array.from({ length: 12 }, (_, i) => i);
+
+        return (
+            <div className="p-3 bg-white border rounded-xl shadow-lg w-64">
+                <div className="flex items-center justify-between mb-4 px-2">
+                    <span className="font-bold text-slate-900">{currentYear}년</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                    {months.map((m) => {
+                        const dStart = startOfMonth(new Date(currentYear, m, 1));
+                        const dEnd = endOfMonth(new Date(currentYear, m, 1));
+
+                        const isSelectedFrom = dateRange?.from && isSameMonth(dStart, dateRange.from);
+                        const isSelectedTo = dateRange?.to && isSameMonth(dEnd, dateRange.to);
+                        const isInRange = dateRange?.from && dateRange?.to && dStart >= startOfMonth(dateRange.from) && dEnd <= endOfMonth(dateRange.to);
+
+                        return (
+                            <button
+                                key={m}
+                                onClick={() => {
+                                    if (!dateRange?.from || (dateRange.from && dateRange.to)) {
+                                        setDateRange({ from: dStart, to: dEnd });
+                                    } else {
+                                        if (dStart < dateRange.from) {
+                                            setDateRange({ from: dStart, to: endOfMonth(dateRange.from) });
+                                        } else {
+                                            setDateRange({ from: startOfMonth(dateRange.from), to: dEnd });
+                                        }
+                                        setIsCalendarOpen(false);
+                                    }
+                                }}
+                                className={cn(
+                                    "py-2.5 rounded-lg text-sm font-medium transition-all",
+                                    (isSelectedFrom || isSelectedTo) ? "bg-rose-500 text-white" :
+                                        isInRange ? "bg-rose-50 text-rose-600" :
+                                            "text-slate-600 hover:bg-slate-50"
+                                )}
+                            >
+                                {m + 1}월
+                            </button>
+                        );
+                    })}
+                </div>
+                {(dateRange?.from && isSameMonth(dateRange.from, dateRange.to || new Date(0))) ? (
+                    <div className="mt-3 text-[10px] text-center text-slate-400">
+                        종료 월을 선택하여 기간을 설정할 수 있습니다
+                    </div>
+                ) : null}
+            </div>
+        );
     };
 
     return (
@@ -86,7 +151,7 @@ export function OwnerAnalytics({ stats, loading, period, setPeriod, startDate, s
                 ))}
             </div>
 
-            {/* Date Navigator */}
+            {/* Date Range Navigator */}
             <div className="flex items-center justify-between px-4 py-2 bg-white rounded-xl border border-slate-100 mx-1 shadow-sm">
                 <button onClick={handlePrevDate} className="p-1 rounded-full hover:bg-slate-50 text-slate-400">
                     <ChevronLeft className="w-5 h-5" />
@@ -100,17 +165,22 @@ export function OwnerAnalytics({ stats, loading, period, setPeriod, startDate, s
                         </button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="center">
-                        <Calendar
-                            mode="single"
-                            selected={startDate}
-                            onSelect={(date) => {
-                                if (date) {
-                                    setStartDate(date);
-                                    setIsCalendarOpen(false);
-                                }
-                            }}
-                            initialFocus
-                        />
+                        {period === 'monthly' ? (
+                            <MonthPicker />
+                        ) : (
+                            <Calendar
+                                mode="range"
+                                selected={dateRange}
+                                onSelect={(range) => {
+                                    setDateRange(range);
+                                    if (range?.from && range?.to) {
+                                        setIsCalendarOpen(false);
+                                    }
+                                }}
+                                locale={ko}
+                                initialFocus
+                            />
+                        )}
                     </PopoverContent>
                 </Popover>
 
@@ -122,24 +192,23 @@ export function OwnerAnalytics({ stats, loading, period, setPeriod, startDate, s
             {/* Key Insights Cards */}
             <div className="grid grid-cols-2 gap-3 mx-1">
                 <Card className="border-none shadow-sm bg-indigo-50/50">
-                    <CardContent className="p-4 flex flex-col justify-between h-[100px]">
+                    <CardContent className="p-3 flex flex-col justify-between h-[80px]">
                         <div className="flex items-center gap-2 text-indigo-900/60">
                             <Clock className="w-4 h-4" />
-                            <span className="text-xs font-bold">가장 붐비는 시간</span>
+                            <span className="text-[11px] font-bold">가장 붐비는 시간</span>
                         </div>
-                        {/* Adjusted size and handling null/empty state */}
-                        <p className="text-lg font-bold text-indigo-900 truncate">
+                        <p className="text-base font-bold text-indigo-900 truncate">
                             {getPeakTime()}
                         </p>
                     </CardContent>
                 </Card>
                 <Card className="border-none shadow-sm bg-orange-50/50">
-                    <CardContent className="p-4 flex flex-col justify-between h-[100px]">
+                    <CardContent className="p-3 flex flex-col justify-between h-[80px]">
                         <div className="flex items-center gap-2 text-orange-900/60">
                             <TrendingUp className="w-4 h-4" />
-                            <span className="text-xs font-bold">평균 대기 시간</span>
+                            <span className="text-[11px] font-bold">평균 대기 시간</span>
                         </div>
-                        <p className="text-lg font-bold text-orange-900">{avgWaitTime}</p>
+                        <p className="text-base font-bold text-orange-900">{avgWaitTime}</p>
                     </CardContent>
                 </Card>
             </div>
