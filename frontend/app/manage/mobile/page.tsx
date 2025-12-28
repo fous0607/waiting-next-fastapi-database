@@ -130,17 +130,20 @@ function MobileManagerContent() {
                 {currentClassId ? (
                     sortedList.length > 0 ? (
                         sortedList.map((item) => (
-                            <Card key={item.id} className={`overflow-hidden transition-all ${item.status === 'called' ? 'border-orange-200 bg-orange-50 shadow-md ring-1 ring-orange-200' : ''}`}>
+                            <Card key={item.id} className={`relative overflow-visible transition-all ${item.status === 'called' ? 'border-orange-200 bg-orange-50 shadow-md ring-1 ring-orange-200' : ''}`}>
+                                {/* Revisit Badge - Top Right Absolute */}
+                                {item.revisit_count && item.revisit_count > 0 && (
+                                    <div className="absolute -top-2 -right-1 z-20">
+                                        <span className="bg-indigo-600 text-white px-2 py-0.5 rounded-full text-[11px] font-bold shadow-sm whitespace-nowrap">
+                                            재방문 {item.revisit_count}
+                                        </span>
+                                    </div>
+                                )}
                                 <CardContent className="p-4">
                                     <div className="flex justify-between items-start mb-3">
                                         <div>
                                             <div className="flex items-center gap-2">
                                                 <span className="text-2xl font-bold text-slate-900">#{item.waiting_number}</span>
-                                                {item.revisit_count && item.revisit_count > 0 ? (
-                                                    <span className="bg-yellow-100 text-yellow-800 text-[10px] px-1.5 py-0.5 rounded-full font-bold">
-                                                        재방문 {item.revisit_count}
-                                                    </span>
-                                                ) : null}
                                                 {item.status === 'called' && (
                                                     <span className="bg-orange-100 text-orange-700 text-xs px-2 py-0.5 rounded-full font-bold animate-pulse">
                                                         호출중

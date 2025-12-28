@@ -149,10 +149,19 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
         <>
             <div ref={setNodeRef} style={style} {...attributes}>
                 <Card className={cn(
-                    "hover:shadow-md transition-all",
+                    "hover:shadow-md transition-all relative overflow-visible",
                     item.status === 'called' && "border-yellow-400 bg-yellow-50/50 dark:bg-yellow-900/20",
                     isDragging && "shadow-2xl border-primary border-2 bg-primary/5"
                 )}>
+                    {/* Revisit Badge - Top Right Absolute */}
+                    {item.revisit_count != null && item.revisit_count > 0 && (
+                        <div className="absolute -top-2 -right-1 z-20">
+                            <Badge className="bg-indigo-600 text-white hover:bg-indigo-700 px-2 py-0.5 text-[11px] font-bold shadow-sm whitespace-nowrap">
+                                재방문 {item.revisit_count}
+                            </Badge>
+                        </div>
+                    )}
+
                     <CardContent className="flex items-center px-2 py-1.5">
                         {/* Drag Handle - Draggable area with grip icon */}
                         <div
@@ -175,11 +184,6 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                             <div className="flex items-center space-x-1.5">
                                 <h3 className="text-sm font-bold truncate tracking-tight">{item.name || item.phone.slice(-4)}</h3>
                                 {item.status === 'called' && <Badge className="bg-yellow-500 text-white hover:bg-yellow-600 px-1 py-0 text-[10px] h-4">호출</Badge>}
-                                {item.revisit_count != null && item.revisit_count > 0 && (
-                                    <Badge className="bg-indigo-500 text-white hover:bg-indigo-600 px-1 py-0 text-[10px] h-4 ml-1">
-                                        재방문 {item.revisit_count}
-                                    </Badge>
-                                )}
                             </div>
                             <div className="flex items-center text-[10px] text-muted-foreground mt-0.5">
                                 <Phone className="w-2.5 h-2.5 mr-1" />
