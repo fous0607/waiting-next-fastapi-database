@@ -8,6 +8,7 @@ import api from "@/lib/api";
 import useSWR from 'swr';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { MemberDetailModal } from './MemberDetailModal';
 
 interface Member {
     id: number;
@@ -247,54 +248,12 @@ export function OwnerMembers() {
             </div>
 
             {/* Member Details Modal */}
-            <Dialog open={!!selectedMember} onOpenChange={(open) => !open && setSelectedMember(null)}>
-                <DialogContent className="max-w-[90%] rounded-2xl p-0 overflow-hidden">
-                    <div className="bg-slate-900 p-6 text-white text-center">
-                        <div className="w-16 h-16 rounded-full bg-white/10 mx-auto flex items-center justify-center mb-3 backdrop-blur-sm">
-                            <User className="w-8 h-8 text-white" />
-                        </div>
-                        <DialogTitle className="text-xl font-bold">{selectedMember?.name}</DialogTitle>
-                        <DialogDescription className="text-slate-400 text-sm mt-1">{selectedMember && formatPhone(selectedMember.phone)}</DialogDescription>
-                    </div>
-
-                    <div className="p-5 space-y-4">
-                        <div className="flex justify-between items-center bg-slate-50 p-3 rounded-lg border border-slate-100">
-                            <span className="text-sm font-medium text-slate-600">
-                                {activeTab === 'ranking' ? '이번달 방문' : '누적 방문'}
-                            </span>
-                            <span className="text-lg font-bold text-slate-900">
-                                {selectedMember?.visit_count || '-'}회
-                            </span>
-                        </div>
-
-                        <div className="space-y-2">
-                            <h3 className="text-sm font-bold text-slate-900">최근 정보</h3>
-                            <div className="border-l-2 border-slate-200 pl-4 space-y-4 py-2 text-sm">
-                                {selectedMember?.last_visit ? (
-                                    <div className="relative">
-                                        <div className="absolute -left-[21px] top-1.5 w-3 h-3 rounded-full bg-slate-400 ring-4 ring-white" />
-                                        <p className="font-bold text-slate-800">마지막 방문일</p>
-                                        <p className="text-slate-500">{format(new Date(selectedMember.last_visit), 'yyyy년 MM월 dd일 HH:mm')}</p>
-                                    </div>
-                                ) : (
-                                    <p className="text-slate-500">방문 이력이 없습니다.</p>
-                                )}
-                                {selectedMember?.created_at && (
-                                    <div className="relative">
-                                        <div className="absolute -left-[21px] top-1.5 w-3 h-3 rounded-full bg-emerald-500 ring-4 ring-white" />
-                                        <p className="font-bold text-slate-800">가입일</p>
-                                        <p className="text-slate-500">{format(new Date(selectedMember.created_at), 'yyyy년 MM월 dd일')}</p>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        <Button className="w-full h-12 rounded-xl font-bold text-md" onClick={() => setSelectedMember(null)}>
-                            닫기
-                        </Button>
-                    </div>
-                </DialogContent>
-            </Dialog>
+            {/* Member Details Modal */}
+            <MemberDetailModal
+                member={selectedMember}
+                open={!!selectedMember}
+                onClose={() => setSelectedMember(null)}
+            />
         </div>
     );
 }
