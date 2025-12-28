@@ -101,6 +101,8 @@ export function OwnerAnalytics({ stats, loading, period, setPeriod, dateRange, s
                                 onClick={() => {
                                     if (!dateRange?.from || (dateRange.from && dateRange.to)) {
                                         setDateRange({ from: dStart, to: dEnd });
+                                        // Auto close if both selected (in case of single month selection)
+                                        // But usually we want to allow dStart -> dEnd transition.
                                     } else {
                                         if (dStart < dateRange.from) {
                                             setDateRange({ from: dStart, to: endOfMonth(dateRange.from) });

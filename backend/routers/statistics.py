@@ -12,6 +12,7 @@ from sse_manager import sse_manager, event_generator
 import schemas
 import models
 from utils import get_today_date
+from core.logger import logger
 
 router = APIRouter()
 
@@ -597,34 +598,31 @@ async def get_store_analytics_dashboard(
     매장용 분석 대시보드 데이터 조회
     - period: hourly(기본), daily, weekly, monthly
     """
-    today = date.today()
-    if not start_date:
-        if period == 'daily':
-            # "This Week" (Monday to Sunday)
-            start_date = today - timedelta(days=today.weekday())
-        else:
-            start_date = today
+    try:
+        today = date.today()
+        # Ensure we have date objects
+        local_start_date = start_date or today
+        local_end_date = end_date or today
+        
+        if not start_date and period == 'daily':
+            local_start_date = today - timedelta(days=today.weekday())
             
-    if not end_date:
-        end_date = today
-
-    store_id = current_store.id
-
-    # 1. Open Status Check (Today)
-    open_op = db.query(DailyClosing).filter(
-        DailyClosing.store_id == store_id,
-        DailyClosing.business_date == today,
-        DailyClosing.is_closed == False
-    ).first()
-    
-    # 2. Waiting & Attendance Data (Period)
-    # 전체 기간 데이터 조회 (KPI 계산용)
-    waitings_query = db.query(WaitingList).filter(
-        WaitingList.store_id == store_id,
-        WaitingList.business_date >= start_date,
-        WaitingList.business_date <= end_date
-    )
-    waitings = waitings_query.all()
+        store_id = current_store.id
+        
+        # 1. Open Status Check (Today)
+        open_op = db.query(DailyClosing).filter(
+            DailyClosing.store_id == store_id,
+            DailyClosing.business_date == today,
+            DailyClosing.is_closed == False
+        ).first()
+        
+        # 2. Waiting & Attendance Data (Period)
+        waitings_query = db.query(WaitingList).filter(
+            WaitingList.store_id == store_id,
+            WaitingList.business_date >= local_start_date,
+            WaitingList.business_date <= local_end_date
+        )
+        waitings = waitings_query.all()
 
     # Calculate Stats
     total_waiting_cnt = len(waitings)
@@ -768,8 +766,8 @@ async def get_store_analytics_dashboard(
         # 1. Waiting Counts
         w_groups = db.query(period_col, func.count(WaitingList.id)).filter(
             WaitingList.store_id == store_id,
-            WaitingList.business_date >= start_date,
-            WaitingList.business_date <= end_date
+            WaitingList.business_date >= local_start_date,
+            WaitingList.business_date <= local_end_date
         ).group_by(period_col).all()
         w_map = {str(r[0]): r[1] for r in w_groups if r[0] is not None}
 
@@ -777,8 +775,8 @@ async def get_store_analytics_dashboard(
         a_groups = db.query(period_col_attend, func.count(WaitingList.id)).filter(
             WaitingList.store_id == store_id,
             WaitingList.status == 'attended',
-            WaitingList.business_date >= start_date,
-            WaitingList.business_date <= end_date 
+            WaitingList.business_date >= local_start_date,
+            WaitingList.business_date <= local_end_date 
         ).group_by(period_col_attend).all()
         a_map = {str(r[0]): r[1] for r in a_groups if r[0] is not None}
 
@@ -817,8 +815,8 @@ async def get_store_analytics_dashboard(
     # 신규 회원 수 계산
     new_members_cnt = db.query(Member).filter(
         Member.store_id == store_id,
-        Member.created_at >= datetime.combine(start_date, datetime.min.time()),
-        Member.created_at <= datetime.combine(end_date, datetime.max.time())
+        Member.created_at >= datetime.combine(local_start_date, datetime.min.time()),
+        Member.created_at <= datetime.combine(local_end_date, datetime.max.time())
     ).count()
 
     # 재방문율 가계산 (기간 방문자 중 신규 제외)
@@ -845,6 +843,21 @@ async def get_store_analytics_dashboard(
         total_visitors=total_waiting_cnt,
         retention_rate=round(retention_rate, 1),
         top_churn_members=[] 
+    )
+
+except Exception as e:
+    logger.error(f"Error in get_store_analytics_dashboard: {str(e)}", exc_info=True)
+    # Fallback response to avoid 500
+    return schemas.AnalyticsDashboard(
+        total_stores=1,
+        open_stores=0,
+        total_waiting=0,
+        total_attendance=0,
+        waiting_time_stats=schemas.TimeStats(),
+        attendance_time_stats=schemas.TimeStats(),
+        hourly_stats=[],
+        store_stats=[],
+        total_visitors=0
     )
 
 
