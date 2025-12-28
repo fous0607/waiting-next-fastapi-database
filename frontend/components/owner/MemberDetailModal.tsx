@@ -81,6 +81,9 @@ export function MemberDetailModal({ member, open, onClose }: MemberDetailModalPr
     return (
         <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
             <DialogContent className="max-w-[340px] rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+                <DialogDescription className="sr-only">
+                    {member.name}님의 출석 현황 및 방문 이력입니다.
+                </DialogDescription>
                 {/* Header */}
                 <div className="bg-slate-900 p-6 pb-8 text-white text-center relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
