@@ -551,9 +551,57 @@ async def get_inactive_members(
             "phone": member.phone,
             "last_visit": last_visit,
             "days_since": (today - last_visit).days
-        }
-        for member, last_visit in results
     ]
+
+@router.get("/statistics/returning")
+async def get_returning_members(
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
+    current_store: Store = Depends(get_current_store),
+    db: Session = Depends(get_db)
+):
+    """
+    재방문 회원 조회 (기간 내 2회 이상 방문)
+    """
+    if not start_date:
+        today = date.today()
+        start_date = today - timedelta(days=30)
+    if not end_date:
+        end_date = date.today()
+
+    # Members who visited 2+ times
+    results = db.query(
+        Member.id,
+        Member.name,
+        Member.phone,
+        func.count(WaitingList.id).label("visit_count"),
+        func.max(WaitingList.attended_at).label("last_visit")
+    ).join(
+        WaitingList, Member.id == WaitingList.member_id
+    ).filter(
+        WaitingList.store_id == current_store.id,
+        WaitingList.status == "attended",
+        WaitingList.business_date >= start_date,
+        WaitingList.business_date <= end_date
+    ).group_by(
+        Member.id
+    ).having(
+        func.count(WaitingList.id) >= 2
+    ).order_by(
+        desc("visit_count")
+    ).all()
+
+    return [
+        {
+            "id": r.id,
+            "name": r.name,
+            "phone": r.phone,
+            "visit_count": r.visit_count,
+            "last_visit": r.last_visit
+        }
+        for r in results
+    ]
+
 async def upload_excel(
     file: UploadFile = File(...),
     current_store: Store = Depends(get_current_store),
