@@ -258,8 +258,8 @@ export function OwnerMembers() {
                         <div className="w-16 h-16 rounded-full bg-white/10 mx-auto flex items-center justify-center mb-3 backdrop-blur-sm">
                             <User className="w-8 h-8 text-white" />
                         </div>
-                        <h2 className="text-xl font-bold">{selectedMember?.name}</h2>
-                        <p className="text-slate-400 text-sm mt-1">{selectedMember && formatPhone(selectedMember.phone)}</p>
+                        <DialogTitle className="text-xl font-bold">{selectedMember?.name}</DialogTitle>
+                        <DialogDescription className="text-slate-400 text-sm mt-1">{selectedMember && formatPhone(selectedMember.phone)}</DialogDescription>
                     </div>
 
                     <div className="p-5 space-y-4">

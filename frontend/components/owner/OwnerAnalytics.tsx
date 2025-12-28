@@ -1,79 +1,145 @@
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState } from 'react';
+import { Card, CardContent } from "@/components/ui/card";
 import { OwnerCharts } from '@/components/owner/OwnerCharts';
-import { Button } from "@/components/ui/button";
 import { cn } from '@/lib/utils';
-import { Calendar, Clock, TrendingUp, Users } from 'lucide-react';
+import { Clock, TrendingUp, Users, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { format, subDays, subMonths, addDays, addMonths, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
+import { ko } from 'date-fns/locale';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Button } from "@/components/ui/button";
 
 interface OwnerAnalyticsProps {
     stats: any;
     loading: boolean;
     period: 'hourly' | 'daily' | 'weekly' | 'monthly';
     setPeriod: (period: 'hourly' | 'daily' | 'weekly' | 'monthly') => void;
+    startDate: Date;
+    setStartDate: (date: Date) => void;
 }
 
-export function OwnerAnalytics({ stats, loading, period, setPeriod }: OwnerAnalyticsProps) {
+export function OwnerAnalytics({ stats, loading, period, setPeriod, startDate, setStartDate }: OwnerAnalyticsProps) {
+    const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+
     // Helper to calculate peak hours
     const getPeakTime = () => {
         if (!stats?.hourly_stats?.length) return '-';
-        const sorted = [...stats.hourly_stats].sort((a, b) => b.waiting_count - a.waiting_count);
+        const sorted = [...stats.hourly_stats].sort((a: any, b: any) => b.waiting_count - a.waiting_count);
         const peak = sorted[0];
-        return peak ? `${peak.hour}시` : '-';
+        // If the count is 0, it's not really a peak time
+        if (peak.waiting_count === 0) return '-';
+        return `${peak.hour}시`;
     };
 
-    // Helper to calculate average waiting time (mock or from stats if available)
-    // Assuming stats might have waiting_time_stats from previous schema review
-    const avgWaitTime = stats?.waiting_time_stats?.avg
-        ? `${Math.round(stats.waiting_time_stats.avg)}분`
+    // Helper to calculate average waiting time
+    const avgWaitTime = stats?.time_stats?.avg
+        ? `${Math.round(stats.time_stats.avg)}분`
         : '-';
+
+    // Helper to format date range display
+    const getDateRangeDisplay = () => {
+        if (period === 'hourly') {
+            return format(startDate, 'yyyy.MM.dd (eee)', { locale: ko });
+        }
+        if (period === 'daily') {
+            // "Recent Daily" usually implies a range (e.g. last 7 days). 
+            // Here we assume startDate is the end of the range or start. 
+            // Let's assume startDate determines the anchor.
+            // For now, let's just show the anchor date or month.
+            return format(startDate, 'yyyy.MM.dd', { locale: ko }) + " 기준 7일";
+        }
+        if (period === 'monthly') {
+            return format(startDate, 'yyyy년 MM월', { locale: ko });
+        }
+        return format(startDate, 'yyyy.MM.dd', { locale: ko });
+    };
+
+    const handlePrevDate = () => {
+        if (period === 'hourly') setStartDate(subDays(startDate, 1));
+        else if (period === 'daily') setStartDate(subDays(startDate, 7));
+        else if (period === 'monthly') setStartDate(subMonths(startDate, 1));
+    };
+
+    const handleNextDate = () => {
+        if (period === 'hourly') setStartDate(addDays(startDate, 1));
+        else if (period === 'daily') setStartDate(addDays(startDate, 7));
+        else if (period === 'monthly') setStartDate(addMonths(startDate, 1));
+    };
 
     return (
         <div className="space-y-4 pb-20">
-            {/* Period Selector */}
+            {/* Period Selector Tabs */}
             <div className="flex bg-slate-100 p-1 rounded-xl mx-1">
-                <button
-                    onClick={() => setPeriod('hourly')}
-                    className={cn(
-                        "flex-1 py-1.5 rounded-lg text-xs font-bold transition-all",
-                        period === 'hourly'
-                            ? "bg-white text-slate-900 shadow-sm"
-                            : "text-slate-500 hover:text-slate-700"
-                    )}
-                >
-                    오늘 시간대별
+                {(['hourly', 'daily', 'monthly'] as const).map((p) => (
+                    <button
+                        key={p}
+                        onClick={() => setPeriod(p)}
+                        className={cn(
+                            "flex-1 py-1.5 rounded-lg text-xs font-bold transition-all relative",
+                            period === p
+                                ? "bg-white text-slate-900 shadow-sm z-10"
+                                : "text-slate-500 hover:text-slate-700"
+                        )}
+                    >
+                        {p === 'hourly' ? '시간대별' : p === 'daily' ? '일자별' : '월별'}
+                    </button>
+                ))}
+            </div>
+
+            {/* Date Navigator */}
+            <div className="flex items-center justify-between px-4 py-2 bg-white rounded-xl border border-slate-100 mx-1 shadow-sm">
+                <button onClick={handlePrevDate} className="p-1 rounded-full hover:bg-slate-50 text-slate-400">
+                    <ChevronLeft className="w-5 h-5" />
                 </button>
-                <div className="w-px bg-slate-200 my-1 mx-1" />
-                <button
-                    onClick={() => setPeriod('daily')}
-                    className={cn(
-                        "flex-1 py-1.5 rounded-lg text-xs font-bold transition-all",
-                        period === 'daily'
-                            ? "bg-white text-slate-900 shadow-sm"
-                            : "text-slate-500 hover:text-slate-700"
-                    )}
-                >
-                    최근 일자별
+
+                <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                    <PopoverTrigger asChild>
+                        <button className="flex items-center gap-2 text-sm font-bold text-slate-700 hover:bg-slate-50 px-3 py-1.5 rounded-lg transition-colors">
+                            <CalendarIcon className="w-4 h-4 text-slate-400" />
+                            {getDateRangeDisplay()}
+                        </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="center">
+                        <Calendar
+                            mode="single"
+                            selected={startDate}
+                            onSelect={(date) => {
+                                if (date) {
+                                    setStartDate(date);
+                                    setIsCalendarOpen(false);
+                                }
+                            }}
+                            initialFocus
+                        />
+                    </PopoverContent>
+                </Popover>
+
+                <button onClick={handleNextDate} className="p-1 rounded-full hover:bg-slate-50 text-slate-400">
+                    <ChevronRight className="w-5 h-5" />
                 </button>
             </div>
 
-            {/* Key Insights */}
+            {/* Key Insights Cards */}
             <div className="grid grid-cols-2 gap-3 mx-1">
                 <Card className="border-none shadow-sm bg-indigo-50/50">
-                    <CardContent className="p-4 flex flex-col gap-2">
+                    <CardContent className="p-4 flex flex-col justify-between h-[100px]">
                         <div className="flex items-center gap-2 text-indigo-900/60">
                             <Clock className="w-4 h-4" />
                             <span className="text-xs font-bold">가장 붐비는 시간</span>
                         </div>
-                        <p className="text-xl font-bold text-indigo-900">{getPeakTime()}</p>
+                        {/* Adjusted size and handling null/empty state */}
+                        <p className="text-lg font-bold text-indigo-900 truncate">
+                            {getPeakTime()}
+                        </p>
                     </CardContent>
                 </Card>
                 <Card className="border-none shadow-sm bg-orange-50/50">
-                    <CardContent className="p-4 flex flex-col gap-2">
+                    <CardContent className="p-4 flex flex-col justify-between h-[100px]">
                         <div className="flex items-center gap-2 text-orange-900/60">
                             <TrendingUp className="w-4 h-4" />
                             <span className="text-xs font-bold">평균 대기 시간</span>
                         </div>
-                        <p className="text-xl font-bold text-orange-900">{avgWaitTime}</p>
+                        <p className="text-lg font-bold text-orange-900">{avgWaitTime}</p>
                     </CardContent>
                 </Card>
             </div>
@@ -81,16 +147,17 @@ export function OwnerAnalytics({ stats, loading, period, setPeriod }: OwnerAnaly
             {/* Main Chart */}
             <div className="mx-1">
                 <OwnerCharts
-                    title={period === 'hourly' ? "시간대별 방문 현황" : "일자별 방문 추이"}
-                    data={stats?.hourly_stats || []} // The stats endpoint returns 'hourly_stats' even for daily view (renamed in backend logic usually, or we use different field)
-                    // Note: In stats endpoint, 'daily' period usually returns data in 'hourly_stats' field structure or we need to check stats structure again.
-                    // Based on previous files, 'hourly_stats' seems to be the main list.
+                    title={
+                        period === 'hourly' ? "시간대별 방문 현황" :
+                            period === 'daily' ? "일자별 방문 추이" : "월별 방문 추이"
+                    }
+                    data={stats?.hourly_stats || []}
                     loading={loading}
                     type={period === 'hourly' ? 'bar' : 'line'}
                 />
             </div>
 
-            {/* Additional Insights (Mock/Future) */}
+            {/* Retention Analysis */}
             <div className="mx-1 bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
                 <h3 className="font-bold text-slate-900 mb-3 flex items-center gap-2">
                     <Users className="w-4 h-4 text-rose-500" />
@@ -98,8 +165,10 @@ export function OwnerAnalytics({ stats, loading, period, setPeriod }: OwnerAnaly
                 </h3>
                 <div className="space-y-3">
                     <div className="flex items-center justify-between text-sm">
-                        <span className="text-slate-500">재방문율 (이번주)</span>
-                        <span className="font-bold text-slate-900">{stats?.retention_rate ? `${stats.retention_rate}%` : '-'}</span>
+                        <span className="text-slate-500">재방문율 (기간 내)</span>
+                        <span className="font-bold text-slate-900">
+                            {stats?.retention_rate !== undefined ? `${stats.retention_rate}%` : '-'}
+                        </span>
                     </div>
                     <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
                         <div
@@ -108,7 +177,7 @@ export function OwnerAnalytics({ stats, loading, period, setPeriod }: OwnerAnaly
                         />
                     </div>
                     <p className="text-xs text-slate-400 mt-2">
-                        * 재방문율은 전체 방문객 중 2회 이상 방문한 고객의 비율입니다.
+                        * 기간 내 방문객 중 2회 이상 방문한 고객의 비율입니다.
                     </p>
                 </div>
             </div>
