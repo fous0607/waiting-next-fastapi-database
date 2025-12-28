@@ -123,12 +123,10 @@ export function MemberDetailModal({ member, open, onClose }: MemberDetailModalPr
                                     modifiers={{ attended: attendedDates }}
                                     modifiersStyles={{
                                         attended: {
-                                            attended: {
-                                                backgroundColor: '#f43f5e', // rose-500
-                                                color: 'white',
-                                                fontWeight: 'bold',
-                                                borderRadius: '100%'
-                                            }
+                                            backgroundColor: '#f43f5e', // rose-500
+                                            color: 'white',
+                                            fontWeight: 'bold',
+                                            borderRadius: '100%'
                                         }
                                     }}
                                     locale={ko}
