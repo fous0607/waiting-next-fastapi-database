@@ -27,7 +27,7 @@ interface MemberDetailModalProps {
 
 export function MemberDetailModal({ member, open, onClose }: MemberDetailModalProps) {
     const [view, setView] = useState<'info' | 'calendar'>('info');
-    const [showMonthStats, setShowMonthStats] = useState(false);
+    const [showMonthStats, setShowMonthStats] = useState(true);
 
     // Fetch full history
     const { data: historyData, isLoading } = useSWR(
@@ -42,7 +42,7 @@ export function MemberDetailModal({ member, open, onClose }: MemberDetailModalPr
     React.useEffect(() => {
         if (open) {
             setView('info');
-            setShowMonthStats(false);
+            setShowMonthStats(true);
         }
     }, [open, member?.id]);
 
@@ -143,32 +143,25 @@ export function MemberDetailModal({ member, open, onClose }: MemberDetailModalPr
                     ) : (
                         <div className="flex-1 space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-200">
                             {/* Stats Card */}
-                            <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden group">
-                                <div className="absolute top-0 right-0 p-2 opacity-50">
+                            <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden group">
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="text-sm font-bold text-slate-500">
+                                        {showMonthStats ? '이번달 출석' : '총 출석 횟수'}
+                                    </span>
                                     <Button
                                         variant="ghost"
                                         size="sm"
                                         onClick={() => setShowMonthStats(!showMonthStats)}
-                                        className={cn(
-                                            "h-7 text-xs font-bold rounded-full px-3 transition-colors",
-                                            showMonthStats
-                                                ? "bg-rose-50 text-rose-600 hover:bg-rose-100 hover:text-rose-700"
-                                                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                                        )}
+                                        className="h-6 text-[11px] px-2 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200"
                                     >
-                                        {showMonthStats ? '이번달' : '전체'}
+                                        {showMonthStats ? '전체 보기' : '이번달 보기'}
                                     </Button>
                                 </div>
-                                <div className="pr-16">
-                                    <span className="text-xs font-bold text-slate-400 block mb-1">
-                                        {showMonthStats ? '이번달 출석' : '총 출석 횟수'}
+                                <div className="flex items-baseline gap-1">
+                                    <span className="text-4xl font-black text-slate-900 tracking-tight">
+                                        {displayCount}
                                     </span>
-                                    <div className="flex items-baseline gap-0.5">
-                                        <span className="text-3xl font-black text-slate-900 tracking-tight translate-y-[2px]">
-                                            {displayCount}
-                                        </span>
-                                        <span className="text-lg font-bold text-slate-400">회</span>
-                                    </div>
+                                    <span className="text-lg font-bold text-slate-400">회</span>
                                 </div>
                             </div>
 
@@ -183,9 +176,9 @@ export function MemberDetailModal({ member, open, onClose }: MemberDetailModalPr
                                     )}
                                 </div>
 
-                                <div className="space-y-0 relative">
+                                <div className="space-y-0 relative pl-2">
                                     {/* Timeline line */}
-                                    <div className="absolute left-[7px] top-2 bottom-2 w-[2px] bg-slate-100" />
+                                    <div className="absolute left-[15px] top-3 bottom-3 w-[2px] bg-slate-100" />
 
                                     {isLoading ? (
                                         <div className="py-8 text-center text-slate-400 text-xs">
@@ -196,33 +189,43 @@ export function MemberDetailModal({ member, open, onClose }: MemberDetailModalPr
                                             방문 이력이 없습니다.
                                         </div>
                                     ) : (
-                                        historyData.history.slice(0, 5).map((h: any, i: number) => (
-                                            <div key={h.id} className="relative pl-5 py-2 group">
-                                                <div className={cn(
-                                                    "absolute left-0 top-2.5 w-2.5 h-2.5 rounded-full ring-4 ring-white z-10",
-                                                    h.status === 'attended' ? "bg-rose-500" : "bg-slate-300"
-                                                )} />
-                                                <div className="flex justify-between items-start pl-1">
-                                                    <div>
-                                                        <div className="text-sm font-bold text-slate-700 leading-none mb-1">
-                                                            {safeParseDate(h.business_date)
-                                                                ? format(safeParseDate(h.business_date)!, 'yyyy.MM.dd')
-                                                                : '-'
-                                                            }
-                                                        </div>
-                                                        <div className="text-xs text-slate-400 font-medium">
-                                                            {h.class_name || '수업 정보 없음'}
-                                                        </div>
-                                                    </div>
+                                        historyData.history.slice(0, 5).map((h: any, i: number) => {
+                                            const date = safeParseDate(h.business_date);
+                                            return (
+                                                <div key={h.id} className="relative pl-8 py-3 group">
                                                     <div className={cn(
-                                                        "text-xs font-bold px-2 py-0.5 rounded-md",
-                                                        h.status === 'attended' ? "bg-rose-50 text-rose-600" : "bg-slate-100 text-slate-500"
-                                                    )}>
-                                                        {h.status === 'attended' ? '출석' : '결석'}
+                                                        "absolute left-[9px] top-4 w-3.5 h-3.5 rounded-full border-[3px] border-white shadow-sm z-10",
+                                                        h.status === 'attended' ? "bg-rose-500" : "bg-slate-300"
+                                                    )} />
+                                                    <div className="flex justify-between items-center">
+                                                        <div>
+                                                            <div className="flex items-center gap-2 mb-0.5">
+                                                                <span className="text-sm font-bold text-slate-800">
+                                                                    - {h.class_name || '수업'}
+                                                                </span>
+                                                            </div>
+                                                            <div className="flex items-center gap-2 text-xs text-slate-400 font-medium">
+                                                                <span>
+                                                                    {date ? format(date, 'yyyy.MM.dd') : '-'}
+                                                                </span>
+                                                                {h.start_time && (
+                                                                    <>
+                                                                        <span className="w-0.5 h-0.5 bg-slate-300 rounded-full" />
+                                                                        <span>{h.start_time.substring(0, 5)}</span>
+                                                                    </>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        <div className={cn(
+                                                            "text-[10px] font-bold px-2 py-1 rounded-full",
+                                                            h.status === 'attended' ? "bg-rose-50 text-rose-600" : "bg-slate-100 text-slate-500"
+                                                        )}>
+                                                            {h.status === 'attended' ? '출석' : '결석'}
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        ))
+                                            );
+                                        })
                                     )}
                                 </div>
                             </div>

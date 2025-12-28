@@ -239,6 +239,11 @@ export function OwnerMembers() {
                                             </span>
                                         )}
                                     </div>
+                                    {member.created_at && (
+                                        <div className="text-[10px] text-slate-400 font-medium pl-0.5 mt-0.5">
+                                            가입일 {format(new Date(member.created_at), 'yyyy.MM.dd')}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                             <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-400 transition-colors" />
