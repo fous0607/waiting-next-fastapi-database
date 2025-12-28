@@ -1,5 +1,6 @@
 
 "use client";
+import QRCode from 'react-qr-code';
 
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -159,6 +160,8 @@ export function GeneralSettings() {
         },
     });
 
+    const [storeCode, setStoreCode] = useState<string | null>(null);
+
     useEffect(() => {
         const loadVoices = () => {
             const availableVoices = window.speechSynthesis.getVoices();
@@ -180,6 +183,13 @@ export function GeneralSettings() {
                 const { data } = await api.get('/store/');
                 // Map backend response to form values
                 // Ensure null values are replaced with defaults for required numeric fields
+
+                // Store Code Handling
+                if (data.store_code) {
+                    setStoreCode(data.store_code);
+                    localStorage.setItem('store_code', data.store_code);
+                }
+
                 form.reset({
                     ...data,
                     display_classes_count: data.display_classes_count || 3,
@@ -421,38 +431,60 @@ export function GeneralSettings() {
                         <AccordionContent className="space-y-4 p-2">
                             <div className="rounded-lg border p-4 bg-slate-50">
                                 <div className="space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <div className="space-y-1">
-                                            <h4 className="text-sm font-medium">공용 대기접수 페이지</h4>
-                                            <p className="text-xs text-muted-foreground">
-                                                고객이 QR코드를 스캔하여 직접 대기를 접수할 수 있는 페이지입니다.
-                                            </p>
+                                    <div className="flex flex-col md:flex-row items-center gap-6">
+                                        <div className="p-4 bg-white rounded-xl shadow-sm border">
+                                            {/* QR Code Rendering */}
+                                            {(() => {
+                                                // Calculate URL safely on client side
+                                                if (typeof window === 'undefined' || !storeCode) return <div className="p-4 text-xs text-muted-foreground">매장 코드를 로딩중입니다...</div>;
+                                                const origin = window.location.origin;
+                                                const entryUrl = `${origin}/entry/${storeCode}`;
+
+                                                return (
+                                                    <div className="space-y-2 text-center">
+                                                        <QRCode value={entryUrl} size={150} />
+                                                        <div className="text-[10px] text-slate-400 mt-2">스캔하여 대기 접수</div>
+                                                    </div>
+                                                );
+                                            })()}
                                         </div>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                const storeCode = localStorage.getItem('store_id_for_qr') || '1'; // Need a way to get store code. For now fallback to current ID logic or fetch it
-                                                // Actually we can't easily get the store code here without extra API call if not in form data.
-                                                // But usually the URL is /entry/[store_code].
-                                                // Let's just open a generic help or rely on users to check their store code.
-                                                // Better: Add store_code to the settings form or fetch it.
-                                                // For now, let's just show a placeholder or basic link if possible.
-                                                window.open(`/entry/${localStorage.getItem('store_code') || 'demo'}`, '_blank');
-                                            }}
-                                        >
-                                            페이지 열기
-                                        </Button>
-                                    </div>
-                                    <div className="pt-2">
-                                        {/* We need the store code to generate the QR. 
-                                            Ideally we should fetch it. 
-                                            For this task, I will assume we can get it or just show a button to open the page. 
-                                            To make it robust, I should likely add store_code to the settings API response.
-                                         */}
-                                        <div className="text-xs text-slate-500">
-                                            * 실제 QR 코드는 매장 코드확인 후 생성됩니다. (URL: /entry/[매장코드])
+
+                                        <div className="space-y-2 flex-1">
+                                            <h4 className="text-sm font-medium">공용 대기접수 QR 코드</h4>
+                                            <p className="text-xs text-muted-foreground break-keep">
+                                                이 QR 코드를 인쇄하여 매장 입구나 카운터에 비치해주세요. <br />
+                                                고객이 별도의 앱 설치 없이 휴대폰 카메라로 스캔하여 바로 대기를 접수할 수 있습니다.
+                                            </p>
+
+                                            <div className="pt-2 flex gap-2">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        if (!storeCode) return;
+                                                        window.open(`/entry/${storeCode}`, '_blank');
+                                                    }}
+                                                    disabled={!storeCode}
+                                                >
+                                                    페이지 열기
+                                                </Button>
+                                                <Button
+                                                    variant="default"
+                                                    size="sm"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        window.print();
+                                                    }}
+                                                >
+                                                    인쇄하기
+                                                </Button>
+                                            </div>
+                                            <div className="pt-1">
+                                                <p className="text-[10px] text-slate-500 font-mono bg-slate-100 p-1 rounded inline-block">
+                                                    URL: {typeof window !== 'undefined' && storeCode ? `${window.location.origin}/entry/${storeCode}` : 'Loading...'}
+                                                </p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
