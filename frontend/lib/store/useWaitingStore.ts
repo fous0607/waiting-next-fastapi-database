@@ -24,6 +24,7 @@ export interface WaitingItem {
     registered_at: string;
     message?: string;
     is_empty_seat?: boolean;
+    member_id?: number;
 }
 
 interface WaitingState {

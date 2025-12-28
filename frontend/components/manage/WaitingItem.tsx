@@ -17,7 +17,7 @@ import {
     ArrowUp,
     ArrowDown,
     GripVertical,
-    UserPlus
+    ClipboardList
 } from "lucide-react";
 import {
     DropdownMenu,
@@ -36,7 +36,8 @@ import {
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
-import { toast } from "sonner"; // Assuming sonner is installed as per list_dir
+import { toast } from "sonner";
+import { MemberDetailModal } from "../owner/MemberDetailModal";
 
 interface WaitingItemProps {
     item: WaitingItemType;
@@ -56,6 +57,7 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
     const { classes, fetchWaitingList } = useWaitingStore();
     const [isMoveDialogOpen, setIsMoveDialogOpen] = useState(false);
     const [isNameDialogOpen, setIsNameDialogOpen] = useState(false);
+    const [isMemberDetailOpen, setIsMemberDetailOpen] = useState(false);
     const [newName, setNewName] = useState(item.name || "");
 
     const style = {
@@ -113,6 +115,13 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
     };
 
     const availableClasses = classes.filter(c => c.id !== item.class_id);
+
+    // Prepare member object for modal
+    const memberForModal = item.member_id ? {
+        id: item.member_id,
+        name: item.name || "",
+        phone: item.phone,
+    } : null;
 
     if (item.is_empty_seat) {
         return (
@@ -239,6 +248,12 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                                     }}>
                                         <CheckCircle className="w-4 h-4 mr-2" /> 이름 등록
                                     </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                        onSelect={() => setIsMemberDetailOpen(true)}
+                                        disabled={!item.member_id}
+                                    >
+                                        <ClipboardList className="w-4 h-4 mr-2" /> 출석 현황
+                                    </DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         </div>
@@ -319,6 +334,14 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                     </div>
                 </DialogContent>
             </Dialog>
+
+            {memberForModal && (
+                <MemberDetailModal
+                    member={memberForModal}
+                    open={isMemberDetailOpen}
+                    onClose={() => setIsMemberDetailOpen(false)}
+                />
+            )}
         </>
     );
 }
