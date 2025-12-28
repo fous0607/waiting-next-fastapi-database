@@ -20,6 +20,8 @@ from utils import get_today_date
 
 router = APIRouter()
 
+from sqlalchemy.exc import OperationalError
+
 def get_current_business_date(db: Session, store_id: int) -> date:
     """
     현재 영업일 조회 (Sync with daily_closing.py)
@@ -36,13 +38,23 @@ def get_current_business_date(db: Session, store_id: int) -> date:
         return active_closing.business_date
 
     # 2. 설정 기반 계산
-    # Select specific column to avoid error if new columns are missing in DB
-    start_hour = db.query(StoreSettings.business_day_start).filter(
-        StoreSettings.store_id == store_id
-    ).scalar()
-    
-    if start_hour is None:
-        start_hour = 7
+    start_hour = 7
+    try:
+        # Select specific column to avoid error if new columns are missing in DB
+        start_hour_scalar = db.query(StoreSettings.business_day_start).filter(
+            StoreSettings.store_id == store_id
+        ).scalar()
+        
+        if start_hour_scalar is not None:
+             start_hour = start_hour_scalar
+             
+    except OperationalError:
+        # 컬럼이 없는 경우 기본값 사용 (마이그레이션 과도기 대응)
+        pass
+    except Exception as e:
+        # 기타 에러는 로그만 남기고 기본값 사용
+        logger.error(f"Error fetching business_day_start: {e}")
+        pass
         
     return get_today_date(start_hour)
 
