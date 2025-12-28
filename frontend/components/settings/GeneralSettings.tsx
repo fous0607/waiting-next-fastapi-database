@@ -1,8 +1,8 @@
-
 "use client";
 import QRCode from 'react-qr-code';
 
 import { useEffect, useState } from 'react';
+import { Loader2, Copy, Check } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -161,6 +161,18 @@ export function GeneralSettings() {
     });
 
     const [storeCode, setStoreCode] = useState<string | null>(null);
+    const [isCopied, setIsCopied] = useState(false);
+
+    const handleCopyUrl = async (url: string) => {
+        try {
+            await navigator.clipboard.writeText(url);
+            setIsCopied(true);
+            toast.success('URL이 클립보드에 복사되었습니다.');
+            setTimeout(() => setIsCopied(false), 2000);
+        } catch (err) {
+            toast.error('URL 복사에 실패했습니다.');
+        }
+    };
 
     useEffect(() => {
         const loadVoices = () => {
@@ -262,7 +274,7 @@ export function GeneralSettings() {
         // Extract error messages and show the first one
         const firstErrorKey = Object.keys(errors)[0];
         const errorMessage = errors[firstErrorKey]?.message || "입력값을 확인해주세요.";
-        toast.error(`설정 저장 실패: ${errorMessage}`);
+        toast.error(`설정 저장 실패: ${errorMessage} `);
     };
 
     // Verify render and form state
@@ -438,7 +450,7 @@ export function GeneralSettings() {
                                                 // Calculate URL safely on client side
                                                 if (typeof window === 'undefined' || !storeCode) return <div className="p-4 text-xs text-muted-foreground">매장 코드를 로딩중입니다...</div>;
                                                 const origin = window.location.origin;
-                                                const entryUrl = `${origin}/entry/${storeCode}`;
+                                                const entryUrl = `${origin} /entry/${storeCode} `;
 
                                                 return (
                                                     <div className="space-y-2 text-center">
@@ -463,7 +475,7 @@ export function GeneralSettings() {
                                                     onClick={(e) => {
                                                         e.preventDefault();
                                                         if (!storeCode) return;
-                                                        window.open(`/entry/${storeCode}`, '_blank');
+                                                        window.open(`/ entry / ${storeCode} `, '_blank');
                                                     }}
                                                     disabled={!storeCode}
                                                 >
@@ -480,10 +492,24 @@ export function GeneralSettings() {
                                                     인쇄하기
                                                 </Button>
                                             </div>
-                                            <div className="pt-1">
-                                                <p className="text-[10px] text-slate-500 font-mono bg-slate-100 p-1 rounded inline-block">
-                                                    URL: {typeof window !== 'undefined' && storeCode ? `${window.location.origin}/entry/${storeCode}` : 'Loading...'}
-                                                </p>
+                                            <div className="pt-1 flex items-center gap-2">
+                                                <div className="bg-slate-100 p-1 px-2 rounded flex items-center gap-2 border">
+                                                    <p className="text-[10px] text-slate-500 font-mono">
+                                                        URL: {typeof window !== 'undefined' && storeCode ? `${window.location.origin} /entry/${storeCode} ` : 'Loading...'}
+                                                    </p>
+                                                    {typeof window !== 'undefined' && storeCode && (
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                handleCopyUrl(`${window.location.origin} /entry/${storeCode} `);
+                                                            }}
+                                                            className="text-slate-400 hover:text-slate-600 transition-colors"
+                                                            title="복사하기"
+                                                        >
+                                                            {isCopied ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
+                                                        </button>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -860,7 +886,7 @@ export function GeneralSettings() {
                                             <FormLabel>접수 완료 안내 메시지</FormLabel>
                                             <FormControl><Input placeholder="예: {클래스명}  {회원명}님 대기 접수 되었습니다." {...field} value={field.value ?? ''} /></FormControl>
                                             <FormDescription className="text-[10px]">
-                                                {`{클래스명}, {회원명}, {순번}을 사용할 수 있습니다. 공백을 2번 연속 입력하면 0.5초간 쉬고 읽어줍니다.`}
+                                                {`{ 클래스명 }, { 회원명 }, { 순번 }을 사용할 수 있습니다.공백을 2번 연속 입력하면 0.5초간 쉬고 읽어줍니다.`}
                                             </FormDescription>
                                         </FormItem>
                                     )}
@@ -874,7 +900,7 @@ export function GeneralSettings() {
                                             <FormLabel>호출 시 안내 메시지</FormLabel>
                                             <FormControl><Input placeholder="예: {순번}번 {회원명}님, 데스크로 오시기 바랍니다." {...field} value={field.value ?? ''} /></FormControl>
                                             <FormDescription className="text-[10px]">
-                                                {`{회원명}, {순번}을 사용할 수 있습니다. (대기현황판 전용)`}
+                                                {`{ 회원명 }, { 순번 }을 사용할 수 있습니다. (대기현황판 전용)`}
                                             </FormDescription>
                                         </FormItem>
                                     )}
