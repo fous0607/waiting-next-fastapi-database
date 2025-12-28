@@ -53,17 +53,30 @@ export function MemberDetailModal({ member, open, onClose }: MemberDetailModalPr
     };
 
     // Calculate stats
+    // Safe date parsing helper
+    const safeParseDate = (dateStr: string | null | undefined): Date | null => {
+        if (!dateStr) return null;
+        try {
+            const parsed = parseISO(dateStr);
+            if (isNaN(parsed.getTime())) return null;
+            return parsed;
+        } catch (e) {
+            return null;
+        }
+    };
+
     const totalVisits = historyData?.total_attended || 0;
-    const currentMonthVisits = historyData?.history?.filter((h: any) =>
-        h.status === 'attended' &&
-        isSameMonth(parseISO(h.business_date), new Date())
-    ).length || 0;
+    const currentMonthVisits = historyData?.history?.filter((h: any) => {
+        const date = safeParseDate(h.business_date);
+        return h.status === 'attended' && date && isSameMonth(date, new Date())
+    }).length || 0;
 
     const displayCount = showMonthStats ? currentMonthVisits : totalVisits;
 
     const attendedDates = historyData?.history
         ?.filter((h: any) => h.status === 'attended')
-        .map((h: any) => parseISO(h.business_date)) || [];
+        .map((h: any) => safeParseDate(h.business_date))
+        .filter((d: Date | null): d is Date => d !== null) || [];
 
     return (
         <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
@@ -161,9 +174,9 @@ export function MemberDetailModal({ member, open, onClose }: MemberDetailModalPr
                             <div className="space-y-3">
                                 <div className="flex items-center justify-between px-1">
                                     <h3 className="text-sm font-bold text-slate-900">최근 방문 이력</h3>
-                                    {historyData?.last_visit && (
+                                    {historyData?.last_visit && safeParseDate(historyData.last_visit) && (
                                         <span className="text-[10px] text-slate-400">
-                                            마지막: {format(parseISO(historyData.last_visit), 'MM.dd')}
+                                            마지막: {format(safeParseDate(historyData.last_visit)!, 'MM.dd')}
                                         </span>
                                     )}
                                 </div>
@@ -190,7 +203,10 @@ export function MemberDetailModal({ member, open, onClose }: MemberDetailModalPr
                                                 <div className="bg-white p-3 rounded-xl border border-slate-100 shadow-sm flex justify-between items-center group-hover:border-slate-200 transition-colors">
                                                     <div>
                                                         <div className="text-sm font-bold text-slate-700">
-                                                            {format(parseISO(h.business_date), 'yyyy.MM.dd')}
+                                                            {safeParseDate(h.business_date)
+                                                                ? format(safeParseDate(h.business_date)!, 'yyyy.MM.dd')
+                                                                : '-'
+                                                            }
                                                         </div>
                                                         <div className="text-xs text-slate-400 mt-0.5">
                                                             {h.class_name}
