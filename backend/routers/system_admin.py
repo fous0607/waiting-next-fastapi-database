@@ -790,17 +790,17 @@ async def create_user_for_franchise(
         )
 
     # 역할 검증
-    if user_create.role not in ['franchise_admin', 'store_admin', 'franchise_manager', 'store_reception', 'store_board', 'store_owner']:
+    if user_create.role not in ['franchise_admin', 'store_admin', 'franchise_manager', 'store_reception', 'store_board', 'store_owner', 'store_mobile']:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="올바르지 않은 역할입니다."
         )
 
     # 매장 관리자인 경우 매장 ID 필수
-    if user_create.role in ['store_admin', 'store_owner'] and not user_create.store_id:
+    if user_create.role in ['store_admin', 'store_owner', 'store_mobile'] and not user_create.store_id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="매장 관리자/사장님은 매장 ID가 필요합니다"
+            detail="매장 관리자/사장님/모바일 관리자는 매장 ID가 필요합니다"
         )
 
     # 매장 ID가 있는 경우 해당 매장이 프랜차이즈에 속하는지 확인
@@ -877,7 +877,7 @@ async def update_user(
             )
 
     # 역할 변경 시 검증
-    if user_update.role and user_update.role not in ['franchise_admin', 'store_admin', 'franchise_manager', 'system_admin', 'store_reception', 'store_board', 'store_owner']:
+    if user_update.role and user_update.role not in ['franchise_admin', 'store_admin', 'franchise_manager', 'system_admin', 'store_reception', 'store_board', 'store_owner', 'store_mobile']:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="올바르지 않은 역할입니다."
