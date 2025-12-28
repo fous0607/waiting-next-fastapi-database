@@ -600,11 +600,14 @@ async def get_store_analytics_dashboard(
     """
     try:
         today = date.today()
+        opening_date = current_store.created_at.date() if current_store.created_at else today
+        
         # Ensure we have date objects
-        local_start_date = start_date or today
+        # Default to opening_date if start_date is not provided
+        local_start_date = start_date or opening_date
         local_end_date = end_date or today
         
-        if not start_date and period == 'daily':
+        if not start_date and period == 'daily' and not (local_start_date == opening_date):
             local_start_date = today - timedelta(days=today.weekday())
             
         store_id = current_store.id
@@ -842,6 +845,7 @@ async def get_store_analytics_dashboard(
             total_revenue=total_revenue,
             total_visitors=total_waiting_cnt,
             retention_rate=round(retention_rate, 1),
+            opening_date=opening_date,
             top_churn_members=[] 
         )
 

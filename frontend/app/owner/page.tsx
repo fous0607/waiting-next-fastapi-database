@@ -41,11 +41,8 @@ export default function OwnerDashboard() {
     const [activeTab, setActiveTab] = useState<'dashboard' | 'analytics' | 'members'>('dashboard');
     const [period, setPeriod] = useState<'hourly' | 'daily' | 'weekly' | 'monthly'>('hourly');
 
-    // Default range: This week for hourly/daily
-    const [dateRange, setDateRange] = useState<DateRange | undefined>({
-        from: startOfWeek(new Date(), { weekStartsOn: 1 }), // Monday
-        to: endOfWeek(new Date(), { weekStartsOn: 1 }) // Sunday
-    });
+    // Default range: Initialized as undefined to get Lifetime stats (from opening_date) on first load
+    const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
 
     // Today for display
     const today = new Date();
@@ -69,6 +66,14 @@ export default function OwnerDashboard() {
 
             const response = await api.get(query);
             setStats(response.data);
+
+            // If dateRange is undefined (first load), initialize it with opening_date from backend
+            if (!dateRange && response.data.opening_date) {
+                setDateRange({
+                    from: new Date(response.data.opening_date),
+                    to: new Date()
+                });
+            }
         } catch (error) {
             console.error("Failed to fetch owner stats", error);
             toast.error("데이터를 불러오는데 실패했습니다.");

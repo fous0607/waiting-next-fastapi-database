@@ -553,6 +553,7 @@ class AnalyticsDashboard(BaseModel):
     total_visitors: int = 0
     new_members: int = 0
     retention_rate: float = 0.0
+    opening_date: Optional[date] = None
     
     # New fields for Enhanced Dashboard
     store_comparison: List[StoreComparisonStat] = []
