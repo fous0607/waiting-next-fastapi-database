@@ -143,7 +143,7 @@ export default function OwnerDashboard() {
                 </div>
             </header>
 
-            <main className="px-5 pt-4 pb-24 min-h-[calc(100vh-64px)]">
+            <main className="px-5 pt-1.5 pb-24 min-h-[calc(100vh-64px)]">
                 {activeTab === 'dashboard' && (
                     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
                         {/* Welcome Card */}

@@ -143,7 +143,7 @@ export function OwnerAnalytics({ stats, loading, period, setPeriod, dateRange, s
     };
 
     return (
-        <div className="space-y-4 pb-20">
+        <div className="space-y-2.5 pb-20">
             {/* Period Selector Tabs */}
             <div className="flex bg-slate-100 p-1 rounded-xl mx-1">
                 {(['hourly', 'daily', 'monthly'] as const).map((p) => (
@@ -209,8 +209,8 @@ export function OwnerAnalytics({ stats, loading, period, setPeriod, dateRange, s
 
             {/* Key Insights Cards */}
             <div className="grid grid-cols-2 gap-3 mx-1">
-                <Card className="border-none shadow-sm bg-indigo-50/50 overflow-hidden">
-                    <CardContent className="p-3 flex flex-col justify-center h-14">
+                <Card className="border-none shadow-sm bg-indigo-50/50 overflow-hidden py-0 gap-0 min-h-0">
+                    <CardContent className="px-3 py-2.5 flex flex-col justify-center min-h-0">
                         <div className="flex items-center gap-2 text-indigo-900/60 mb-0.5">
                             <Clock className="w-3.5 h-3.5" />
                             <span className="text-[10px] font-bold">가장 붐비는 시간</span>
@@ -220,8 +220,8 @@ export function OwnerAnalytics({ stats, loading, period, setPeriod, dateRange, s
                         </p>
                     </CardContent>
                 </Card>
-                <Card className="border-none shadow-sm bg-orange-50/50 overflow-hidden">
-                    <CardContent className="p-3 flex flex-col justify-center h-14">
+                <Card className="border-none shadow-sm bg-orange-50/50 overflow-hidden py-0 gap-0 min-h-0">
+                    <CardContent className="px-3 py-2.5 flex flex-col justify-center min-h-0">
                         <div className="flex items-center gap-2 text-orange-900/60 mb-0.5">
                             <TrendingUp className="w-3.5 h-3.5" />
                             <span className="text-[10px] font-bold">평균 대기 시간</span>
