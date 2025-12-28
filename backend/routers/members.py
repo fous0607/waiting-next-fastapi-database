@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Response
 from sqlalchemy.orm import Session
-from sqlalchemy import or_
+from sqlalchemy import or_, func, desc, and_
 from typing import List, Optional
 import openpyxl
 from io import BytesIO
+from datetime import datetime, date, timedelta
 
 from database import get_db
 from models import Member, Store, WaitingList, StoreSettings
@@ -421,7 +422,138 @@ async def get_sample_excel():
         headers={"Content-Disposition": "attachment; filename=member_sample.xlsx"}
     )
 
-@router.post("/upload-excel")
+@router.get("/statistics/ranking")
+async def get_member_attendance_ranking(
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
+    limit: int = 10,
+    current_store: Store = Depends(get_current_store),
+    db: Session = Depends(get_db)
+):
+    """
+    회원 출석 순위 조회 (기본값: 이번달)
+    """
+    if not start_date:
+        today = date.today()
+        start_date = date(today.year, today.month, 1)
+    if not end_date:
+        end_date = date.today()
+
+    # WaitingList(attended) + Member Join
+    results = db.query(
+        Member.id,
+        Member.name,
+        Member.phone,
+        func.count(WaitingList.id).label("visit_count"),
+        func.max(WaitingList.attended_at).label("last_visit")
+    ).join(
+        WaitingList, Member.id == WaitingList.member_id
+    ).filter(
+        WaitingList.store_id == current_store.id,
+        WaitingList.status == "attended",
+        WaitingList.business_date >= start_date,
+        WaitingList.business_date <= end_date
+    ).group_by(
+        Member.id
+    ).order_by(
+        desc("visit_count")
+    ).limit(limit).all()
+
+    return [
+        {
+            "id": r.id,
+            "name": r.name,
+            "phone": r.phone,
+            "visit_count": r.visit_count,
+            "last_visit": r.last_visit
+        }
+        for r in results
+    ]
+
+@router.get("/statistics/new")
+async def get_new_members_statistics(
+    period: str = "month", # today, week, month
+    current_store: Store = Depends(get_current_store),
+    db: Session = Depends(get_db)
+):
+    """
+    신규 회원 목록 조회
+    """
+    today = date.today()
+    start_date = today
+
+    if period == "week":
+        start_date = today - timedelta(days=today.weekday()) # This Monday
+    elif period == "month":
+        start_date = date(today.year, today.month, 1)
+    
+    # Filter by created_at (Member registration)
+    # Note: Member.created_at is DateTime, so we compare with date
+    query = db.query(Member).filter(
+        Member.store_id == current_store.id,
+        Member.created_at >= datetime.combine(start_date, datetime.min.time())
+    ).order_by(desc(Member.created_at))
+
+    results = query.all()
+
+    return [
+        {
+            "id": r.id,
+            "name": r.name,
+            "phone": r.phone,
+            "created_at": r.created_at,
+            "visit_count": 0 # Placeholder or separate query if needed
+        }
+        for r in results
+    ]
+
+@router.get("/statistics/inactive")
+async def get_inactive_members(
+    threshold_days: int = 30,
+    current_store: Store = Depends(get_current_store),
+    db: Session = Depends(get_db)
+):
+    """
+    장기 미출석 회원 조회 (최근 방문이 threshold_days 이전인 회원)
+    """
+    today = datetime.now()
+    threshold_date = today - timedelta(days=threshold_days)
+
+    # Subquery: Get last visit date for each member
+    last_visit_subquery = db.query(
+        WaitingList.member_id,
+        func.max(WaitingList.attended_at).label("last_visit")
+    ).filter(
+        WaitingList.store_id == current_store.id,
+        WaitingList.status == "attended"
+    ).group_by(
+        WaitingList.member_id
+    ).subquery()
+
+    # Members who have visited before but not recently
+    # Join Member with Subquery
+    results = db.query(
+        Member,
+        last_visit_subquery.c.last_visit
+    ).join(
+        last_visit_subquery, Member.id == last_visit_subquery.c.member_id
+    ).filter(
+        Member.store_id == current_store.id,
+        last_visit_subquery.c.last_visit < threshold_date
+    ).order_by(
+        last_visit_subquery.c.last_visit.asc() # Longest time since visit first
+    ).limit(50).all()
+
+    return [
+        {
+            "id": member.id,
+            "name": member.name,
+            "phone": member.phone,
+            "last_visit": last_visit,
+            "days_since": (today - last_visit).days
+        }
+        for member, last_visit in results
+    ]
 async def upload_excel(
     file: UploadFile = File(...),
     current_store: Store = Depends(get_current_store),
