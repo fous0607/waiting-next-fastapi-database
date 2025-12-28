@@ -63,7 +63,7 @@ export default function LoginContent() {
             localStorage.setItem('user_role', role);
 
             // Save store information for store-level users and dedicated terminals
-            if (store && (role === 'store_admin' || role === 'store_manager' || role === 'store_reception' || role === 'store_board' || role === 'store_owner')) {
+            if (store && (role === 'store_admin' || role === 'store_manager' || role === 'store_reception' || role === 'store_board' || role === 'store_owner' || role === 'store_mobile')) {
                 localStorage.setItem('selected_store_id', store.id.toString());
                 localStorage.setItem('selected_store_name', store.name);
                 localStorage.setItem('selected_store_code', store.code);
@@ -98,6 +98,8 @@ export default function LoginContent() {
                 window.location.href = '/board';
             } else if (role === 'store_owner') {
                 window.location.href = '/owner';
+            } else if (role === 'store_mobile') {
+                window.location.href = '/manage/mobile';
             } else {
                 // Store admins/managers go directly to home (Dashboard)
                 // If we are already at root, a reload will render the dashboard

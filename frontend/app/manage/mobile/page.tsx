@@ -32,13 +32,13 @@ function MobileManagerContent() {
     const [processingId, setProcessingId] = useState<number | null>(null);
 
     useEffect(() => {
-        const storeId = searchParams.get('store');
+        const storeId = searchParams.get('store') || localStorage.getItem('selected_store_id');
         if (storeId) {
             setStoreId(storeId);
         }
         fetchStoreStatus();
         fetchClasses();
-    }, [searchParams]);
+    }, [searchParams, setStoreId, fetchStoreStatus, fetchClasses]);
 
     // Derived state for the current waiting list
     const currentList = currentClassId ? (waitingList[currentClassId] || []) : [];

@@ -4,7 +4,7 @@ import { useWaitingStore } from "@/lib/store/useWaitingStore";
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Activity, Smartphone } from "lucide-react";
+import { ArrowLeft, Activity } from "lucide-react";
 import { ModeToggle } from "@/components/mode-toggle";
 import { SSEMonitor } from "./SSEMonitor";
 
@@ -37,11 +37,6 @@ export function ManageHeader() {
                 <Button variant="ghost" size="icon" onClick={() => setShowMonitor(true)} className="text-slate-500 hover:text-slate-900" title="연결 모니터링">
                     <Activity className="w-5 h-5" />
                 </Button>
-                <Link href={`/manage/mobile?store=${selectedStoreId || 1}`}>
-                    <Button variant="ghost" size="icon" title="모바일 뷰">
-                        <Smartphone className="w-5 h-5" />
-                    </Button>
-                </Link>
                 <ModeToggle />
                 <Link href="/">
                     <Button variant="outline">

@@ -14,8 +14,8 @@ import { Loader2 } from 'lucide-react';
 import api from '@/lib/api';
 
 const formSchema = z.object({
-    phone: z.string().regex(/^010\d{8}$/, '올바른 휴대폰 번호를 입력해주세요 (예: 01012345678)'),
-    name: z.string().min(1, '이름을 입력해주세요'),
+    phone: z.string().min(8, '휴대폰 번호를 입력해주세요 (예: 01012345678 또는 12345678)'),
+    name: z.string().optional(),
 });
 
 export default function EntryPage({ params }: { params: Promise<{ store_code: string }> }) {
@@ -28,7 +28,7 @@ export default function EntryPage({ params }: { params: Promise<{ store_code: st
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            phone: '',
+            phone: '010',
             name: '',
         },
     });
@@ -51,9 +51,30 @@ export default function EntryPage({ params }: { params: Promise<{ store_code: st
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         setRegistering(true);
         try {
-            await api.post(`/public/waiting/${store_code}/register`, values);
+            // Process phone number: ensure it starts with 010
+            let processedPhone = values.phone.replace(/[^0-9]/g, '');
+            if (processedPhone.length === 8) {
+                processedPhone = '010' + processedPhone;
+            } else if (processedPhone.length === 11 && !processedPhone.startsWith('010')) {
+                // Keep as is or handle? Typical KR mobile is 010.
+            } else if (processedPhone.length < 8) {
+                toast.error('올바른 휴대폰 번호를 입력해주세요.');
+                setRegistering(false);
+                return;
+            }
+
+            // Process name: if empty, use last 4 digits of phone
+            const processedName = values.name && values.name.trim() !== ''
+                ? values.name
+                : processedPhone.slice(-4);
+
+            await api.post(`/public/waiting/${store_code}/register`, {
+                phone: processedPhone,
+                name: processedName
+            });
+
             toast.success('대기가 접수되었습니다.');
-            router.push(`/entry/${store_code}/status?phone=${values.phone}`);
+            router.push(`/entry/${store_code}/status?phone=${processedPhone}`);
         } catch (error: any) {
             toast.error(error.response?.data?.detail || '대기 접수에 실패했습니다.');
         } finally {
@@ -78,7 +99,8 @@ export default function EntryPage({ params }: { params: Promise<{ store_code: st
                     </div>
                     <CardTitle className="text-2xl">{store.name}</CardTitle>
                     <CardDescription>
-                        휴대폰 번호와 성함을 입력하여 대기를 등록해주세요.
+                        휴대폰 번호를 입력하여 대기를 등록해주세요.<br />
+                        <span className="text-xs text-muted-foreground">(성함을 입력하지 않으면 휴대폰 번호 뒷자리로 등록됩니다)</span>
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -102,9 +124,9 @@ export default function EntryPage({ params }: { params: Promise<{ store_code: st
                                 name="name"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>성함</FormLabel>
+                                        <FormLabel>성함 (선택)</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="홍길동" {...field} className="text-lg h-12" />
+                                            <Input placeholder="미입력 시 휴대폰 뒷자리" {...field} className="text-lg h-12" />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
