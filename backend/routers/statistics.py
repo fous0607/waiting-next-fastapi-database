@@ -901,7 +901,7 @@ async def get_member_visit_history(
             "attended_at": h.attended_at.isoformat() if h.attended_at else None,
             "status": h.status,
             "class_name": class_info.class_name if class_info else f"{h.class_order}교시",
-            "start_time": class_info.start_time.strftime("%H:%M") if class_info and class_info.start_time else None
+            "start_time": ((h.attended_at or h.registered_at) + timedelta(hours=9)).strftime("%H:%M")
         })
 
     return {
