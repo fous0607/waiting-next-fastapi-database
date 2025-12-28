@@ -17,7 +17,8 @@ import {
     ArrowUp,
     ArrowDown,
     GripVertical,
-    ClipboardList
+    ClipboardList,
+    UserPlus
 } from "lucide-react";
 import {
     DropdownMenu,
