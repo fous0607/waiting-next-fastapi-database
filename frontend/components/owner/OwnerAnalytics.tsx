@@ -182,17 +182,19 @@ export function OwnerAnalytics({ stats, loading, period, setPeriod, dateRange, s
                             <Calendar
                                 mode="range"
                                 selected={dateRange}
-                                onSelect={(range) => {
+                                onSelect={(range, selectedDay) => {
+                                    // If we already have a full range, start a new selection with the clicked day
+                                    if (dateRange?.from && dateRange?.to) {
+                                        setDateRange({ from: selectedDay, to: undefined });
+                                        return;
+                                    }
+
                                     setDateRange(range);
-                                    // Robust closing logic:
-                                    // 1. If 'from' and 'to' are different -> Full range selected, close.
-                                    // 2. If same day is clicked twice or it's a new 'from', react-day-picker 
-                                    // often returns from == to or only from.
-                                    if (range?.from && range?.to) {
-                                        // ONLY close if we have an actual range (distinct dates)
-                                        if (format(range.from, 'yyyy-MM-dd') !== format(range.to, 'yyyy-MM-dd')) {
-                                            setIsCalendarOpen(false);
-                                        }
+
+                                    // Close only when a full distinct range is selected
+                                    if (range?.from && range?.to &&
+                                        format(range.from, 'yyyy-MM-dd') !== format(range.to, 'yyyy-MM-dd')) {
+                                        setIsCalendarOpen(false);
                                     }
                                 }}
                                 locale={ko}
