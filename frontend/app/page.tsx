@@ -21,9 +21,10 @@ import { toast } from "sonner";
 import NoticeWidget from "@/components/notice/NoticeWidget";
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
+import LoginContent from "@/components/auth/LoginContent"; // Import LoginContent
 
 
-export default function DashboardPage() {
+function DashboardContent() {
   const { reset } = useWaitingStore();
   const router = useRouter();
   const [storeName, setStoreName] = useState('');
@@ -457,4 +458,27 @@ export default function DashboardPage() {
       </div>
     </div>
   );
+}
+
+export default function DashboardPage() {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    // Check for token on client side
+    const token = localStorage.getItem('access_token');
+    setIsAuthenticated(!!token);
+  }, []);
+
+  // Show loading or nothing while checking auth
+  if (isAuthenticated === null) {
+    return <div className="min-h-screen bg-slate-50" />;
+  }
+
+  // If not authenticated, show LoginContent
+  if (!isAuthenticated) {
+    return <LoginContent />;
+  }
+
+  // If authenticated, show DashboardContent
+  return <DashboardContent />;
 }
