@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -18,7 +18,8 @@ const formSchema = z.object({
     name: z.string().min(1, '이름을 입력해주세요'),
 });
 
-export default function EntryPage({ params }: { params: { store_code: string } }) {
+export default function EntryPage({ params }: { params: Promise<{ store_code: string }> }) {
+    const { store_code } = use(params);
     const router = useRouter();
     const [store, setStore] = useState<any>(null);
     const [loading, setLoading] = useState(true);
@@ -34,8 +35,9 @@ export default function EntryPage({ params }: { params: { store_code: string } }
 
     useEffect(() => {
         const fetchStore = async () => {
+            if (!store_code) return;
             try {
-                const { data } = await api.get(`/public/store/${params.store_code}`);
+                const { data } = await api.get(`/public/store/${store_code}`);
                 setStore(data);
             } catch (error) {
                 toast.error('매장 정보를 불러올 수 없습니다.');
@@ -44,14 +46,14 @@ export default function EntryPage({ params }: { params: { store_code: string } }
             }
         };
         fetchStore();
-    }, [params.store_code]);
+    }, [store_code]);
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         setRegistering(true);
         try {
-            await api.post(`/public/waiting/${params.store_code}/register`, values);
+            await api.post(`/public/waiting/${store_code}/register`, values);
             toast.success('대기가 접수되었습니다.');
-            router.push(`/entry/${params.store_code}/status?phone=${values.phone}`);
+            router.push(`/entry/${store_code}/status?phone=${values.phone}`);
         } catch (error: any) {
             toast.error(error.response?.data?.detail || '대기 접수에 실패했습니다.');
         } finally {
@@ -115,7 +117,7 @@ export default function EntryPage({ params }: { params: { store_code: string } }
                     </Form>
 
                     <div className="mt-6 text-center">
-                        <Button variant="link" size="sm" onClick={() => router.push(`/entry/${params.store_code}/status`)}>
+                        <Button variant="link" size="sm" onClick={() => router.push(`/entry/${store_code}/status`)}>
                             내 대기 순서 확인하기
                         </Button>
                     </div>

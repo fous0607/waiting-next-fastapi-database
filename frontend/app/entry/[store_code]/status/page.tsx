@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, use } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -134,11 +134,13 @@ function StatusContent({ storeCode }: { storeCode: string }) {
     );
 }
 
-export default function StatusPage({ params }: { params: { store_code: string } }) {
+export default function StatusPage({ params }: { params: Promise<{ store_code: string }> }) {
+    const { store_code } = use(params);
+
     return (
         <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
             <Suspense fallback={<div className="flex justify-center"><Loader2 className="animate-spin" /></div>}>
-                <StatusContent storeCode={params.store_code} />
+                <StatusContent storeCode={store_code} />
             </Suspense>
         </div>
     );
