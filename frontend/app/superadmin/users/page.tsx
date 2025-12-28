@@ -378,6 +378,7 @@ export default function UsersPage() {
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="franchise_admin">프랜차이즈 관리자</SelectItem>
+                                        <SelectItem value="franchise_manager">중간 관리자</SelectItem>
                                         <SelectItem value="store_admin">매장 관리자</SelectItem>
                                         <SelectItem value="store_reception">대기접수 데스크</SelectItem>
                                         <SelectItem value="store_board">대기현황판</SelectItem>
@@ -504,8 +505,8 @@ export default function UsersPage() {
                             </Select>
                         </div>
 
-                        {/* Franchise Selection (Visible for Franchise Admin & Store roles & Franchise Manager) */}
-                        {(editForm.role === 'franchise_admin' || ['store_admin', 'store_reception', 'store_board'].includes(editForm.role) || editForm.role === 'franchise_manager') && (
+                        {/* Franchise Selection - Show for all roles except system_admin */}
+                        {editForm.role && editForm.role !== 'system_admin' && (
                             <div className="grid gap-2">
                                 <Label htmlFor="edit-franchise">프랜차이즈</Label>
                                 <Select
