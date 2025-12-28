@@ -896,11 +896,12 @@ async def get_member_visit_history(
         class_info = db.query(models.ClassInfo).filter(models.ClassInfo.id == h.class_id).first()
         history_list.append({
             "id": h.id,
-            "business_date": h.business_date.strftime("%Y.%m.%d"),
+            "business_date": h.business_date.strftime("%Y-%m-%d"),
             "registered_at": h.registered_at.isoformat(),
             "attended_at": h.attended_at.isoformat() if h.attended_at else None,
             "status": h.status,
-            "class_name": class_info.class_name if class_info else f"{h.class_order}교시"
+            "class_name": class_info.class_name if class_info else f"{h.class_order}교시",
+            "start_time": class_info.start_time.strftime("%H:%M") if class_info and class_info.start_time else None
         })
 
     return {

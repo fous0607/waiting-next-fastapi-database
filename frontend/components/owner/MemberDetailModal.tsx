@@ -97,9 +97,12 @@ export function MemberDetailModal({ member, open, onClose }: MemberDetailModalPr
                             <User className="w-8 h-8 text-slate-400" />
                         </div>
                         <DialogTitle className="text-xl font-bold mb-1">{member.name}</DialogTitle>
-                        <DialogDescription className="text-slate-400 font-medium tracking-wide">
+                        <a
+                            href={`tel:${member.phone}`}
+                            className="text-lg font-bold text-slate-200 hover:text-white transition-colors tracking-wide block mt-1"
+                        >
                             {formatPhone(member.phone)}
-                        </DialogDescription>
+                        </a>
                     </div>
                 </div>
 
@@ -130,7 +133,8 @@ export function MemberDetailModal({ member, open, onClose }: MemberDetailModalPr
                                         }
                                     }}
                                     locale={ko}
-                                    className="p-0 pointer-events-none" // View only
+                                    // Removed pointer-events-none to enable navigation
+                                    className="p-0"
                                 />
                             </div>
                             <div className="mt-4 flex gap-2">
@@ -166,7 +170,7 @@ export function MemberDetailModal({ member, open, onClose }: MemberDetailModalPr
                             </div>
 
                             {/* Recent History */}
-                            <div className="space-y-3">
+                            <div className="space-y-3 flex-1 flex flex-col min-h-0">
                                 <div className="flex items-center justify-between px-1">
                                     <h3 className="text-sm font-bold text-slate-900">최근 방문 이력</h3>
                                     {historyData?.last_visit && safeParseDate(historyData.last_visit) && (
@@ -176,9 +180,9 @@ export function MemberDetailModal({ member, open, onClose }: MemberDetailModalPr
                                     )}
                                 </div>
 
-                                <div className="space-y-0 relative pl-2">
-                                    {/* Timeline line */}
-                                    <div className="absolute left-[15px] top-3 bottom-3 w-[2px] bg-slate-100" />
+                                <div className="space-y-0 relative pl-2 max-h-[220px] overflow-y-auto custom-scrollbar">
+                                    {/* Timeline line - Extended height to cover scrolling area visual */}
+                                    <div className="absolute left-[15px] top-3 bottom-0 w-[2px] bg-slate-100" />
 
                                     {isLoading ? (
                                         <div className="py-8 text-center text-slate-400 text-xs">
@@ -189,31 +193,31 @@ export function MemberDetailModal({ member, open, onClose }: MemberDetailModalPr
                                             방문 이력이 없습니다.
                                         </div>
                                     ) : (
-                                        historyData.history.slice(0, 5).map((h: any, i: number) => {
+                                        historyData.history.map((h: any, i: number) => {
                                             const date = safeParseDate(h.business_date);
                                             return (
-                                                <div key={h.id} className="relative pl-8 py-3 group">
+                                                <div key={h.id} className="relative pl-8 py-2 group">
                                                     <div className={cn(
-                                                        "absolute left-[9px] top-4 w-3.5 h-3.5 rounded-full border-[3px] border-white shadow-sm z-10",
-                                                        h.status === 'attended' ? "bg-rose-500" : "bg-slate-300"
+                                                        "absolute left-[10px] top-[18px] w-3 h-3 rounded-full border-[2px] border-white shadow-sm z-10",
+                                                        // Changed red dot to slate color as requested (initial list style)
+                                                        "bg-slate-300"
                                                     )} />
                                                     <div className="flex justify-between items-center">
                                                         <div>
                                                             <div className="flex items-center gap-2 mb-0.5">
                                                                 <span className="text-sm font-bold text-slate-800">
-                                                                    - {h.class_name || '수업'}
+                                                                    - {h.class_name || '1교시'}
                                                                 </span>
+                                                                {h.start_time && (
+                                                                    <span className="text-xs text-slate-500 font-medium">
+                                                                        {h.start_time.substring(0, 5)}
+                                                                    </span>
+                                                                )}
                                                             </div>
                                                             <div className="flex items-center gap-2 text-xs text-slate-400 font-medium">
                                                                 <span>
                                                                     {date ? format(date, 'yyyy.MM.dd') : '-'}
                                                                 </span>
-                                                                {h.start_time && (
-                                                                    <>
-                                                                        <span className="w-0.5 h-0.5 bg-slate-300 rounded-full" />
-                                                                        <span>{h.start_time.substring(0, 5)}</span>
-                                                                    </>
-                                                                )}
                                                             </div>
                                                         </div>
                                                         <div className={cn(
