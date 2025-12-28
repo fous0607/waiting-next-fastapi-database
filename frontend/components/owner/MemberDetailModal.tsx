@@ -122,7 +122,8 @@ export function MemberDetailModal({ member, open, onClose }: MemberDetailModalPr
                             </div>
                             <div className="bg-white rounded-2xl p-2 shadow-sm border border-slate-100">
                                 <Calendar
-                                    mode="default"
+                                    mode="single" // Using 'single' without onSelect makes it read-only but interactive
+                                    selected={undefined}
                                     modifiers={{ attended: attendedDates }}
                                     modifiersStyles={{
                                         attended: {
@@ -133,8 +134,7 @@ export function MemberDetailModal({ member, open, onClose }: MemberDetailModalPr
                                         }
                                     }}
                                     locale={ko}
-                                    // Removed pointer-events-none to enable navigation
-                                    className="p-0"
+                                    className="p-3 bg-white rounded-lg" // Ensure padding for navigation buttons
                                 />
                             </div>
                             <div className="mt-4 flex gap-2">
