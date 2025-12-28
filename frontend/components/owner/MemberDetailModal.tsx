@@ -204,12 +204,13 @@ export function MemberDetailModal({ member, open, onClose }: MemberDetailModalPr
                                                     )} />
                                                     <div className="flex justify-between items-center">
                                                         <div>
-                                                            <div className="flex items-center gap-2 mb-0.5">
+                                                            <div className="flex items-center gap-1 mb-0.5">
+                                                                <span className="text-sm font-bold text-slate-400 mr-1">-</span>
                                                                 <span className="text-sm font-bold text-slate-800">
-                                                                    - {h.class_name || '1교시'}
+                                                                    {h.class_name || '1교시'}
                                                                 </span>
                                                                 {h.start_time && (
-                                                                    <span className="text-xs text-slate-500 font-medium">
+                                                                    <span className="text-xs text-slate-500 font-medium ml-1">
                                                                         {h.start_time.substring(0, 5)}
                                                                     </span>
                                                                 )}
