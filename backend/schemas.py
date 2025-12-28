@@ -48,6 +48,11 @@ class StoreSettingsBase(BaseModel):
     # 개점 설정
     daily_opening_rule: str = "strict"
 
+    # 대기자 재방문 설정 (Revisit Badge)
+    enable_revisit_badge: bool = False
+    revisit_period_days: int = 0
+
+
     # 대기접수 완료 모달 설정
     waiting_modal_timeout: int = 5
     show_member_name_in_waiting_modal: bool = True
@@ -135,6 +140,10 @@ class StoreSettingsUpdate(BaseModel):
 
     # 개점 설정
     daily_opening_rule: Optional[str] = None
+
+    # 대기자 재방문 설정
+    enable_revisit_badge: Optional[bool] = None
+    revisit_period_days: Optional[int] = None
 
     # 대기접수 완료 모달 설정
     waiting_modal_timeout: Optional[int] = None
@@ -308,6 +317,7 @@ class WaitingListResponse(BaseModel):
     message: str
     last_month_attendance_count: int = 0
     is_new_member: bool = False
+    revisit_count: int = 0 # 재방문 횟수 (0이면 배지 미표시)
 
     class Config:
         from_attributes = True

@@ -75,7 +75,10 @@ async def get_store_settings(
             defer(StoreSettings.registration_message),
             defer(StoreSettings.max_dashboard_connections),
             defer(StoreSettings.dashboard_connection_policy),
-            defer(StoreSettings.sequential_closing)
+            defer(StoreSettings.dashboard_connection_policy),
+            defer(StoreSettings.sequential_closing),
+            defer(StoreSettings.enable_revisit_badge),
+            defer(StoreSettings.revisit_period_days)
         ).filter(
             StoreSettings.store_id == current_store.id
         ).first()
@@ -115,6 +118,8 @@ async def get_store_settings(
             set_default(settings, 'max_dashboard_connections', 2)
             set_default(settings, 'dashboard_connection_policy', "eject_old")
             set_default(settings, 'sequential_closing', False)
+            set_default(settings, 'enable_revisit_badge', False)
+            set_default(settings, 'revisit_period_days', 0)
 
     if not settings:
         # 기본 설정 생성
@@ -406,8 +411,14 @@ async def clone_store_settings(
         # 프랜차이즈 모니터링 (이미 제거됨, but keeping code clean means ignore/remove if present in dict, but DB model has it)
         # Note: We removed it from UI, but model still has it. Currently defer/migrated logic handles it. 
         # We can copy it or skip it. Let's copy it to be safe in case it's used backend-side.
+        # Note: We removed it from UI, but model still has it. Currently defer/migrated logic handles it. 
+        # We can copy it or skip it. Let's copy it to be safe in case it's used backend-side.
         "enable_franchise_monitoring": source_settings.enable_franchise_monitoring,
-        "sequential_closing": source_settings.sequential_closing
+        "sequential_closing": source_settings.sequential_closing,
+        
+        # 대기자 재방문 설정
+        "enable_revisit_badge": source_settings.enable_revisit_badge,
+        "revisit_period_days": source_settings.revisit_period_days
     }
 
     if target_settings:

@@ -174,7 +174,12 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                         <div className="flex-1 min-w-0">
                             <div className="flex items-center space-x-1.5">
                                 <h3 className="text-sm font-bold truncate tracking-tight">{item.name || item.phone.slice(-4)}</h3>
-                                {item.status === 'called' && <Badge className="bg-yellow-500 text-white hover:bg-yellow-600 px-1 py-0 text-[9px] h-3.5">호출</Badge>}
+                                {item.status === 'called' && <Badge className="bg-yellow-500 text-white hover:bg-yellow-600 px-1 py-0 text-[10px] h-4">호출</Badge>}
+                                {item.revisit_count != null && item.revisit_count > 0 && (
+                                    <Badge className="bg-indigo-500 text-white hover:bg-indigo-600 px-1 py-0 text-[10px] h-4 ml-1">
+                                        재방문 {item.revisit_count}
+                                    </Badge>
+                                )}
                             </div>
                             <div className="flex items-center text-[10px] text-muted-foreground mt-0.5">
                                 <Phone className="w-2.5 h-2.5 mr-1" />

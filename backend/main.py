@@ -41,7 +41,8 @@ from routers import (
     notices, # New Notices Router
     file_upload, # File Upload Router
     system, # System/SSE Monitoring Router
-    polling # Polling Optimization Router
+    polling, # Polling Optimization Router
+    public # Public Router (QR/Mobile)
 )
 from core.logger import logger
 import time
@@ -138,6 +139,7 @@ app.include_router(notices.router)
 app.include_router(file_upload.router, prefix="/api/files", tags=["File Upload"])
 app.include_router(system.router, prefix="/api/system", tags=["System Monitoring"])
 app.include_router(polling.router, prefix="/api/polling", tags=["Polling Optimization"])
+app.include_router(public.router, prefix="/api/public", tags=["Public Access"])
 
 @app.get("/")
 async def main_page(request: Request):

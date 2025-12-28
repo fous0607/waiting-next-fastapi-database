@@ -7,7 +7,10 @@ const PUBLIC_ROUTES = [
     '/',
     '/login',
     '/mobile',
-    '/reception-login'
+    '/reception-login',
+    '/entry', // QR Code Entry
+    '/api/public' // Public API
+]
 ]
 
 export function middleware(request: NextRequest) {

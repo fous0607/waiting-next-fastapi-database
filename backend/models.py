@@ -147,6 +147,10 @@ class StoreSettings(Base):
     # 개점 설정
     daily_opening_rule = Column(String, default="strict")  # strict: 1일 1회, flexible: 2회 이상(다음날)
 
+    # 대기자 재방문 설정 (Revisit Badge)
+    enable_revisit_badge = Column(Boolean, default=False)  # 재방문 배지 사용 여부
+    revisit_period_days = Column(Integer, default=0)  # 재방문 카운트 기간 (0 = 전체 기간, N = 최근 N일)
+
     # 대기접수 완료 모달 설정
     waiting_modal_timeout = Column(Integer, default=5)  # 대기접수 모달 타이머 (초)
     show_member_name_in_waiting_modal = Column(Boolean, default=True)  # 대기접수 모달 회원명 표시 여부

@@ -711,16 +711,20 @@ async def get_waiting_list(
     # 최근 30일 출석 수 일괄 조회 (N+1 문제 방지)
     member_ids = [w.member_id for w in waiting_list if w.member_id]
     member_attendance_counts = {}
+    revisit_counts = {}  # 재방문 횟수 (설정 기반)
     
     if member_ids:
         from datetime import timedelta
         
-        # 출석 카운트 설정 조회 (Select specific columns for safety)
+        # 출석 카운트 설정 및 재방문 배지 설정 조회
         settings_data = db.query(
             StoreSettings.attendance_count_type,
-            StoreSettings.attendance_lookback_days
+            StoreSettings.attendance_lookback_days,
+            StoreSettings.enable_revisit_badge,
+            StoreSettings.revisit_period_days
         ).filter(StoreSettings.store_id == current_store.id).first()
         
+        # 1. 출석 카운트 (기존 로직)
         count_type = settings_data.attendance_count_type if settings_data else 'days'
         lookback_days = settings_data.attendance_lookback_days if settings_data else 30
         
@@ -731,7 +735,6 @@ async def get_waiting_list(
             start_date = business_date.replace(day=1)
         else:
             # 최근 N일 (기본 30일)
-            # lookback_days already fetched above
             start_date = business_date - timedelta(days=lookback_days)
         
         attendance_counts = db.query(
@@ -745,6 +748,29 @@ async def get_waiting_list(
         ).group_by(WaitingList.member_id).all()
         
         member_attendance_counts = {member_id: count for member_id, count in attendance_counts}
+        
+        # 2. 재방문 카운트 (새로운 로직)
+        enable_revisit_badge = settings_data.enable_revisit_badge if settings_data else False
+        if enable_revisit_badge:
+            revisit_period_days = settings_data.revisit_period_days if settings_data else 0
+            
+            revisit_query = db.query(
+                WaitingList.member_id,
+                func.count(WaitingList.id)
+            ).filter(
+                WaitingList.member_id.in_(member_ids),
+                WaitingList.status == 'attended'
+            )
+            
+            # 기간 설정이 있는 경우 날짜 필터링 추가
+            if revisit_period_days > 0:
+                revisit_start_date = business_date - timedelta(days=revisit_period_days)
+                revisit_query = revisit_query.filter(WaitingList.business_date >= revisit_start_date)
+                
+            revisit_query = revisit_query.filter(WaitingList.business_date <= business_date) # 미래 제외
+            revisit_results = revisit_query.group_by(WaitingList.member_id).all()
+            
+            revisit_counts = {member_id: count for member_id, count in revisit_results}
 
     # 수동으로 dict 생성 (weekday_schedule 파싱 포함)
     result = []
@@ -795,6 +821,8 @@ async def get_waiting_list(
             "message": f"대기번호 {waiting.waiting_number}번\n{waiting.class_info.class_name} {waiting.class_order}번째",
             # 최근 30일 출석 수 (회원이 없는 경우 0)
             "last_month_attendance_count": member_attendance_counts.get(waiting.member_id, 0),
+            # 재방문 횟수 (설정 미사용 시 0, 회원이면 계산된 값)
+            "revisit_count": revisit_counts.get(waiting.member_id, 0),
             "created_at": waiting.created_at,
             "updated_at": waiting.updated_at,
             "class_info": class_info_dict,
