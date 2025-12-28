@@ -549,8 +549,10 @@ async def get_inactive_members(
             "id": member.id,
             "name": member.name,
             "phone": member.phone,
-            "last_visit": last_visit,
-            "days_since": (today - last_visit).days
+            "last_visit": last_visit.strftime("%Y-%m-%d") if last_visit else None,
+            "days_since": (today - last_visit.date()).days if last_visit else None
+        }
+        for member, last_visit in results
     ]
 
 @router.get("/statistics/returning")
