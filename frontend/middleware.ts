@@ -11,7 +11,6 @@ const PUBLIC_ROUTES = [
     '/entry', // QR Code Entry
     '/api/public' // Public API
 ]
-]
 
 export function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl
