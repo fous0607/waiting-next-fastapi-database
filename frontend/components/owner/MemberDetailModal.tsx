@@ -230,6 +230,24 @@ export function MemberDetailModal({ member, open, onClose }: MemberDetailModalPr
                                             );
                                         })
                                     )}
+
+                                    {/* Registration Date (가입일) */}
+                                    {historyData?.member?.created_at && (
+                                        <div className="relative pl-8 py-3 group">
+                                            <div className="absolute left-[10px] top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full border-[2px] border-emerald-500 bg-white z-10" />
+                                            <div className="flex justify-between items-center">
+                                                <div className="flex items-center gap-3">
+                                                    <span className="text-[11px] font-bold text-emerald-600 min-w-[48px]">
+                                                        {format(parseISO(historyData.member.created_at), 'yy.MM.dd')}
+                                                    </span>
+                                                    <span className="text-sm font-black text-emerald-700">신규 가입</span>
+                                                </div>
+                                                <div className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 shadow-sm">
+                                                    최초등록
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>

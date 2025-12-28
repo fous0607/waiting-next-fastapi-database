@@ -908,7 +908,8 @@ async def get_member_visit_history(
         "member": {
             "id": member.id,
             "name": member.name,
-            "phone": member.phone
+            "phone": member.phone,
+            "created_at": (member.created_at + timedelta(hours=9)).isoformat() if member.created_at else None
         },
         "total_visits": total_visits,
         "total_attended": len(attended_visits),
