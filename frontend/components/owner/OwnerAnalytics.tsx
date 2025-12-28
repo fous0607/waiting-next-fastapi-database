@@ -99,18 +99,19 @@ export function OwnerAnalytics({ stats, loading, period, setPeriod, dateRange, s
                             <button
                                 key={m}
                                 onClick={() => {
-                                    if (!dateRange?.from || (dateRange.from && dateRange.to && !isSameMonth(dateRange.from, dStart))) {
-                                        // First selection OR selecting a new start after a full range was already set
-                                        setDateRange({ from: dStart, to: dEnd });
-                                        // Do not close, wait for end month
+                                    if (!dateRange?.from || (dateRange.from && dateRange.to)) {
+                                        // Start fresh if no range yet or if a full range was already selected
+                                        setDateRange({ from: dStart, to: undefined });
+                                        // Keep open for 'to' selection
                                     } else {
-                                        // Already have a 'from', now setting 'to'
+                                        // We have a 'from', now setting 'to'
                                         if (dStart < dateRange.from) {
+                                            // Selected month is earlier than 'from', swap them
                                             setDateRange({ from: dStart, to: endOfMonth(dateRange.from) });
                                         } else {
-                                            setDateRange({ from: startOfMonth(dateRange.from), to: dEnd });
+                                            setDateRange({ from: dateRange.from, to: dEnd });
                                         }
-                                        setIsCalendarOpen(false); // Close after range selection
+                                        setIsCalendarOpen(false); // Close after second selection
                                     }
                                 }}
                                 className={cn(
@@ -176,11 +177,21 @@ export function OwnerAnalytics({ stats, loading, period, setPeriod, dateRange, s
                                 selected={dateRange}
                                 onSelect={(range) => {
                                     setDateRange(range);
-                                    // Only close if both from and to are selected and they are different,
-                                    // or if the user specifically meant a single day (double click or intentional).
-                                    // Usually range-picker behavior: first click sets 'from', second sets 'to'.
-                                    if (range?.from && range?.to && range.from.getTime() !== range.to.getTime()) {
-                                        setIsCalendarOpen(false);
+                                    // Robust closing logic:
+                                    // 1. If 'from' and 'to' are different -> Full range selected, close.
+                                    // 2. If 'from' and 'to' are same -> Single day. For hourly/daily, we usually want ranges.
+                                    // If the user clicks the same day twice, range-picker usually returns from=to.
+                                    if (range?.from && range?.to) {
+                                        if (range.from.getTime() !== range.to.getTime()) {
+                                            setIsCalendarOpen(false);
+                                        } else {
+                                            // If same day, don't close immediately unless it's a second click on the same day.
+                                            // The react-day-picker 'range' mode handles this by setting both.
+                                            // We'll let the user decide by either clicking another day or clicking again/outside.
+                                            // Actually, most users expect a single click to be a single day range.
+                                            // But the requirement says "starts disappears on start date selection".
+                                            // To fix that, we keep it open if from == to.
+                                        }
                                     }
                                 }}
                                 locale={ko}
