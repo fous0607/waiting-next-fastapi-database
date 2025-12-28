@@ -47,22 +47,22 @@ export function ClassTabs() {
                         key={cls.id}
                         onClick={() => selectClass(cls.id)}
                         className={cn(
-                            "flex items-center justify-center gap-2 min-w-[100px] px-4 py-3 rounded-lg border transition-all duration-200",
+                            "flex items-center justify-center gap-2 px-5 py-3 rounded-lg border transition-all duration-200 flex-shrink-0 whitespace-nowrap",
                             isActive
                                 ? "bg-primary text-primary-foreground border-primary shadow-md"
                                 : "bg-card text-card-foreground border-border hover:bg-accent",
                             isClosed && !isActive && "opacity-50 grayscale bg-gray-100 dark:bg-gray-800"
                         )}
                     >
-                        <span className="text-lg font-bold whitespace-nowrap">
+                        <span className="text-lg font-bold">
                             {cls.class_name}
                             {isClosed && <span className="text-xs ml-1">(마감)</span>}
                         </span>
                         <span className={cn(
-                            "text-xs font-medium px-2 py-0.5 rounded-full",
-                            isActive ? "bg-primary-foreground/20" : "bg-secondary text-secondary-foreground"
+                            "text-sm font-bold ml-1",
+                            isActive ? "text-primary-foreground/90" : "text-muted-foreground"
                         )}>
-                            (총 {cls.total_count}/{cls.max_capacity})
+                            ({cls.current_count}/{cls.max_capacity})
                         </span>
                     </button>
                 );

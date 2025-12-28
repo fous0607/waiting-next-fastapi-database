@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import api from "@/lib/api";
 import { useWaitingStore } from "@/lib/store/useWaitingStore";
-import { Loader2, User } from "lucide-react";
+import { Loader2, UserRound } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 interface MemberCandidate {
@@ -269,7 +269,7 @@ export function QuickRegister() {
                             >
                                 <div className="flex items-center gap-6 w-full">
                                     <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0">
-                                        <User className="w-6 h-6 text-slate-500" />
+                                        <UserRound className="w-7 h-7 text-slate-600" strokeWidth={2.5} />
                                     </div>
                                     <div className="flex-1 flex items-baseline justify-between gap-4">
                                         <div className="font-bold text-2xl">{item.name}</div>

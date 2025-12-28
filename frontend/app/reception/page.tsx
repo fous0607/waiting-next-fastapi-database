@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import api from '@/lib/api';
 import { useWaitingStore } from '@/lib/store/useWaitingStore';
-import { Delete, Check, AlertCircle } from 'lucide-react';
+import { Delete, Check, AlertCircle, UserRound } from 'lucide-react';
 import { GlobalLoader } from "@/components/ui/GlobalLoader";
 
 interface Member {
@@ -707,11 +707,16 @@ export default function ReceptionPage() {
                                 className="justify-between h-auto py-6 px-8 hover:bg-slate-50"
                                 onClick={() => processRegistration(member.phone)}
                             >
-                                <div className="flex-1 flex items-baseline justify-between gap-6">
-                                    <span className="font-bold text-3xl">{member.name}</span>
-                                    <span className="font-mono text-3xl font-black text-blue-600">
-                                        {member.phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3')}
-                                    </span>
+                                <div className="flex items-center gap-6 w-full">
+                                    <div className="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0 border border-blue-100">
+                                        <UserRound className="w-8 h-8 text-blue-600" strokeWidth={2.5} />
+                                    </div>
+                                    <div className="flex-1 flex items-baseline justify-between gap-6">
+                                        <span className="font-bold text-3xl">{member.name}</span>
+                                        <span className="font-mono text-3xl font-black text-blue-600">
+                                            {member.phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3')}
+                                        </span>
+                                    </div>
                                 </div>
                                 <div className="ml-8 text-right text-sm text-slate-400">
                                     최근방문: {member.last_visit_date || '-'}
