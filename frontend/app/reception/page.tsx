@@ -704,14 +704,16 @@ export default function ReceptionPage() {
                             <Button
                                 key={member.id}
                                 variant="outline"
-                                className="justify-between h-auto py-4 px-6"
+                                className="justify-between h-auto py-6 px-8 hover:bg-slate-50"
                                 onClick={() => processRegistration(member.phone)}
                             >
-                                <div className="flex flex-col items-start gap-1">
-                                    <span className="font-bold text-lg">{member.name}</span>
-                                    <span className="text-sm text-slate-500">{member.phone}</span>
+                                <div className="flex-1 flex items-baseline justify-between gap-6">
+                                    <span className="font-bold text-3xl">{member.name}</span>
+                                    <span className="font-mono text-3xl font-black text-blue-600">
+                                        {member.phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3')}
+                                    </span>
                                 </div>
-                                <div className="text-right text-xs text-slate-400">
+                                <div className="ml-8 text-right text-sm text-slate-400">
                                     최근방문: {member.last_visit_date || '-'}
                                 </div>
                             </Button>

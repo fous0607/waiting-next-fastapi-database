@@ -62,7 +62,7 @@ export function ClassTabs() {
                             "text-xs font-medium px-2 py-0.5 rounded-full",
                             isActive ? "bg-primary-foreground/20" : "bg-secondary text-secondary-foreground"
                         )}>
-                            대기 {cls.current_count} (총 {cls.total_count}/{cls.max_capacity})
+                            (총 {cls.total_count}/{cls.max_capacity})
                         </span>
                     </button>
                 );

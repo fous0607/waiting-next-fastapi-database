@@ -267,13 +267,15 @@ export function QuickRegister() {
                                 className="h-auto py-4 justify-start text-left"
                                 onClick={() => handleSelectCandidate(item)}
                             >
-                                <div className="flex items-center gap-4 w-full">
-                                    <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
-                                        <User className="w-5 h-5 text-slate-500" />
+                                <div className="flex items-center gap-6 w-full">
+                                    <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0">
+                                        <User className="w-6 h-6 text-slate-500" />
                                     </div>
-                                    <div className="flex-1">
-                                        <div className="font-bold text-lg">{item.name}</div>
-                                        <div className="text-muted-foreground">{item.phone}</div>
+                                    <div className="flex-1 flex items-baseline justify-between gap-4">
+                                        <div className="font-bold text-2xl">{item.name}</div>
+                                        <div className="font-mono text-2xl font-bold text-blue-600">
+                                            {item.phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3')}
+                                        </div>
                                     </div>
                                 </div>
                             </Button>
