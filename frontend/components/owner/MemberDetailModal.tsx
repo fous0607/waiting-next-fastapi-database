@@ -204,7 +204,7 @@ export function MemberDetailModal({ member, open, onClose }: MemberDetailModalPr
                                                     <div className="flex justify-between items-center">
                                                         <div className="flex items-center gap-3">
                                                             {/* Date: YY.MM.DD */}
-                                                            <span className="text-[11px] font-bold text-slate-400 min-w-[48px]">
+                                                            <span className="text-sm font-bold text-slate-600 min-w-[60px]">
                                                                 {date ? format(date, 'yy.MM.dd') : '--.--.--'}
                                                             </span>
 
@@ -220,7 +220,7 @@ export function MemberDetailModal({ member, open, onClose }: MemberDetailModalPr
                                                             </div>
                                                         </div>
                                                         <div className={cn(
-                                                            "text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm",
+                                                            "text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm mr-3",
                                                             h.status === 'attended' ? "bg-rose-50 text-rose-600" : "bg-slate-100 text-slate-500"
                                                         )}>
                                                             {h.status === 'attended' ? '출석' : '결석'}
