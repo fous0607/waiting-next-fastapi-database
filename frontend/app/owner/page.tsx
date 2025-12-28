@@ -275,9 +275,9 @@ export default function OwnerDashboard() {
                             stats={stats}
                             loading={loading}
                             period={period}
-                            setPeriod={setPeriod}
-                            startDate={startDate}
-                            setStartDate={setStartDate}
+                            setPeriod={handleSetPeriod}
+                            dateRange={dateRange}
+                            setDateRange={setDateRange}
                         />
                     </div>
                 )}
