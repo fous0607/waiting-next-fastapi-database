@@ -42,11 +42,8 @@ export default function OwnerDashboard() {
     const [period, setPeriod] = useState<'hourly' | 'daily' | 'weekly' | 'monthly'>('hourly');
 
     // 1. Separate States for each view type
-    // Hourly: Single Date (default: Today)
-    const [hourlyDate, setHourlyDate] = useState<Date>(new Date());
-
-    // Daily: Week Range (default: This Week)
-    const [dailyRange, setDailyRange] = useState<DateRange | undefined>({
+    // Common Range (Hourly & Daily): Week Range (default: This Week)
+    const [commonRange, setCommonRange] = useState<DateRange | undefined>({
         from: startOfWeek(new Date(), { weekStartsOn: 1 }),
         to: endOfWeek(new Date(), { weekStartsOn: 1 })
     });
@@ -59,16 +56,11 @@ export default function OwnerDashboard() {
 
     // 2. Computed current range based on active period
     const getCurrentRange = (): DateRange | undefined => {
-        if (period === 'hourly') {
-            return { from: hourlyDate, to: hourlyDate };
-        }
-        if (period === 'daily' || period === 'weekly') { // Treat weekly same as daily for now
-            return dailyRange;
-        }
         if (period === 'monthly') {
             return monthlyRange;
         }
-        return undefined;
+        // For hourly, daily, weekly -> return commonRange
+        return commonRange;
     };
 
     // Today for display
@@ -81,31 +73,15 @@ export default function OwnerDashboard() {
         fetchStats();
     }, []);
 
-    // 3. Unfied Date Change Handler with Sync Logic
+    // 3. Unified Date Change Handler
     const handleDateRangeChange = (newRange: DateRange | undefined) => {
         if (!newRange?.from) return;
 
-        if (period === 'hourly') {
-            // Update Hourly Date
-            setHourlyDate(newRange.from);
-
-            // SYNC: Update Daily Range to focus on this new date (e.g., the week containing this date)
-            setDailyRange({
-                from: startOfWeek(newRange.from, { weekStartsOn: 1 }),
-                to: endOfWeek(newRange.from, { weekStartsOn: 1 })
-            });
-            // Monthly is INDEPENDENT: Do not update
-        } else if (period === 'daily' || period === 'weekly') {
-            // Update Daily Range
-            setDailyRange(newRange);
-
-            // SYNC: Update Hourly Date to the start of the new range
-            setHourlyDate(newRange.from);
-            // Monthly is INDEPENDENT: Do not update
-        } else if (period === 'monthly') {
-            // Update Monthly Range
+        if (period === 'monthly') {
             setMonthlyRange(newRange);
-            // Hourly/Daily are INDEPENDENT: Do not update
+        } else {
+            // Update Common Range (Hourly / Daily / Weekly)
+            setCommonRange(newRange);
         }
     };
 
@@ -141,7 +117,7 @@ export default function OwnerDashboard() {
     useEffect(() => {
         if (!loading && activeTab !== 'members') fetchStats();
         // Depend on the specific state variables instead of a single dateRange
-    }, [period, activeTab, hourlyDate, dailyRange, monthlyRange]);
+    }, [period, activeTab, commonRange, monthlyRange]);
 
     const handleLogout = async () => {
         try {
