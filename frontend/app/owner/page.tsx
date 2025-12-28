@@ -41,11 +41,35 @@ export default function OwnerDashboard() {
     const [activeTab, setActiveTab] = useState<'dashboard' | 'analytics' | 'members'>('dashboard');
     const [period, setPeriod] = useState<'hourly' | 'daily' | 'weekly' | 'monthly'>('hourly');
 
-    // Default range: Today for Dashboard
-    const [dateRange, setDateRange] = useState<DateRange | undefined>({
-        from: new Date(),
-        to: new Date()
+    // 1. Separate States for each view type
+    // Hourly: Single Date (default: Today)
+    const [hourlyDate, setHourlyDate] = useState<Date>(new Date());
+
+    // Daily: Week Range (default: This Week)
+    const [dailyRange, setDailyRange] = useState<DateRange | undefined>({
+        from: startOfWeek(new Date(), { weekStartsOn: 1 }),
+        to: endOfWeek(new Date(), { weekStartsOn: 1 })
     });
+
+    // Monthly: Month Range (default: This Month)
+    const [monthlyRange, setMonthlyRange] = useState<DateRange | undefined>({
+        from: startOfMonth(new Date()),
+        to: endOfMonth(new Date())
+    });
+
+    // 2. Computed current range based on active period
+    const getCurrentRange = (): DateRange | undefined => {
+        if (period === 'hourly') {
+            return { from: hourlyDate, to: hourlyDate };
+        }
+        if (period === 'daily' || period === 'weekly') { // Treat weekly same as daily for now
+            return dailyRange;
+        }
+        if (period === 'monthly') {
+            return monthlyRange;
+        }
+        return undefined;
+    };
 
     // Today for display
     const today = new Date();
@@ -57,11 +81,40 @@ export default function OwnerDashboard() {
         fetchStats();
     }, []);
 
+    // 3. Unfied Date Change Handler with Sync Logic
+    const handleDateRangeChange = (newRange: DateRange | undefined) => {
+        if (!newRange?.from) return;
+
+        if (period === 'hourly') {
+            // Update Hourly Date
+            setHourlyDate(newRange.from);
+
+            // SYNC: Update Daily Range to focus on this new date (e.g., the week containing this date)
+            setDailyRange({
+                from: startOfWeek(newRange.from, { weekStartsOn: 1 }),
+                to: endOfWeek(newRange.from, { weekStartsOn: 1 })
+            });
+            // Monthly is INDEPENDENT: Do not update
+        } else if (period === 'daily' || period === 'weekly') {
+            // Update Daily Range
+            setDailyRange(newRange);
+
+            // SYNC: Update Hourly Date to the start of the new range
+            setHourlyDate(newRange.from);
+            // Monthly is INDEPENDENT: Do not update
+        } else if (period === 'monthly') {
+            // Update Monthly Range
+            setMonthlyRange(newRange);
+            // Hourly/Daily are INDEPENDENT: Do not update
+        }
+    };
+
     const fetchStats = async () => {
         setRefreshing(true);
         try {
-            const startStr = dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : '';
-            const endStr = dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : startStr;
+            const currentRange = getCurrentRange();
+            const startStr = currentRange?.from ? format(currentRange.from, 'yyyy-MM-dd') : '';
+            const endStr = currentRange?.to ? format(currentRange.to, 'yyyy-MM-dd') : startStr;
 
             let query = `/franchise/stats/store-dashboard?period=${period}`;
             if (startStr) query += `&start_date=${startStr}`;
@@ -79,25 +132,16 @@ export default function OwnerDashboard() {
         }
     };
 
-    // Handle period changes and set defaults
+    // Handle period changes (View Switching)
     const handleSetPeriod = (newPeriod: 'hourly' | 'daily' | 'weekly' | 'monthly') => {
         setPeriod(newPeriod);
-        if (newPeriod === 'monthly') {
-            setDateRange({
-                from: startOfMonth(new Date()),
-                to: endOfMonth(new Date())
-            });
-        } else {
-            setDateRange({
-                from: startOfWeek(new Date(), { weekStartsOn: 1 }),
-                to: endOfWeek(new Date(), { weekStartsOn: 1 })
-            });
-        }
+        // We DO NOT reset dates here anymore, promoting persistence/syncing as per requirements
     };
 
     useEffect(() => {
         if (!loading && activeTab !== 'members') fetchStats();
-    }, [period, activeTab, dateRange]);
+        // Depend on the specific state variables instead of a single dateRange
+    }, [period, activeTab, hourlyDate, dailyRange, monthlyRange]);
 
     const handleLogout = async () => {
         try {
@@ -264,8 +308,8 @@ export default function OwnerDashboard() {
                             loading={loading}
                             period={period}
                             setPeriod={handleSetPeriod}
-                            dateRange={dateRange}
-                            setDateRange={setDateRange}
+                            dateRange={getCurrentRange()}
+                            setDateRange={handleDateRangeChange}
                         />
                     </div>
                 )}
