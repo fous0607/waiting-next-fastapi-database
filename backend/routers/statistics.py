@@ -845,20 +845,20 @@ async def get_store_analytics_dashboard(
             top_churn_members=[] 
         )
 
-except Exception as e:
-    logger.error(f"Error in get_store_analytics_dashboard: {str(e)}", exc_info=True)
-    # Fallback response to avoid 500
-    return schemas.AnalyticsDashboard(
-        total_stores=1,
-        open_stores=0,
-        total_waiting=0,
-        total_attendance=0,
-        waiting_time_stats=schemas.TimeStats(),
-        attendance_time_stats=schemas.TimeStats(),
-        hourly_stats=[],
-        store_stats=[],
-        total_visitors=0
-    )
+    except Exception as e:
+        logger.error(f"Error in get_store_analytics_dashboard: {str(e)}", exc_info=True)
+        # Fallback response to avoid 500
+        return schemas.AnalyticsDashboard(
+            total_stores=1,
+            open_stores=0,
+            total_waiting=0,
+            total_attendance=0,
+            waiting_time_stats=schemas.TimeStats(),
+            attendance_time_stats=schemas.TimeStats(),
+            hourly_stats=[],
+            store_stats=[],
+            total_visitors=0
+        )
 
 
 @router.get("/member-history/{member_id}")
