@@ -66,9 +66,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 데이터베이스 테이블 생성 (Vercel 환경에서는 생략)
-if not os.environ.get("VERCEL"):
-    Base.metadata.create_all(bind=engine)
+# 데이터베이스 테이블 생성 (모든 환경에서 수행)
+Base.metadata.create_all(bind=engine)
 
 # 정적 파일 및 템플릿 설정
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -78,7 +77,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 from create_initial_superuser import create_initial_superuser
 from database import SessionLocal
 from core.db_auto_migrator import check_and_migrate_table
-from models import StoreSettings, Store, User
+from models import StoreSettings, Store, User, ClassClosure, Holiday, ClassInfo, WaitingList, DailyClosing
 
 @app.on_event("startup")
 async def startup_event():
@@ -86,8 +85,13 @@ async def startup_event():
     try:
         logger.info("Running auto-migration system...")
         check_and_migrate_table(StoreSettings)
-        check_and_migrate_table(Store) # Add Store migration for last_heartbeat
-        check_and_migrate_table(User)  # Add User migration for last_login
+        check_and_migrate_table(Store)
+        check_and_migrate_table(User)
+        check_and_migrate_table(ClassClosure)
+        check_and_migrate_table(Holiday)
+        check_and_migrate_table(ClassInfo)
+        check_and_migrate_table(WaitingList)
+        check_and_migrate_table(DailyClosing)
         # You can add other models here if needed in the future
     except Exception as e:
         logger.error(f"Auto-migration system failed: {e}")
