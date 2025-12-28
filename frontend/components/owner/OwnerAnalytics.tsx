@@ -99,17 +99,18 @@ export function OwnerAnalytics({ stats, loading, period, setPeriod, dateRange, s
                             <button
                                 key={m}
                                 onClick={() => {
-                                    if (!dateRange?.from || (dateRange.from && dateRange.to)) {
+                                    if (!dateRange?.from || (dateRange.from && dateRange.to && !isSameMonth(dateRange.from, dStart))) {
+                                        // First selection OR selecting a new start after a full range was already set
                                         setDateRange({ from: dStart, to: dEnd });
-                                        // Auto close if both selected (in case of single month selection)
-                                        // But usually we want to allow dStart -> dEnd transition.
+                                        // Do not close, wait for end month
                                     } else {
+                                        // Already have a 'from', now setting 'to'
                                         if (dStart < dateRange.from) {
                                             setDateRange({ from: dStart, to: endOfMonth(dateRange.from) });
                                         } else {
                                             setDateRange({ from: startOfMonth(dateRange.from), to: dEnd });
                                         }
-                                        setIsCalendarOpen(false);
+                                        setIsCalendarOpen(false); // Close after range selection
                                     }
                                 }}
                                 className={cn(
@@ -175,7 +176,10 @@ export function OwnerAnalytics({ stats, loading, period, setPeriod, dateRange, s
                                 selected={dateRange}
                                 onSelect={(range) => {
                                     setDateRange(range);
-                                    if (range?.from && range?.to) {
+                                    // Only close if both from and to are selected and they are different,
+                                    // or if the user specifically meant a single day (double click or intentional).
+                                    // Usually range-picker behavior: first click sets 'from', second sets 'to'.
+                                    if (range?.from && range?.to && range.from.getTime() !== range.to.getTime()) {
                                         setIsCalendarOpen(false);
                                     }
                                 }}
