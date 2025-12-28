@@ -31,8 +31,8 @@ export function OwnerAnalytics({ stats, loading, period, setPeriod, dateRange, s
     };
 
     // Helper to calculate average waiting time
-    const avgWaitTime = stats?.time_stats?.avg
-        ? `${Math.round(stats.time_stats.avg)}분`
+    const avgWaitTime = stats?.waiting_time_stats?.avg
+        ? `${Math.round(stats.waiting_time_stats.avg)}분`
         : '-';
 
     // Helper to format date range display
@@ -211,26 +211,55 @@ export function OwnerAnalytics({ stats, loading, period, setPeriod, dateRange, s
 
             {/* Key Insights Cards */}
             <div className="grid grid-cols-2 gap-3 mx-1">
-                <Card className="border-none shadow-sm bg-indigo-50/50 overflow-hidden py-0 gap-0 min-h-0">
-                    <CardContent className="px-3 py-2.5 flex flex-col justify-center min-h-0">
-                        <div className="flex items-center gap-2 text-indigo-900/60 mb-0.5">
-                            <Clock className="w-3.5 h-3.5" />
-                            <span className="text-[10px] font-bold">가장 붐비는 시간</span>
-                        </div>
-                        <p className="text-sm font-bold text-indigo-900 truncate">
-                            {getPeakTime()}
-                        </p>
-                    </CardContent>
-                </Card>
-                <Card className="border-none shadow-sm bg-orange-50/50 overflow-hidden py-0 gap-0 min-h-0">
-                    <CardContent className="px-3 py-2.5 flex flex-col justify-center min-h-0">
-                        <div className="flex items-center gap-2 text-orange-900/60 mb-0.5">
-                            <TrendingUp className="w-3.5 h-3.5" />
-                            <span className="text-[10px] font-bold">평균 대기 시간</span>
-                        </div>
-                        <p className="text-sm font-bold text-orange-900">{avgWaitTime}</p>
-                    </CardContent>
-                </Card>
+                {(period === 'daily' || period === 'monthly') ? (
+                    <>
+                        <Card className="border-none shadow-sm bg-orange-50/50 overflow-hidden py-0 gap-0 min-h-0">
+                            <CardContent className="px-3 py-2.5 flex flex-col justify-center min-h-0">
+                                <div className="flex items-center gap-2 text-orange-900/60 mb-0.5">
+                                    <Users className="w-3.5 h-3.5" />
+                                    <span className="text-[10px] font-bold">총 출석 인원</span>
+                                </div>
+                                <p className="text-sm font-bold text-orange-900 truncate">
+                                    {stats?.total_attendance?.toLocaleString() || 0}명
+                                </p>
+                            </CardContent>
+                        </Card>
+                        <Card className="border-none shadow-sm bg-indigo-50/50 overflow-hidden py-0 gap-0 min-h-0">
+                            <CardContent className="px-3 py-2.5 flex flex-col justify-center min-h-0">
+                                <div className="flex items-center gap-2 text-indigo-900/60 mb-0.5">
+                                    <UserPlus className="w-3.5 h-3.5" />
+                                    <span className="text-[10px] font-bold">총 신규 회원</span>
+                                </div>
+                                <p className="text-sm font-bold text-indigo-900 truncate">
+                                    {stats?.new_members?.toLocaleString() || 0}명
+                                </p>
+                            </CardContent>
+                        </Card>
+                    </>
+                ) : (
+                    <>
+                        <Card className="border-none shadow-sm bg-indigo-50/50 overflow-hidden py-0 gap-0 min-h-0">
+                            <CardContent className="px-3 py-2.5 flex flex-col justify-center min-h-0">
+                                <div className="flex items-center gap-2 text-indigo-900/60 mb-0.5">
+                                    <Clock className="w-3.5 h-3.5" />
+                                    <span className="text-[10px] font-bold">가장 붐비는 시간</span>
+                                </div>
+                                <p className="text-sm font-bold text-indigo-900 truncate">
+                                    {getPeakTime()}
+                                </p>
+                            </CardContent>
+                        </Card>
+                        <Card className="border-none shadow-sm bg-orange-50/50 overflow-hidden py-0 gap-0 min-h-0">
+                            <CardContent className="px-3 py-2.5 flex flex-col justify-center min-h-0">
+                                <div className="flex items-center gap-2 text-orange-900/60 mb-0.5">
+                                    <TrendingUp className="w-3.5 h-3.5" />
+                                    <span className="text-[10px] font-bold">평균 대기 시간</span>
+                                </div>
+                                <p className="text-sm font-bold text-orange-900">{avgWaitTime}</p>
+                            </CardContent>
+                        </Card>
+                    </>
+                )}
             </div>
 
             {/* Main Chart */}

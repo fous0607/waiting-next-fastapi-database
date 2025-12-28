@@ -635,8 +635,8 @@ async def get_store_analytics_dashboard(
         # Time Stats (Waiting)
         wait_times = []
         for w in attended_waitings:
-            if w.attended_at and w.created_at:
-                mins = (w.attended_at - w.created_at).total_seconds() / 60
+            if w.attended_at and w.registered_at:
+                mins = (w.attended_at - w.registered_at).total_seconds() / 60
                 wait_times.append(mins)
                 
         w_stats = schemas.TimeStats()
