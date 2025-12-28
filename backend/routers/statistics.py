@@ -624,226 +624,226 @@ async def get_store_analytics_dashboard(
         )
         waitings = waitings_query.all()
 
-    # Calculate Stats
-    total_waiting_cnt = len(waitings)
-    attended_waitings = [w for w in waitings if w.status == 'attended']
-    total_attendance_cnt = len(attended_waitings)
+        # Calculate Stats
+        total_waiting_cnt = len(waitings)
+        attended_waitings = [w for w in waitings if w.status == 'attended']
+        total_attendance_cnt = len(attended_waitings)
 
-    # Time Stats (Waiting)
-    wait_times = []
-    for w in attended_waitings:
-        if w.attended_at and w.created_at:
-            mins = (w.attended_at - w.created_at).total_seconds() / 60
-            wait_times.append(mins)
-            
-    w_stats = schemas.TimeStats()
-    if wait_times:
-        w_stats.max = int(max(wait_times))
-        w_stats.min = int(min(wait_times))
-        w_stats.avg = round(sum(wait_times) / len(wait_times), 1)
-
-    a_stats = schemas.TimeStats() 
-
-    # 3. Trends (Dynamic Aggregation)
-    is_sqlite = 'sqlite' in str(db.get_bind().url)
-    
-    # Label formatting helper
-    if period == "hourly":
-        # Existing logic for hourly (0-23)
-        hourly_map = {h: {'waiting': 0, 'attendance': 0} for h in range(24)}
-        for w in waitings:
-            # KST Adjustment (+9 hours)
-            # Use registered_at instead of created_at for better consistency
-            if w.registered_at and hasattr(w.registered_at, 'hour'): 
-                try:
-                    h = (w.registered_at + timedelta(hours=9)).hour
-                    if 0 <= h < 24:
-                        hourly_map[h]['waiting'] += 1
-                except (Exception):
-                    pass
-            
-            if w.attended_at and hasattr(w.attended_at, 'hour'):
-                try:
-                    ah = (w.attended_at + timedelta(hours=9)).hour
-                    if 0 <= ah < 24:
-                        hourly_map[ah]['attendance'] += 1
-                except (Exception):
-                    pass
+        # Time Stats (Waiting)
+        wait_times = []
+        for w in attended_waitings:
+            if w.attended_at and w.created_at:
+                mins = (w.attended_at - w.created_at).total_seconds() / 60
+                wait_times.append(mins)
                 
-        # Determine Start Hour
-        # Priority 1: Actual Opening Time for TODAY (if available) to match user expectation ("I opened at 9")
-        # Priority 2: Configured Business Day Start (default 5)
+        w_stats = schemas.TimeStats()
+        if wait_times:
+            w_stats.max = int(max(wait_times))
+            w_stats.min = int(min(wait_times))
+            w_stats.avg = round(sum(wait_times) / len(wait_times), 1)
+
+        a_stats = schemas.TimeStats() 
+
+        # 3. Trends (Dynamic Aggregation)
+        is_sqlite = 'sqlite' in str(db.get_bind().url)
         
-        start_hour = 0
-        business_start_setting = 7
-        
-        try:
-            if current_store.store_settings and len(current_store.store_settings) > 0:
-                business_start_setting = current_store.store_settings[0].business_day_start
+        # Label formatting helper
+        if period == "hourly":
+            # Existing logic for hourly (0-23)
+            hourly_map = {h: {'waiting': 0, 'attendance': 0} for h in range(24)}
+            for w in waitings:
+                # KST Adjustment (+9 hours)
+                # Use registered_at instead of created_at for better consistency
+                if w.registered_at and hasattr(w.registered_at, 'hour'): 
+                    try:
+                        h = (w.registered_at + timedelta(hours=9)).hour
+                        if 0 <= h < 24:
+                            hourly_map[h]['waiting'] += 1
+                    except (Exception):
+                        pass
+                
+                if w.attended_at and hasattr(w.attended_at, 'hour'):
+                    try:
+                        ah = (w.attended_at + timedelta(hours=9)).hour
+                        if 0 <= ah < 24:
+                            hourly_map[ah]['attendance'] += 1
+                    except (Exception):
+                        pass
+                    
+            # Determine Start Hour
+            # Priority 1: Actual Opening Time for TODAY (if available) to match user expectation ("I opened at 9")
+            # Priority 2: Configured Business Day Start (default 5)
+            
+            start_hour = 0
+            business_start_setting = 7
+            
+            try:
+                if current_store.store_settings and len(current_store.store_settings) > 0:
+                    business_start_setting = current_store.store_settings[0].business_day_start
+                    start_hour = business_start_setting
+    
+                # Check if we should use actual opening time for today's chart
+                today_date_for_start = get_today_date(business_start_setting) 
+                
+                if start_date == today_date_for_start:
+                    daily_closing = db.query(DailyClosing).filter(
+                        DailyClosing.store_id == store_id,
+                        DailyClosing.business_date == today_date_for_start,
+                        DailyClosing.is_closed == False
+                    ).first()
+                    
+                    if daily_closing and daily_closing.opening_time:
+                        # Use actual opening hour
+                        # opening_time is DateTime. 
+                        start_hour = daily_closing.opening_time.hour
+            except Exception as e:
+                # Fallback to business_start_setting if anything goes wrong
+                print(f"Error determining start_hour: {e}")
                 start_hour = business_start_setting
-
-            # Check if we should use actual opening time for today's chart
-            today_date_for_start = get_today_date(business_start_setting) 
-            
-            if start_date == today_date_for_start:
-                daily_closing = db.query(DailyClosing).filter(
-                    DailyClosing.store_id == store_id,
-                    DailyClosing.business_date == today_date_for_start,
-                    DailyClosing.is_closed == False
-                ).first()
-                
-                if daily_closing and daily_closing.opening_time:
-                    # Use actual opening hour
-                    # opening_time is DateTime. 
-                    start_hour = daily_closing.opening_time.hour
-        except Exception as e:
-            # Fallback to business_start_setting if anything goes wrong
-            print(f"Error determining start_hour: {e}")
-            start_hour = business_start_setting
-
-        # Determine End Hour based on last class
-        end_hour = 20 # Default fallback
-        try:
-            from models import ClassInfo
-            last_class = db.query(ClassInfo).filter(
-                ClassInfo.store_id == store_id,
-                ClassInfo.is_active == True
-            ).order_by(ClassInfo.end_time.desc()).first()
-            
-            if last_class and last_class.end_time:
-                # Use the hour of the last class end time
-                end_hour = last_class.end_time.hour
-                # If there are minutes, round up to include the full hour
-                if last_class.end_time.minute > 0:
-                    end_hour += 1
-        except Exception as e:
-            print(f"Error determining end_hour: {e}")
-
-        # Ensure reasonable bounds
-        if end_hour > 23: end_hour = 23
-        if start_hour >= end_hour: # If something is weird
-            start_hour = 7
-            end_hour = 20
-
-        # Create trends_list from start_hour to end_hour
-        trends_list = []
-        for h in range(start_hour, end_hour + 1): 
-            v = hourly_map.get(h, {'waiting': 0, 'attendance': 0})
-            trends_list.append(
-                schemas.HourlyStat(
-                    hour=h, 
-                    label=f"{h}", # Removing "시"
-                    waiting_count=v['waiting'], 
-                    attendance_count=v['attendance']
-                )
-            )
-        
-    else:
-        # DB Grouping for Daily/Weekly/Monthly -> Use business_date for consistency
-        if is_sqlite:
-            date_fmt = "%Y-%m-%d"
-            if period == "daily":
-                date_fmt = "%m-%d" # Frontend expects MM-DD for daily chart
-            elif period == "weekly":
-                date_fmt = "%Y-%W"
-            elif period == "monthly":
-                date_fmt = "%Y-%m"
-            
-            # Use business_date for BOTH waiting and attendance counts to avoid mismatches
-            period_col = func.strftime(date_fmt, WaitingList.business_date).label("period")
-            period_col_attend = func.strftime(date_fmt, WaitingList.business_date).label("period")
-        else:
-            # Postgres
-            fmt = 'YYYY-MM-DD'
-            if period == 'daily': fmt = 'MM-DD'
-            elif period == 'weekly': fmt = 'YYYY-IW'
-            elif period == 'monthly': fmt = 'YYYY-MM'
-            
-            # Use business_date for consistency
-            period_col = func.to_char(WaitingList.business_date, fmt).label("period")
-            period_col_attend = func.to_char(WaitingList.business_date, fmt).label("period")
-
-        # 1. Waiting Counts
-        w_groups = db.query(period_col, func.count(WaitingList.id)).filter(
-            WaitingList.store_id == store_id,
-            WaitingList.business_date >= local_start_date,
-            WaitingList.business_date <= local_end_date
-        ).group_by(period_col).all()
-        w_map = {str(r[0]): r[1] for r in w_groups if r[0] is not None}
-
-        # 2. Attendance Counts
-        a_groups = db.query(period_col_attend, func.count(WaitingList.id)).filter(
-            WaitingList.store_id == store_id,
-            WaitingList.status == 'attended',
-            WaitingList.business_date >= local_start_date,
-            WaitingList.business_date <= local_end_date 
-        ).group_by(period_col_attend).all()
-        a_map = {str(r[0]): r[1] for r in a_groups if r[0] is not None}
-
-        # Merge keys
-        all_keys = sorted(set(w_map.keys()) | set(a_map.keys()))
-        
-        trends_list = [
-            schemas.HourlyStat(
-                label=k,
-                waiting_count=w_map.get(k, 0),
-                attendance_count=a_map.get(k, 0)
-            )
-            for k in all_keys
-        ]
-
-    # 4. Store Stats
-    current_waiting_cnt = db.query(func.count(WaitingList.id)).filter(
-        WaitingList.store_id == store_id,
-        WaitingList.status == 'waiting',
-        WaitingList.business_date == today
-    ).scalar() or 0
-
-    store_stats_list = [
-        schemas.StoreOperationStat(
-            store_name=current_store.name,
-            is_open=open_op is not None,
-            # Adjust UTC to KST (+9h) for display
-            open_time=((open_op.opening_time or open_op.created_at) + timedelta(hours=9)).strftime("%H:%M") if open_op and (open_op.opening_time or open_op.created_at) else None,
-            close_time=None,
-            current_waiting=current_waiting_cnt,
-            total_waiting=total_waiting_cnt,
-            total_attendance=total_attendance_cnt
-        )
-    ]
     
-    # 신규 회원 수 계산
-    new_members_cnt = db.query(Member).filter(
-        Member.store_id == store_id,
-        Member.created_at >= datetime.combine(local_start_date, datetime.min.time()),
-        Member.created_at <= datetime.combine(local_end_date, datetime.max.time())
-    ).count()
-
-    # 재방문율 가계산 (기간 방문자 중 신규 제외)
-    unique_visiting_members = len(set(w.member_id for w in waitings if w.member_id))
-    visited_returning = unique_visiting_members - new_members_cnt
-    if visited_returning < 0: visited_returning = 0
-    retention_rate = (visited_returning / unique_visiting_members * 100) if unique_visiting_members > 0 else 0.0
-
-    # 매출 가계산 (출석 인원 * 평균 객단가 15,000원 가정)
-    total_revenue = total_attendance_cnt * 15000
-
-    # Construct response
-    return schemas.AnalyticsDashboard(
-        total_stores=1,
-        open_stores=1 if open_op else 0,
-        total_waiting=total_waiting_cnt,
-        total_attendance=total_attendance_cnt,
-        waiting_time_stats=w_stats,
-        attendance_time_stats=a_stats,
-        hourly_stats=trends_list,
-        store_stats=store_stats_list,
-        new_members=new_members_cnt,
-        total_revenue=total_revenue,
-        total_visitors=total_waiting_cnt,
-        retention_rate=round(retention_rate, 1),
-        top_churn_members=[] 
-    )
+            # Determine End Hour based on last class
+            end_hour = 20 # Default fallback
+            try:
+                from models import ClassInfo
+                last_class = db.query(ClassInfo).filter(
+                    ClassInfo.store_id == store_id,
+                    ClassInfo.is_active == True
+                ).order_by(ClassInfo.end_time.desc()).first()
+                
+                if last_class and last_class.end_time:
+                    # Use the hour of the last class end time
+                    end_hour = last_class.end_time.hour
+                    # If there are minutes, round up to include the full hour
+                    if last_class.end_time.minute > 0:
+                        end_hour += 1
+            except Exception as e:
+                print(f"Error determining end_hour: {e}")
+    
+            # Ensure reasonable bounds
+            if end_hour > 23: end_hour = 23
+            if start_hour >= end_hour: # If something is weird
+                start_hour = 7
+                end_hour = 20
+    
+            # Create trends_list from start_hour to end_hour
+            trends_list = []
+            for h in range(start_hour, end_hour + 1): 
+                v = hourly_map.get(h, {'waiting': 0, 'attendance': 0})
+                trends_list.append(
+                    schemas.HourlyStat(
+                        hour=h, 
+                        label=f"{h}", # Removing "시"
+                        waiting_count=v['waiting'], 
+                        attendance_count=v['attendance']
+                    )
+                )
+            
+        else:
+            # DB Grouping for Daily/Weekly/Monthly -> Use business_date for consistency
+            if is_sqlite:
+                date_fmt = "%Y-%m-%d"
+                if period == "daily":
+                    date_fmt = "%m-%d" # Frontend expects MM-DD for daily chart
+                elif period == "weekly":
+                    date_fmt = "%Y-%W"
+                elif period == "monthly":
+                    date_fmt = "%Y-%m"
+                
+                # Use business_date for BOTH waiting and attendance counts to avoid mismatches
+                period_col = func.strftime(date_fmt, WaitingList.business_date).label("period")
+                period_col_attend = func.strftime(date_fmt, WaitingList.business_date).label("period")
+            else:
+                # Postgres
+                fmt = 'YYYY-MM-DD'
+                if period == 'daily': fmt = 'MM-DD'
+                elif period == 'weekly': fmt = 'YYYY-IW'
+                elif period == 'monthly': fmt = 'YYYY-MM'
+                
+                # Use business_date for consistency
+                period_col = func.to_char(WaitingList.business_date, fmt).label("period")
+                period_col_attend = func.to_char(WaitingList.business_date, fmt).label("period")
+    
+            # 1. Waiting Counts
+            w_groups = db.query(period_col, func.count(WaitingList.id)).filter(
+                WaitingList.store_id == store_id,
+                WaitingList.business_date >= local_start_date,
+                WaitingList.business_date <= local_end_date
+            ).group_by(period_col).all()
+            w_map = {str(r[0]): r[1] for r in w_groups if r[0] is not None}
+    
+            # 2. Attendance Counts
+            a_groups = db.query(period_col_attend, func.count(WaitingList.id)).filter(
+                WaitingList.store_id == store_id,
+                WaitingList.status == 'attended',
+                WaitingList.business_date >= local_start_date,
+                WaitingList.business_date <= local_end_date 
+            ).group_by(period_col_attend).all()
+            a_map = {str(r[0]): r[1] for r in a_groups if r[0] is not None}
+    
+            # Merge keys
+            all_keys = sorted(set(w_map.keys()) | set(a_map.keys()))
+            
+            trends_list = [
+                schemas.HourlyStat(
+                    label=k,
+                    waiting_count=w_map.get(k, 0),
+                    attendance_count=a_map.get(k, 0)
+                )
+                for k in all_keys
+            ]
+    
+        # 4. Store Stats
+        current_waiting_cnt = db.query(func.count(WaitingList.id)).filter(
+            WaitingList.store_id == store_id,
+            WaitingList.status == 'waiting',
+            WaitingList.business_date == today
+        ).scalar() or 0
+    
+        store_stats_list = [
+            schemas.StoreOperationStat(
+                store_name=current_store.name,
+                is_open=open_op is not None,
+                # Adjust UTC to KST (+9h) for display
+                open_time=((open_op.opening_time or open_op.created_at) + timedelta(hours=9)).strftime("%H:%M") if open_op and (open_op.opening_time or open_op.created_at) else None,
+                close_time=None,
+                current_waiting=current_waiting_cnt,
+                total_waiting=total_waiting_cnt,
+                total_attendance=total_attendance_cnt
+            )
+        ]
+        
+        # 신규 회원 수 계산
+        new_members_cnt = db.query(Member).filter(
+            Member.store_id == store_id,
+            Member.created_at >= datetime.combine(local_start_date, datetime.min.time()),
+            Member.created_at <= datetime.combine(local_end_date, datetime.max.time())
+        ).count()
+    
+        # 재방문율 가계산 (기간 방문자 중 신규 제외)
+        unique_visiting_members = len(set(w.member_id for w in waitings if w.member_id))
+        visited_returning = unique_visiting_members - new_members_cnt
+        if visited_returning < 0: visited_returning = 0
+        retention_rate = (visited_returning / unique_visiting_members * 100) if unique_visiting_members > 0 else 0.0
+    
+        # 매출 가계산 (출석 인원 * 평균 객단가 15,000원 가정)
+        total_revenue = total_attendance_cnt * 15000
+    
+        # Construct response
+        return schemas.AnalyticsDashboard(
+            total_stores=1,
+            open_stores=1 if open_op else 0,
+            total_waiting=total_waiting_cnt,
+            total_attendance=total_attendance_cnt,
+            waiting_time_stats=w_stats,
+            attendance_time_stats=a_stats,
+            hourly_stats=trends_list,
+            store_stats=store_stats_list,
+            new_members=new_members_cnt,
+            total_revenue=total_revenue,
+            total_visitors=total_waiting_cnt,
+            retention_rate=round(retention_rate, 1),
+            top_churn_members=[] 
+        )
 
 except Exception as e:
     logger.error(f"Error in get_store_analytics_dashboard: {str(e)}", exc_info=True)
