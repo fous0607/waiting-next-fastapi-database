@@ -39,9 +39,18 @@ export function OwnerAnalytics({ stats, loading, period, setPeriod, dateRange, s
     const getDateRangeDisplay = () => {
         if (!dateRange?.from) return "날짜 선택";
         const fromStr = format(dateRange.from, period === 'monthly' ? 'yyyy.MM' : 'yyyy.MM.dd', { locale: ko });
-        if (!dateRange.to || (period !== 'monthly' && format(dateRange.from, 'yyyy-MM-dd') === format(dateRange.to, 'yyyy-MM-dd'))) {
+
+        // Only return single date if 'to' is missing or if it's the SAME day as 'from' (for non-monthly)
+        if (!dateRange.to) {
             return fromStr;
         }
+
+        // For monthly, always show range if 'to' is present
+        // For others, only show range if they are different days
+        if (period !== 'monthly' && format(dateRange.from, 'yyyy-MM-dd') === format(dateRange.to, 'yyyy-MM-dd')) {
+            return fromStr;
+        }
+
         const toStr = format(dateRange.to, period === 'monthly' ? 'yyyy.MM' : 'yyyy.MM.dd', { locale: ko });
         return `${fromStr} ~ ${toStr}`;
     };
@@ -100,18 +109,16 @@ export function OwnerAnalytics({ stats, loading, period, setPeriod, dateRange, s
                                 key={m}
                                 onClick={() => {
                                     if (!dateRange?.from || (dateRange.from && dateRange.to)) {
-                                        // Start fresh if no range yet or if a full range was already selected
+                                        // First click: Only set 'from'
                                         setDateRange({ from: dStart, to: undefined });
-                                        // Keep open for 'to' selection
                                     } else {
-                                        // We have a 'from', now setting 'to'
+                                        // Second click: Set 'to' (and ensure correct order)
                                         if (dStart < dateRange.from) {
-                                            // Selected month is earlier than 'from', swap them
                                             setDateRange({ from: dStart, to: endOfMonth(dateRange.from) });
                                         } else {
                                             setDateRange({ from: dateRange.from, to: dEnd });
                                         }
-                                        setIsCalendarOpen(false); // Close after second selection
+                                        setIsCalendarOpen(false); // Close ONLY on second selection
                                     }
                                 }}
                                 className={cn(
@@ -179,18 +186,12 @@ export function OwnerAnalytics({ stats, loading, period, setPeriod, dateRange, s
                                     setDateRange(range);
                                     // Robust closing logic:
                                     // 1. If 'from' and 'to' are different -> Full range selected, close.
-                                    // 2. If 'from' and 'to' are same -> Single day. For hourly/daily, we usually want ranges.
-                                    // If the user clicks the same day twice, range-picker usually returns from=to.
+                                    // 2. If same day is clicked twice or it's a new 'from', react-day-picker 
+                                    // often returns from == to or only from.
                                     if (range?.from && range?.to) {
-                                        if (range.from.getTime() !== range.to.getTime()) {
+                                        // ONLY close if we have an actual range (distinct dates)
+                                        if (format(range.from, 'yyyy-MM-dd') !== format(range.to, 'yyyy-MM-dd')) {
                                             setIsCalendarOpen(false);
-                                        } else {
-                                            // If same day, don't close immediately unless it's a second click on the same day.
-                                            // The react-day-picker 'range' mode handles this by setting both.
-                                            // We'll let the user decide by either clicking another day or clicking again/outside.
-                                            // Actually, most users expect a single click to be a single day range.
-                                            // But the requirement says "starts disappears on start date selection".
-                                            // To fix that, we keep it open if from == to.
                                         }
                                     }
                                 }}
@@ -208,24 +209,24 @@ export function OwnerAnalytics({ stats, loading, period, setPeriod, dateRange, s
 
             {/* Key Insights Cards */}
             <div className="grid grid-cols-2 gap-3 mx-1">
-                <Card className="border-none shadow-sm bg-indigo-50/50">
-                    <CardContent className="p-3 flex flex-col justify-between h-[80px]">
-                        <div className="flex items-center gap-2 text-indigo-900/60">
-                            <Clock className="w-4 h-4" />
-                            <span className="text-[11px] font-bold">가장 붐비는 시간</span>
+                <Card className="border-none shadow-sm bg-indigo-50/50 overflow-hidden">
+                    <CardContent className="p-3 flex flex-col justify-center h-14">
+                        <div className="flex items-center gap-2 text-indigo-900/60 mb-0.5">
+                            <Clock className="w-3.5 h-3.5" />
+                            <span className="text-[10px] font-bold">가장 붐비는 시간</span>
                         </div>
-                        <p className="text-base font-bold text-indigo-900 truncate">
+                        <p className="text-sm font-bold text-indigo-900 truncate">
                             {getPeakTime()}
                         </p>
                     </CardContent>
                 </Card>
-                <Card className="border-none shadow-sm bg-orange-50/50">
-                    <CardContent className="p-3 flex flex-col justify-between h-[80px]">
-                        <div className="flex items-center gap-2 text-orange-900/60">
-                            <TrendingUp className="w-4 h-4" />
-                            <span className="text-[11px] font-bold">평균 대기 시간</span>
+                <Card className="border-none shadow-sm bg-orange-50/50 overflow-hidden">
+                    <CardContent className="p-3 flex flex-col justify-center h-14">
+                        <div className="flex items-center gap-2 text-orange-900/60 mb-0.5">
+                            <TrendingUp className="w-3.5 h-3.5" />
+                            <span className="text-[10px] font-bold">평균 대기 시간</span>
                         </div>
-                        <p className="text-base font-bold text-orange-900">{avgWaitTime}</p>
+                        <p className="text-sm font-bold text-orange-900">{avgWaitTime}</p>
                     </CardContent>
                 </Card>
             </div>
@@ -239,7 +240,7 @@ export function OwnerAnalytics({ stats, loading, period, setPeriod, dateRange, s
                     }
                     data={stats?.hourly_stats || []}
                     loading={loading}
-                    type={period === 'hourly' ? 'bar' : 'line'}
+                    type="bar"
                 />
             </div>
 
