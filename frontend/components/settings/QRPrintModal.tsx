@@ -27,6 +27,8 @@ export function QRPrintModal({ storeName, storeCode, trigger }: QRPrintModalProp
     const [guideMessage, setGuideMessage] = useState('스마트폰 카메라로 QR코드를 스캔하여\n간편하게 대기를 등록하세요.');
     const [open, setOpen] = useState(false);
 
+    const [scale, setScale] = useState(0.65); // Default scale for better fit
+
     if (typeof window === 'undefined') return null;
     const origin = window.location.origin;
     const entryUrl = `${origin}/entry/${storeCode}`;
@@ -34,6 +36,10 @@ export function QRPrintModal({ storeName, storeCode, trigger }: QRPrintModalProp
     const handlePrint = () => {
         window.print();
     };
+
+    const zoomIn = () => setScale(prev => Math.min(prev + 0.1, 1.5));
+    const zoomOut = () => setScale(prev => Math.max(prev - 0.1, 0.4));
+    const zoomReset = () => setScale(0.65);
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -109,14 +115,30 @@ export function QRPrintModal({ storeName, storeCode, trigger }: QRPrintModalProp
 
                     {/* Right: Real-time Preview */}
                     <div className="flex-1 bg-slate-200 flex flex-col min-h-0 relative h-full">
-                        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10">
-                            <span className="px-3 py-1 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold rounded-full uppercase tracking-widest border border-white/20">
-                                A4 Print Preview
-                            </span>
+                        {/* Zoom Controls */}
+                        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 flex gap-2">
+                            <div className="flex items-center bg-black/70 backdrop-blur-md rounded-full border border-white/20 p-1 shadow-lg">
+                                <Button variant="ghost" size="icon" onClick={zoomOut} className="w-8 h-8 rounded-full text-white hover:bg-white/20 hover:text-white">
+                                    -
+                                </Button>
+                                <span className="text-[10px] font-bold text-white w-12 text-center select-none font-mono">
+                                    {Math.round(scale * 100)}%
+                                </span>
+                                <Button variant="ghost" size="icon" onClick={zoomIn} className="w-8 h-8 rounded-full text-white hover:bg-white/20 hover:text-white">
+                                    +
+                                </Button>
+                                <div className="w-px h-4 bg-white/20 mx-1" />
+                                <Button variant="ghost" size="xs" onClick={zoomReset} className="h-8 px-3 rounded-full text-[10px] text-white hover:bg-white/20 hover:text-white">
+                                    RESET
+                                </Button>
+                            </div>
                         </div>
 
-                        <div className="flex-1 overflow-auto p-8 flex justify-center items-center no-scrollbar relative w-full h-full">
-                            <div className="bg-white shadow-2xl w-[450px] aspect-[1/1.414] origin-center scale-[1.0] transition-all duration-500 ease-in-out shrink-0">
+                        <div className="flex-1 overflow-auto p-8 flex justify-center items-center relative w-full h-full">
+                            <div
+                                className="bg-white shadow-2xl w-[450px] aspect-[1/1.414] origin-center transition-all duration-300 ease-out shrink-0"
+                                style={{ transform: `scale(${scale})` }}
+                            >
                                 <QRPrintTemplate
                                     style={selectedStyle}
                                     storeName={storeName}
