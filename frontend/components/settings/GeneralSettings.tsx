@@ -499,7 +499,7 @@ export function GeneralSettings() {
                                                 // Calculate URL safely on client side
                                                 if (typeof window === 'undefined' || !storeCode) return <div className="p-4 text-xs text-muted-foreground">매장 코드를 로딩중입니다...</div>;
                                                 const origin = window.location.origin;
-                                                const entryUrl = `${origin} /entry/${storeCode} `;
+                                                const entryUrl = `${origin}/entry/${storeCode}`;
 
                                                 return (
                                                     <div className="space-y-2 text-center">
@@ -524,7 +524,7 @@ export function GeneralSettings() {
                                                     onClick={(e) => {
                                                         e.preventDefault();
                                                         if (!storeCode) return;
-                                                        window.open(`/ entry / ${storeCode} `, '_blank');
+                                                        window.open(`/entry/${storeCode}`, '_blank');
                                                     }}
                                                     disabled={!storeCode}
                                                 >
