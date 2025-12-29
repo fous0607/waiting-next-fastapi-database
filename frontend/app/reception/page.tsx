@@ -644,7 +644,7 @@ export default function ReceptionPage() {
                     <h1 className={`text-4xl font-black tracking-tight ${keypadStyle === 'dark' ? 'text-white' : 'text-slate-900'}`}>{storeName}</h1>
                     <div className={`text-2xl font-bold ${waitingStatus?.is_full ? 'text-red-500' : 'text-blue-500'}`}>
                         {waitingStatus ? (
-                            waitingStatus.is_full ? '현재 접수가 마감되었습니다' : `${waitingStatus.class_name} ${waitingStatus.class_number}번째 대기 접수 중`
+                            waitingStatus.is_full ? '현재 접수가 마감되었습니다' : `${waitingStatus.class_name} ${waitingStatus.class_order}번째 대기 접수 중`
                         ) : ''}
                     </div>
                 </div>
