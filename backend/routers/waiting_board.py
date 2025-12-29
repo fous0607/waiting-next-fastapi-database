@@ -293,7 +293,19 @@ async def get_waiting_board(
         rows_per_class=settings.rows_per_class,
         waiting_board_page_size=settings.waiting_board_page_size,
         waiting_board_rotation_interval=settings.waiting_board_rotation_interval,
-        waiting_board_transition_effect=settings.waiting_board_transition_effect
+        waiting_board_transition_effect=settings.waiting_board_transition_effect,
+        voice_settings={
+            "enable_waiting_voice_alert": getattr(settings, 'enable_waiting_voice_alert', True),
+            "waiting_voice_message": getattr(settings, 'waiting_voice_message', None),
+            "waiting_call_voice_message": getattr(settings, 'waiting_call_voice_message', None),
+            "waiting_voice_name": getattr(settings, 'waiting_voice_name', None),
+            "waiting_voice_rate": getattr(settings, 'waiting_voice_rate', 1.0),
+            "waiting_voice_pitch": getattr(settings, 'waiting_voice_pitch', 1.0),
+            "waiting_call_voice_repeat_count": getattr(settings, 'waiting_call_voice_repeat_count', 1),
+            "enable_duplicate_registration_voice": getattr(settings, 'enable_duplicate_registration_voice', True),
+            "duplicate_registration_voice_message": getattr(settings, 'duplicate_registration_voice_message', None),
+            "enable_calling_voice_alert": getattr(settings, 'enable_calling_voice_alert', True),
+        }
     )
 
 @router.put("/{waiting_id}/status")

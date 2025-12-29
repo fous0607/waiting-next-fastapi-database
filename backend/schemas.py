@@ -379,6 +379,18 @@ class WaitingBoardItem(BaseModel):
     call_count: int = 0
     last_called_at: Optional[datetime] = None
 
+class VoiceSettings(BaseModel):
+    enable_waiting_voice_alert: bool = True
+    waiting_voice_message: Optional[str] = None
+    waiting_call_voice_message: Optional[str] = None
+    waiting_voice_name: Optional[str] = None
+    waiting_voice_rate: float = 1.0
+    waiting_voice_pitch: float = 1.0
+    waiting_call_voice_repeat_count: int = 1
+    enable_duplicate_registration_voice: bool = True
+    duplicate_registration_voice_message: str = "이미 대기 중인 번호입니다."
+    enable_calling_voice_alert: bool = True
+
 class WaitingBoard(BaseModel):
     store_name: str
     business_date: date
@@ -388,6 +400,7 @@ class WaitingBoard(BaseModel):
     waiting_board_page_size: int = 12
     waiting_board_rotation_interval: int = 5
     waiting_board_transition_effect: str = "slide"
+    voice_settings: Optional[VoiceSettings] = None
 
 # Waiting Management
 class WaitingStatusUpdate(BaseModel):

@@ -617,7 +617,19 @@ async def get_next_slot(
         "class_order": next_order,
         "max_capacity": next_class.max_capacity,
         "is_full": False,
-        "total_waiting": total_waiting
+        "total_waiting": total_waiting,
+        "voice_settings": {
+            "enable_waiting_voice_alert": getattr(settings, 'enable_waiting_voice_alert', True) if 'settings' in locals() and settings else True,
+            "waiting_voice_message": getattr(settings, 'waiting_voice_message', None) if 'settings' in locals() and settings else None,
+            "waiting_call_voice_message": getattr(settings, 'waiting_call_voice_message', None) if 'settings' in locals() and settings else None,
+            "waiting_voice_name": getattr(settings, 'waiting_voice_name', None) if 'settings' in locals() and settings else None,
+            "waiting_voice_rate": getattr(settings, 'waiting_voice_rate', 1.0) if 'settings' in locals() and settings else 1.0,
+            "waiting_voice_pitch": getattr(settings, 'waiting_voice_pitch', 1.0) if 'settings' in locals() and settings else 1.0,
+            "waiting_call_voice_repeat_count": getattr(settings, 'waiting_call_voice_repeat_count', 1) if 'settings' in locals() and settings else 1,
+            "enable_duplicate_registration_voice": getattr(settings, 'enable_duplicate_registration_voice', True) if 'settings' in locals() and settings else True,
+            "duplicate_registration_voice_message": getattr(settings, 'duplicate_registration_voice_message', None) if 'settings' in locals() and settings else None,
+            "enable_calling_voice_alert": getattr(settings, 'enable_calling_voice_alert', True) if 'settings' in locals() and settings else True,
+        }
     }
 
 

@@ -464,14 +464,51 @@ export default function DashboardPage() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
   useEffect(() => {
-    // Check for token on client side
-    const token = localStorage.getItem('access_token');
-    setIsAuthenticated(!!token);
+    // Strict Session Validation
+    const validateSession = async () => {
+      // 1. Check for token in localStorage (Basic check)
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        setIsAuthenticated(false);
+        return;
+      }
+
+      // 2. Validate token with server (Strict check)
+      try {
+        await api.get('/auth/me');
+        // If we get here, token is valid
+        setIsAuthenticated(true);
+      } catch (error) {
+        // If validation fails (401 or network error on auth check)
+        console.error("Session validation failed:", error);
+
+        // Clear all local data to prevent ghost state
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('user_role');
+        localStorage.removeItem('selected_store_id');
+        localStorage.removeItem('selected_store_name');
+        localStorage.removeItem('selected_store_code');
+
+        // Also try to clear cookie if possible
+        document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+
+        setIsAuthenticated(false);
+      }
+    };
+
+    validateSession();
   }, []);
 
   // Show loading or nothing while checking auth
   if (isAuthenticated === null) {
-    return <div className="min-h-screen bg-slate-50" />;
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+          <p className="text-sm text-slate-500">인증 정보를 확인하는 중입니다...</p>
+        </div>
+      </div>
+    );
   }
 
   // If not authenticated, show LoginContent

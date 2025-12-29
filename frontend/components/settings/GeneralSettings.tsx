@@ -298,6 +298,8 @@ export function GeneralSettings() {
         return <div className="p-8 flex justify-center">로딩 중...</div>;
     }
 
+    const [previewType, setPreviewType] = useState<'waiting' | 'duplicate' | 'calling'>('waiting');
+
     const handlePreviewVoice = () => {
         const values = form.getValues();
         if (!window.speechSynthesis) {
@@ -306,8 +308,18 @@ export function GeneralSettings() {
         }
 
         window.speechSynthesis.cancel();
-        const text = values.waiting_voice_message?.replace('{클래스명}', '테스트교시').replace('{회원명}', '홍길동').replace('{순번}', '1')
-            || '테스트교시 홍길동님 1번째 대기 접수 되었습니다.';
+        let text = '';
+
+        if (previewType === 'waiting') {
+            text = values.waiting_voice_message?.replace('{클래스명}', '테스트교시').replace('{회원명}', '홍길동').replace('{순번}', '1')
+                || '테스트교시 홍길동님 1번째 대기 접수 되었습니다.';
+        } else if (previewType === 'duplicate') {
+            text = values.duplicate_registration_voice_message || "이미 대기 중인 번호입니다.";
+        } else if (previewType === 'calling') {
+            // Note: calling voice alert might be disabled, but we preview it anyway
+            text = values.waiting_call_voice_message?.replace('{클래스명}', '테스트교시').replace('{회원명}', '홍길동').replace('{순번}', '1')
+                || '1번 홍길동님, 데스크로 오시기 바랍니다.';
+        }
 
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'ko-KR';
@@ -1057,12 +1069,28 @@ export function GeneralSettings() {
                                                 </FormItem>
                                             )}
                                         />
-                                        <div className="md:col-span-2 flex justify-end">
+                                        <div className="md:col-span-2 flex flex-col md:flex-row justify-end items-end gap-3 pt-2">
+                                            <div className="w-full md:w-48">
+                                                <FormLabel className="text-xs mb-1.5 block">미리듣기 항목 선택</FormLabel>
+                                                <Select
+                                                    value={previewType}
+                                                    onValueChange={(val: 'waiting' | 'duplicate' | 'calling') => setPreviewType(val)}
+                                                >
+                                                    <SelectTrigger className="h-8 text-xs">
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="waiting" className="text-xs">접수 완료 안내</SelectItem>
+                                                        <SelectItem value="duplicate" className="text-xs">중복 접수 경고</SelectItem>
+                                                        <SelectItem value="calling" className="text-xs">호출 안내 (호출 시)</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
                                             <Button
                                                 type="button"
                                                 variant="outline"
                                                 size="sm"
-                                                className="text-xs h-8"
+                                                className="text-xs h-8 w-full md:w-auto"
                                                 onClick={handlePreviewVoice}
                                             >
                                                 미리듣기 (Preview)

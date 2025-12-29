@@ -41,6 +41,7 @@ interface BoardData {
     waiting_board_page_size?: number;
     waiting_board_rotation_interval?: number;
     waiting_board_transition_effect?: string;
+    voice_settings?: any;
 }
 
 
@@ -73,6 +74,10 @@ export default function BoardPage() {
 
             const { data: boardData } = await api.get(`/board/display?store_code=${storeCode}`);
             setData(boardData);
+            // Initial setting sync
+            if (boardData.voice_settings) {
+                setStoreSettings((prev: any) => ({ ...prev, ...boardData.voice_settings }));
+            }
         } catch (error) {
             console.error(error);
         } finally {
@@ -150,6 +155,11 @@ export default function BoardPage() {
     useEffect(() => {
         if (!data) return;
 
+        // Sync settings from polling data (ensure we have latest voice config)
+        if (data.voice_settings) {
+            setStoreSettings((prev: any) => ({ ...prev, ...data.voice_settings }));
+        }
+
         // On first load, just mark existing calls as processed to avoid re-announcing
         if (isFirstDataLoad.current) {
             data.waiting_list.forEach(item => {
@@ -218,6 +228,10 @@ export default function BoardPage() {
                 if (newData) {
                     setData(newData);
                     setIsConnected(true);
+                    // SWR update also syncs settings
+                    if (newData.voice_settings) {
+                        setStoreSettings((prev: any) => ({ ...prev, ...newData.voice_settings }));
+                    }
                 }
             },
             onError: () => {

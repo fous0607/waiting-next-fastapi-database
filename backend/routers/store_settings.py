@@ -60,6 +60,7 @@ async def get_store_settings(
             defer(StoreSettings.show_member_name_in_waiting_modal),
             defer(StoreSettings.show_new_member_text_in_waiting_modal),
             defer(StoreSettings.enable_waiting_voice_alert),
+            defer(StoreSettings.enable_calling_voice_alert),
             defer(StoreSettings.waiting_voice_message),
             defer(StoreSettings.waiting_voice_name),
             defer(StoreSettings.waiting_voice_rate),
@@ -103,6 +104,7 @@ async def get_store_settings(
             set_default(settings, 'show_member_name_in_waiting_modal', True)
             set_default(settings, 'show_new_member_text_in_waiting_modal', True)
             set_default(settings, 'enable_waiting_voice_alert', False)
+            set_default(settings, 'enable_calling_voice_alert', True)
             set_default(settings, 'waiting_voice_message', "")
             set_default(settings, 'waiting_voice_name', "유나")
             set_default(settings, 'waiting_voice_rate', 0.8)

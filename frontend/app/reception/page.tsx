@@ -51,6 +51,9 @@ export default function ReceptionPage() {
             const res = await api.get('/waiting/next-slot');
             console.log('[ReceptionStatus] Status response:', res.data);
             setWaitingStatus(res.data);
+            if (res.data.voice_settings) {
+                setStoreSettings((prev: any) => ({ ...prev, ...res.data.voice_settings }));
+            }
         } catch (error) {
             console.error('[ReceptionStatus] Load failed:', error);
         }
@@ -137,6 +140,9 @@ export default function ReceptionPage() {
         onSuccess: (data) => {
             setWaitingStatus(data);
             setIsConnected(true);
+            if (data.voice_settings) {
+                setStoreSettings((prev: any) => ({ ...prev, ...data.voice_settings }));
+            }
         },
         onError: () => {
             setIsConnected(false);
