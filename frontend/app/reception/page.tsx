@@ -159,9 +159,28 @@ export default function ReceptionPage() {
             const soundType = storeSettings?.keypad_sound_type || 'button';
 
             // 버튼 클릭음 - 다양한 연령대를 위한 피드백
-            if (soundType === 'button') {
-                // 현대적 버튼 클릭음 - 젊은층, 명확한 피드백
-                const baseFreq = actionType === 'action' ? 1200 : 1500;
+            if (ctx.state === 'suspended') {
+                ctx.resume().catch(e => console.warn('[Audio] Failed to resume context:', e));
+            }
+
+            // --- Voice Warmup (Added for debugging silent voice issue) ---
+            // If this is the very first interaction, trigger a silent speech to wake up the engine
+            // Using a simple flag on the window/component ref to track 'warmedUp'
+            if (!(window as any).__voiceWarmedUp && window.speechSynthesis) {
+                console.log('[Audio] Warming up SpeechSynthesis engine...');
+                (window as any).__voiceWarmedUp = true;
+                window.speechSynthesis.cancel(); // Clear queue
+                // Create a silent utterance
+                const silentUtterance = new SpeechSynthesisUtterance(" ");
+                silentUtterance.volume = 0; // Silent
+                silentUtterance.rate = 10; // Fast
+                window.speechSynthesis.speak(silentUtterance);
+            }
+            // -----------------------------------------------------------
+
+            if (soundType === 'modern') {
+                // 현대적인 맑은 소리
+                const baseFreq = actionType === 'action' ? 880 : 1200;
 
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
@@ -171,13 +190,13 @@ export default function ReceptionPage() {
                 gain.connect(ctx.destination);
 
                 osc.frequency.setValueAtTime(baseFreq, now);
-                osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.5, now + 0.03);
+                osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.7, now + 0.06);
 
-                gain.gain.setValueAtTime(0.2, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.03);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.06);
 
                 osc.start(now);
-                osc.stop(now + 0.03);
+                osc.stop(now + 0.06);
 
             } else if (soundType === 'soft') {
                 // 부드러운 버튼음 - 노년층, 편안한 느낌
