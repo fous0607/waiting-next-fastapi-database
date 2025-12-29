@@ -476,13 +476,13 @@ export default function ReceptionPage() {
             }
 
             // Custom timeout from settings - Ensure it's a number
-            // Default 5s if missing or invalid
+            // Force re-fetch from latest state or use passed settings
             let timeoutSeconds = 5;
             if (storeSettings?.waiting_modal_timeout !== undefined && storeSettings?.waiting_modal_timeout !== null) {
                 timeoutSeconds = Number(storeSettings.waiting_modal_timeout);
             }
 
-            console.log(`[Modal] Auto-close in ${timeoutSeconds} seconds`);
+            console.log(`[Modal] Auto-close in ${timeoutSeconds} seconds (Setting: ${storeSettings?.waiting_modal_timeout})`);
 
             modalTimeoutRef.current = setTimeout(() => {
                 setResultDialog(prev => ({ ...prev, open: false }));

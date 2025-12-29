@@ -1,4 +1,5 @@
 import { Card } from "@/components/ui/card";
+import { useWaitingStore } from "@/lib/store/useWaitingStore";
 
 interface BoardCardProps {
     item: any;
@@ -18,9 +19,12 @@ export function BoardCard({ item }: BoardCardProps) {
 
         const lastCalled = new Date(item.last_called_at).getTime();
         const now = new Date().getTime();
-        const diffMinutes = (now - lastCalled) / (1000 * 60);
+        const diffSeconds = (now - lastCalled) / 1000;
 
-        return diffMinutes < 1; // Show "Calling" only for 1 minute
+        // Use custom duration from store state (default 60s)
+        const displayDuration = useWaitingStore.getState().storeSettings?.calling_status_display_second || 60;
+
+        return diffSeconds < displayDuration;
     })();
 
     return (
