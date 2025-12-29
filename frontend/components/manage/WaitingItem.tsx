@@ -180,14 +180,14 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                         </div>
 
                         {/* Info */}
-                        <div className="flex-1 min-w-0">
-                            <div className="flex items-center space-x-1.5">
-                                <h3 className="text-sm font-bold truncate tracking-tight">{item.name || item.phone.slice(-4)}</h3>
+                        <div className="flex-1 min-w-0 pr-2">
+                            <div className="flex items-center space-x-1.5 mb-0.5">
+                                <h3 className="text-lg font-black truncate tracking-tight leading-tight">{item.name || item.phone.slice(-4)}</h3>
                                 {item.status === 'called' && <Badge className="bg-yellow-500 text-white hover:bg-yellow-600 px-1 py-0 text-[10px] h-4">호출</Badge>}
                             </div>
-                            <div className="flex items-center text-[10px] text-muted-foreground mt-0.5">
-                                <Phone className="w-2.5 h-2.5 mr-1" />
-                                {item.phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3')}
+                            <div className="flex items-center text-sm font-bold text-slate-500 w-full">
+                                <Phone className="w-3 h-3 mr-1" strokeWidth={2.5} />
+                                <span className="tracking-tight">{item.phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3')}</span>
                             </div>
                         </div>
 
