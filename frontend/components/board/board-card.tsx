@@ -17,14 +17,31 @@ export function BoardCard({ item }: BoardCardProps) {
     const isCalled = (() => {
         if (item.call_count <= 0 || !item.last_called_at) return false;
 
-        const lastCalled = new Date(item.last_called_at).getTime();
         const now = new Date().getTime();
-        const diffSeconds = (now - lastCalled) / 1000;
+        const dateStr = item.last_called_at;
+
+        // 1. Try parsing as is (Local/Browser default)
+        let lastCalled = new Date(dateStr).getTime();
+        let diffSeconds = (now - lastCalled) / 1000;
+
+        // 2. Fix for Vercel/UTC mismatch
+        // If the server sends UTC (e.g., 09:00) but browser treats as Local (09:00 KST),
+        // the diff will be ~9 hours (32400s).
+        // If so, try interpreting as UTC by valid ISO string or appending 'Z'.
+        if (diffSeconds > 30000) { // If older than ~8.3 hours
+            const lastCalledUTC = new Date(dateStr.endsWith('Z') ? dateStr : dateStr + 'Z').getTime();
+            const diffUTC = (now - lastCalledUTC) / 1000;
+            // If UTC interpretation makes it "recent" (e.g. 0-60s), use it.
+            // Allow slightly negative for clock skew (-5s).
+            if (diffUTC > -10 && diffUTC < 30000) {
+                diffSeconds = diffUTC;
+            }
+        }
 
         // Use custom duration from store state (default 60s)
         const displayDuration = useWaitingStore.getState().storeSettings?.calling_status_display_second || 60;
 
-        return diffSeconds < displayDuration;
+        return diffSeconds > -10 && diffSeconds < displayDuration;
     })();
 
     return (
