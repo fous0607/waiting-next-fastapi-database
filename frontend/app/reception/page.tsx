@@ -885,153 +885,153 @@ export default function ReceptionPage() {
                     </Button>
                 </div>
             </div>
-        </>     {/* Selection Modal (Multiple Candidates) */ }
-    <Dialog open={selectionDialog.open} onOpenChange={(open) => setSelectionDialog(prev => ({ ...prev, open }))}>
-        <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-                <DialogTitle>회원 선택</DialogTitle>
-                <DialogDescription>
-                    같은 번호의 회원이 여러 명입니다. 접수할 회원을 선택해주세요.
-                </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-2 max-h-[60vh] overflow-y-auto py-2">
-                {selectionDialog.members.map((member) => (
-                    <Button
-                        key={member.id}
-                        variant="outline"
-                        className="justify-between h-auto py-6 px-8 hover:bg-slate-50"
-                        onClick={() => processRegistration(member.phone)}
-                    >
-                        <div className="flex items-center gap-6 w-full">
-                            <div className="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0 border border-blue-100">
-                                <UserRound className="w-8 h-8 text-blue-600" strokeWidth={2.5} />
-                            </div>
-                            <div className="flex-1 flex items-baseline justify-between gap-6">
-                                <span className="font-bold text-3xl">{member.name}</span>
-                                <span className="font-mono text-3xl font-black text-blue-600">
-                                    {member.phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3')}
-                                </span>
-                            </div>
-                        </div>
-                        <div className="ml-8 text-right text-sm text-slate-400">
-                            최근방문: {member.last_visit_date || '-'}
-                        </div>
+            {/* Selection Modal (Multiple Candidates) */}
+            <Dialog open={selectionDialog.open} onOpenChange={(open) => setSelectionDialog(prev => ({ ...prev, open }))}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>회원 선택</DialogTitle>
+                        <DialogDescription>
+                            같은 번호의 회원이 여러 명입니다. 접수할 회원을 선택해주세요.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-2 max-h-[60vh] overflow-y-auto py-2">
+                        {selectionDialog.members.map((member) => (
+                            <Button
+                                key={member.id}
+                                variant="outline"
+                                className="justify-between h-auto py-6 px-8 hover:bg-slate-50"
+                                onClick={() => processRegistration(member.phone)}
+                            >
+                                <div className="flex items-center gap-6 w-full">
+                                    <div className="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0 border border-blue-100">
+                                        <UserRound className="w-8 h-8 text-blue-600" strokeWidth={2.5} />
+                                    </div>
+                                    <div className="flex-1 flex items-baseline justify-between gap-6">
+                                        <span className="font-bold text-3xl">{member.name}</span>
+                                        <span className="font-mono text-3xl font-black text-blue-600">
+                                            {member.phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3')}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="ml-8 text-right text-sm text-slate-400">
+                                    최근방문: {member.last_visit_date || '-'}
+                                </div>
+                            </Button>
+                        ))}
+                    </div>
+                    <Button variant="ghost" onClick={() => setSelectionDialog(prev => ({ ...prev, open: false }))}>
+                        취소
                     </Button>
-                ))}
-            </div>
-            <Button variant="ghost" onClick={() => setSelectionDialog(prev => ({ ...prev, open: false }))}>
-                취소
-            </Button>
-        </DialogContent>
-    </Dialog>
+                </DialogContent>
+            </Dialog>
 
-    {/* Success Modal */ }
-    <Dialog open={resultDialog.open} onOpenChange={(open) => setResultDialog(prev => ({ ...prev, open }))}>
-        <DialogContent className="sm:max-w-md text-center py-10">
-            <DialogHeader>
-                <div className="mx-auto w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-4">
-                    <Check className="w-10 h-10" />
-                </div>
-                <DialogTitle className="text-center text-4xl font-bold mb-4">접수 완료</DialogTitle>
-                <DialogDescription className="text-center text-2xl text-slate-600 mb-8 font-normal leading-relaxed">
-                    <span className="block text-5xl text-blue-600 font-black mb-4 mt-2">
-                        {resultDialog.data?.class_name} {resultDialog.data?.class_order}번째
-                        {resultDialog.data?.is_new_member && storeSettings?.show_new_member_text_in_waiting_modal && (
-                            <span className="ml-2 inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-base font-bold text-blue-700 align-middle">
-                                신규고객
+            {/* Success Modal */}
+            <Dialog open={resultDialog.open} onOpenChange={(open) => setResultDialog(prev => ({ ...prev, open }))}>
+                <DialogContent className="sm:max-w-md text-center py-10">
+                    <DialogHeader>
+                        <div className="mx-auto w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-4">
+                            <Check className="w-10 h-10" />
+                        </div>
+                        <DialogTitle className="text-center text-4xl font-bold mb-4">접수 완료</DialogTitle>
+                        <DialogDescription className="text-center text-2xl text-slate-600 mb-8 font-normal leading-relaxed">
+                            <span className="block text-5xl text-blue-600 font-black mb-4 mt-2">
+                                {resultDialog.data?.class_name} {resultDialog.data?.class_order}번째
+                                {resultDialog.data?.is_new_member && storeSettings?.show_new_member_text_in_waiting_modal && (
+                                    <span className="ml-2 inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-base font-bold text-blue-700 align-middle">
+                                        신규고객
+                                    </span>
+                                )}
                             </span>
-                        )}
-                    </span>
-                    {/* Always show member name if available */}
-                    {resultDialog.data?.name && (
-                        <span className="block text-3xl text-slate-900 font-bold mb-4">
-                            {resultDialog.data.name}님
-                        </span>
-                    )}
-                    대기 접수가 완료되었습니다.
-                </DialogDescription>
-            </DialogHeader>
-            <Button className="w-full h-20 text-3xl rounded-2xl" size="lg" onClick={() => setResultDialog(prev => ({ ...prev, open: false }))}>
-                확인
-            </Button>
-        </DialogContent>
-    </Dialog>
+                            {/* Always show member name if available */}
+                            {resultDialog.data?.name && (
+                                <span className="block text-3xl text-slate-900 font-bold mb-4">
+                                    {resultDialog.data.name}님
+                                </span>
+                            )}
+                            대기 접수가 완료되었습니다.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <Button className="w-full h-20 text-3xl rounded-2xl" size="lg" onClick={() => setResultDialog(prev => ({ ...prev, open: false }))}>
+                        확인
+                    </Button>
+                </DialogContent>
+            </Dialog>
 
-    {/* Error Modal */ }
-    <Dialog open={errorDialog.open} onOpenChange={(open) => setErrorDialog(prev => ({ ...prev, open }))}>
-        <DialogContent className="sm:max-w-md text-center py-10">
-            <DialogHeader>
-                <div className="mx-auto w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-4">
-                    <AlertCircle className="w-10 h-10" />
-                </div>
-                <DialogTitle className="text-center text-2xl font-bold mb-2 text-red-600">접수 실패</DialogTitle>
-                <DialogDescription className="text-center text-xl text-slate-800 mb-6 font-bold">
-                    {errorDialog.message}
-                </DialogDescription>
-            </DialogHeader>
-            <Button
-                className="w-full bg-slate-200 text-slate-800 hover:bg-slate-300"
-                size="lg"
-                onClick={() => setErrorDialog(prev => ({ ...prev, open: false }))}
-            >
-                확인
-            </Button>
-        </DialogContent>
-    </Dialog>
-    {/* Member Registration Modal (Forced) */ }
-    <Dialog open={registrationDialog.open} onOpenChange={(open) => {
-        if (!open) {
-            setRegistrationDialog(prev => ({ ...prev, open }));
-            setMemberName('');
-        }
-    }}>
-        <DialogContent className="sm:max-w-md text-center py-10">
-            <DialogHeader>
-                <div className="mx-auto w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-4">
-                    <Check className="w-10 h-10" />
-                </div>
-                <DialogTitle className="text-center text-3xl font-bold mb-2">신규 회원 등록</DialogTitle>
-                <DialogDescription className="text-center text-xl text-slate-600 mb-6 font-normal whitespace-pre-line">
-                    {storeSettings?.registration_message || "처음 방문하셨네요!\n성함을 입력해 주세요."}
-                </DialogDescription>
-            </DialogHeader>
+            {/* Error Modal */}
+            <Dialog open={errorDialog.open} onOpenChange={(open) => setErrorDialog(prev => ({ ...prev, open }))}>
+                <DialogContent className="sm:max-w-md text-center py-10">
+                    <DialogHeader>
+                        <div className="mx-auto w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-4">
+                            <AlertCircle className="w-10 h-10" />
+                        </div>
+                        <DialogTitle className="text-center text-2xl font-bold mb-2 text-red-600">접수 실패</DialogTitle>
+                        <DialogDescription className="text-center text-xl text-slate-800 mb-6 font-bold">
+                            {errorDialog.message}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <Button
+                        className="w-full bg-slate-200 text-slate-800 hover:bg-slate-300"
+                        size="lg"
+                        onClick={() => setErrorDialog(prev => ({ ...prev, open: false }))}
+                    >
+                        확인
+                    </Button>
+                </DialogContent>
+            </Dialog>
+            {/* Member Registration Modal (Forced) */}
+            <Dialog open={registrationDialog.open} onOpenChange={(open) => {
+                if (!open) {
+                    setRegistrationDialog(prev => ({ ...prev, open }));
+                    setMemberName('');
+                }
+            }}>
+                <DialogContent className="sm:max-w-md text-center py-10">
+                    <DialogHeader>
+                        <div className="mx-auto w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-4">
+                            <Check className="w-10 h-10" />
+                        </div>
+                        <DialogTitle className="text-center text-3xl font-bold mb-2">신규 회원 등록</DialogTitle>
+                        <DialogDescription className="text-center text-xl text-slate-600 mb-6 font-normal whitespace-pre-line">
+                            {storeSettings?.registration_message || "처음 방문하셨네요!\n성함을 입력해 주세요."}
+                        </DialogDescription>
+                    </DialogHeader>
 
-            <div className="py-2 mb-6">
-                <input
-                    type="text"
-                    placeholder="이름 입력 (예: 홍길동)"
-                    value={memberName}
-                    onChange={(e) => setMemberName(e.target.value)}
-                    className="w-full h-20 text-3xl px-6 rounded-2xl border-2 border-blue-200 focus:border-blue-500 focus:outline-none transition-all text-center"
-                    autoFocus
-                    onKeyDown={(e) => {
-                        if (e.key === 'Enter' && memberName.trim()) {
-                            processRegistration(registrationDialog.phone, memberName);
-                        }
-                    }}
-                />
-            </div>
+                    <div className="py-2 mb-6">
+                        <input
+                            type="text"
+                            placeholder="이름 입력 (예: 홍길동)"
+                            value={memberName}
+                            onChange={(e) => setMemberName(e.target.value)}
+                            className="w-full h-20 text-3xl px-6 rounded-2xl border-2 border-blue-200 focus:border-blue-500 focus:outline-none transition-all text-center"
+                            autoFocus
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' && memberName.trim()) {
+                                    processRegistration(registrationDialog.phone, memberName);
+                                }
+                            }}
+                        />
+                    </div>
 
-            <div className="flex gap-4">
-                <Button
-                    variant="outline"
-                    className="flex-1 h-20 text-2xl rounded-2xl"
-                    size="lg"
-                    onClick={() => setRegistrationDialog({ open: false, phone: '' })}
-                >
-                    취소
-                </Button>
-                <Button
-                    className="flex-[2] h-20 text-3xl rounded-2xl bg-blue-600 hover:bg-blue-700"
-                    size="lg"
-                    disabled={!memberName.trim() || isSubmitting}
-                    onClick={() => processRegistration(registrationDialog.phone, memberName)}
-                >
-                    {isSubmitting ? '저장 중...' : '등록 완료'}
-                </Button>
-            </div>
-        </DialogContent>
-    </Dialog>
-        </div >
+                    <div className="flex gap-4">
+                        <Button
+                            variant="outline"
+                            className="flex-1 h-20 text-2xl rounded-2xl"
+                            size="lg"
+                            onClick={() => setRegistrationDialog({ open: false, phone: '' })}
+                        >
+                            취소
+                        </Button>
+                        <Button
+                            className="flex-[2] h-20 text-3xl rounded-2xl bg-blue-600 hover:bg-blue-700"
+                            size="lg"
+                            disabled={!memberName.trim() || isSubmitting}
+                            onClick={() => processRegistration(registrationDialog.phone, memberName)}
+                        >
+                            {isSubmitting ? '저장 중...' : '등록 완료'}
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
+        </>
     );
 }
