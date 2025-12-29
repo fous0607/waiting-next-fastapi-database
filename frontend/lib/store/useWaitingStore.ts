@@ -28,11 +28,19 @@ export interface WaitingItem {
     revisit_count?: number;
 }
 
+export interface StoreSettings {
+    store_name: string;
+    calling_status_display_second: number;
+    // Add other settings as needed
+    [key: string]: any;
+}
+
 interface WaitingState {
     // Data
     classes: ClassInfo[];
     waitingList: Record<number, WaitingItem[]>;
     storeName: string;
+    storeSettings: StoreSettings | null;
     businessDate: string;
 
     // UI State
@@ -70,7 +78,7 @@ interface WaitingState {
 
 
     syncCheck: () => Promise<void>;
-    refreshAll: () => Promise<void>; // Consolidated refresh action
+    refreshAll: () => Promise<void>; // Consolidated refresh actions
 
     // Admin Actions
     closeClass: (classId: number) => Promise<void>;
@@ -82,6 +90,7 @@ export const useWaitingStore = create<WaitingState>((set, get) => ({
     classes: [],
     waitingList: {},
     storeName: '',
+    storeSettings: null,
     businessDate: '',
     currentClassId: null,
     selectedStoreId: typeof window !== 'undefined' ? localStorage.getItem('selected_store_id') : null,
@@ -127,6 +136,7 @@ export const useWaitingStore = create<WaitingState>((set, get) => ({
             const dateRes = await api.get('/daily/predict-date');
             set({
                 storeName: storeName,
+                storeSettings: storeData, // Store the full settings object
                 businessDate: dateRes.data.business_date || '미개점',
                 sequentialClosing: storeData?.sequential_closing ?? false,
                 revisitBadgeStyle: storeData?.revisit_badge_style ?? 'indigo_solid'
