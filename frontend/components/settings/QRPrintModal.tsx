@@ -128,7 +128,7 @@ export function QRPrintModal({ storeName, storeCode, trigger }: QRPrintModalProp
                                     +
                                 </Button>
                                 <div className="w-px h-4 bg-white/20 mx-1" />
-                                <Button variant="ghost" size="xs" onClick={zoomReset} className="h-8 px-3 rounded-full text-[10px] text-white hover:bg-white/20 hover:text-white">
+                                <Button variant="ghost" size="sm" onClick={zoomReset} className="h-8 px-3 rounded-full text-[10px] text-white hover:bg-white/20 hover:text-white">
                                     RESET
                                 </Button>
                             </div>
