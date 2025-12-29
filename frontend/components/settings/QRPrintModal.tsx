@@ -312,14 +312,14 @@ function QRPrintTemplate({ style, storeName, guideMessage, url, isFullPage = fal
                 <div className="mb-auto">
                     <h1 className={cn("text-white font-black leading-tight tracking-tight mb-8", isFullPage ? "text-[80px]" : "text-3xl")}>
                         {storeName}
-                        <span className="block text-primary">대기 접수 파트너</span>
+                        <span className="block text-blue-300 mt-2">대기 접수 파트너</span>
                     </h1>
-                    <div className={cn("h-1 w-20 bg-primary rounded-full", isFullPage ? "h-3 w-40" : "h-1 w-12")} />
+                    <div className={cn("h-1 w-20 bg-blue-400 rounded-full", isFullPage ? "h-3 w-40" : "h-1 w-12")} />
                 </div>
 
                 <div className="flex flex-col items-center gap-12 my-12">
-                    <div className={cn("bg-white p-6 rounded-[2rem] shadow-[#38bdf820_0_0_80px] border border-white/10", isFullPage ? "p-16 rounded-[4rem]" : "p-6")}>
-                        <QRCode value={url} size={isFullPage ? 480 : 160} fgColor="#0F172A" />
+                    <div className={cn("bg-white p-6 rounded-[2rem] shadow-[#38bdf820_0_0_80px] border border-white/10", isFullPage ? "p-14 rounded-[4rem]" : "p-6")}>
+                        <QRCode value={url} size={isFullPage ? 400 : 150} fgColor="#0F172A" />
                     </div>
                 </div>
 
@@ -331,7 +331,7 @@ function QRPrintTemplate({ style, storeName, guideMessage, url, isFullPage = fal
                     <div className="flex items-center justify-between">
                         <div className="flex gap-1.5">
                             {[1, 2, 3].map(i => (
-                                <div key={i} className={cn("bg-primary rounded-full", isFullPage ? "w-4 h-4" : "w-2 h-2")}
+                                <div key={i} className={cn("bg-blue-400 rounded-full", isFullPage ? "w-4 h-4" : "w-2 h-2")}
                                     style={{ opacity: 1 - (i * 0.25) }} />
                             ))}
                         </div>
