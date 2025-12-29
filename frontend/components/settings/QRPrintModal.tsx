@@ -238,7 +238,7 @@ function QRPrintTemplate({ style, storeName, guideMessage, url, isFullPage = fal
                     <div className={cn("relative p-6 rounded-[2.5rem] bg-white border-2 border-slate-100 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.12)] flex items-center justify-center", isFullPage ? "p-14 ring-[16px] ring-slate-50" : "p-6 ring-8 ring-slate-50")}>
                         <QRCode
                             value={url}
-                            size={isFullPage ? 400 : 160}
+                            size={isFullPage ? 340 : 160}
                             fgColor="#03C75A"
                             level="H"
                         />
@@ -281,7 +281,7 @@ function QRPrintTemplate({ style, storeName, guideMessage, url, isFullPage = fal
                     </h1>
 
                     <div className={cn("bg-white p-6 rounded-[3rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.3)] mb-12", isFullPage ? "p-12 mb-16" : "p-6")}>
-                        <QRCode value={url} size={isFullPage ? 380 : 150} />
+                        <QRCode value={url} size={isFullPage ? 340 : 150} />
                     </div>
 
                     <div className="space-y-6 max-w-sm">
@@ -319,7 +319,7 @@ function QRPrintTemplate({ style, storeName, guideMessage, url, isFullPage = fal
 
                 <div className="flex flex-col items-center gap-12 my-12">
                     <div className={cn("bg-white p-6 rounded-[2rem] shadow-[#38bdf820_0_0_80px] border border-white/10", isFullPage ? "p-14 rounded-[4rem]" : "p-6")}>
-                        <QRCode value={url} size={isFullPage ? 380 : 150} fgColor="#0F172A" />
+                        <QRCode value={url} size={isFullPage ? 340 : 150} fgColor="#0F172A" />
                     </div>
                 </div>
 
