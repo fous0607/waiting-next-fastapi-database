@@ -12,6 +12,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } fr
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { toast } from 'sonner';
@@ -914,29 +915,56 @@ export function GeneralSettings() {
                                         </FormItem>
                                     )}
                                 />
-                                <FormField
-                                    control={form.control}
-                                    name="enable_waiting_voice_alert"
-                                    render={({ field }) => (
-                                        <FormItem className="flex flex-row items-center space-x-2 space-y-0">
-                                            <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
-                                            <FormLabel className='font-normal'>음성 안내 사용</FormLabel>
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="waiting_voice_message"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>접수 완료 안내 메시지</FormLabel>
-                                            <FormControl><Input placeholder="예: {클래스명}  {회원명}님 대기 접수 되었습니다." {...field} value={field.value ?? ''} /></FormControl>
-                                            <FormDescription className="text-[10px]">
-                                                {`{ 클래스명 }, { 회원명 }, { 순번 }을 사용할 수 있습니다.공백을 2번 연속 입력하면 0.5초간 쉬고 읽어줍니다.`}
-                                            </FormDescription>
-                                        </FormItem>
-                                    )}
-                                />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <FormField
+                                        control={form.control}
+                                        name="enable_waiting_voice_alert"
+                                        render={({ field }) => (
+                                            <FormItem className="flex flex-row items-center space-x-2 space-y-0 h-10">
+                                                <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
+                                                <FormLabel className='font-normal'>접수 완료 음성 안내</FormLabel>
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="enable_duplicate_registration_voice"
+                                        render={({ field }) => (
+                                            <FormItem className="flex flex-row items-center space-x-2 space-y-0 h-10">
+                                                <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
+                                                <FormLabel className='font-normal'>중복 접수 시 음성 경고</FormLabel>
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <FormField
+                                        control={form.control}
+                                        name="waiting_voice_message"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="text-xs">접수 완료 안내 메시지</FormLabel>
+                                                <FormControl><Input className="h-9 text-xs" placeholder="예: {클래스명}  {회원명}님 대기 접수 되었습니다." {...field} value={field.value ?? ''} /></FormControl>
+                                                <FormDescription className="text-[10px]">
+                                                    {`{ 클래스명 }, { 회원명 }, { 순번 } 사용 가능`}
+                                                </FormDescription>
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="duplicate_registration_voice_message"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="text-xs">중복 접수 시 경고 메시지</FormLabel>
+                                                <FormControl><Input className="h-9 text-xs" placeholder="예: 이미 대기 중인 번호입니다." {...field} value={field.value ?? ''} /></FormControl>
+                                                <FormDescription className="text-[10px]">
+                                                    이미 접수된 번호 입력 시 들려줄 메시지입니다.
+                                                </FormDescription>
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
 
                                 <FormField
                                     control={form.control}
