@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import api from '@/lib/api';
 import { useWaitingStore } from '@/lib/store/useWaitingStore';
-import { Delete, Check, AlertCircle, UserRound } from 'lucide-react';
+import { Delete, Check, AlertCircle, UserRound, Loader2 } from 'lucide-react';
 import { GlobalLoader } from "@/components/ui/GlobalLoader";
 
 interface Member {
