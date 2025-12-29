@@ -23,6 +23,8 @@ interface WaitingSlot {
     class_order?: number;
 }
 
+
+// Trigger Vercel Rebuild
 export default function ReceptionPage() {
     const [phoneNumber, setPhoneNumber] = useState('');
     const [waitingStatus, setWaitingStatus] = useState<WaitingSlot | null>(null);
