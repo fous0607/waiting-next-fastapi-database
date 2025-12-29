@@ -222,23 +222,23 @@ function QRPrintTemplate({ style, storeName, guideMessage, url, isFullPage = fal
                 isFullPage ? "p-0" : "p-0"
             )}>
                 {/* Visual Accent */}
-                <div className={isFullPage ? "h-6 bg-[#03C75A]" : "h-1 bg-[#03C75A]"} />
+                <div className={isFullPage ? "h-4 bg-[#03C75A]" : "h-1 bg-[#03C75A]"} />
 
                 <div className="flex-1 flex flex-col items-center justify-between py-[12%] px-10">
                     <div className="text-center w-full">
 
-                        <h1 className={cn("font-black text-slate-900 leading-[1.1] mb-6", isFullPage ? "text-[85px]" : "text-3xl")}>
+                        <h1 className={cn("font-black text-slate-900 leading-[1.1] mb-6", isFullPage ? "text-[60px] mb-10" : "text-3xl")}>
                             {storeName}
                         </h1>
-                        <p className={cn("text-slate-500 font-medium whitespace-pre-wrap leading-relaxed", isFullPage ? "text-4xl px-20" : "text-[11px] px-4")}>
+                        <p className={cn("text-slate-500 font-medium whitespace-pre-wrap leading-relaxed", isFullPage ? "text-2xl px-12" : "text-[11px] px-4")}>
                             {guideMessage}
                         </p>
                     </div>
 
-                    <div className={cn("relative p-6 rounded-[2.5rem] bg-white border-2 border-slate-100 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.12)] flex items-center justify-center", isFullPage ? "p-14 ring-[16px] ring-slate-50" : "p-6 ring-8 ring-slate-50")}>
+                    <div className={cn("relative p-6 rounded-[2.5rem] bg-white border-2 border-slate-100 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.12)] flex items-center justify-center", isFullPage ? "p-10 ring-[12px] ring-slate-50" : "p-6 ring-8 ring-slate-50")}>
                         <QRCode
                             value={url}
-                            size={isFullPage ? 340 : 160}
+                            size={isFullPage ? 300 : 160}
                             fgColor="#03C75A"
                             level="H"
                         />
@@ -250,13 +250,13 @@ function QRPrintTemplate({ style, storeName, guideMessage, url, isFullPage = fal
                     </div>
 
                     <div className="w-full">
-                        <div className={cn("h-px w-full bg-slate-100 mb-8", isFullPage ? "mb-16" : "mb-4")} />
+                        <div className={cn("h-px w-full bg-slate-100 mb-8", isFullPage ? "mb-10" : "mb-4")} />
                         <div className="flex flex-col items-center gap-3">
-                            <div className={cn("flex items-center gap-2 text-[#03C75A] font-bold uppercase tracking-widest", isFullPage ? "text-3xl" : "text-[10px]")}>
-                                <Smartphone className={isFullPage ? "w-8 h-8" : "w-3 h-3"} />
+                            <div className={cn("flex items-center gap-2 text-[#03C75A] font-bold uppercase tracking-widest", isFullPage ? "text-xl" : "text-[10px]")}>
+                                <Smartphone className={isFullPage ? "w-6 h-6" : "w-3 h-3"} />
                                 <span>SMART PHONE CAMERA SCAN</span>
                             </div>
-                            <p className={cn("text-slate-300", isFullPage ? "text-2xl mt-4" : "text-[8px]")}>Powered by WaitingPos System</p>
+                            <p className={cn("text-slate-300", isFullPage ? "text-lg mt-4" : "text-[8px]")}>Powered by WaitingPos System</p>
                         </div>
                     </div>
                 </div>
@@ -272,32 +272,32 @@ function QRPrintTemplate({ style, storeName, guideMessage, url, isFullPage = fal
                 <div className="absolute bottom-[-5%] left-[-5%] w-[40%] aspect-square bg-white/5 rounded-full blur-2xl" />
 
                 <div className="flex-1 flex flex-col items-center justify-center p-[10%] text-center z-10">
-                    <div className={cn("bg-white/20 backdrop-blur-md px-6 py-2 rounded-full mb-10 font-bold", isFullPage ? "text-3xl px-12 py-4 mb-20" : "text-[11px]")}>
+                    <div className={cn("bg-white/20 backdrop-blur-md px-6 py-2 rounded-full mb-10 font-bold", isFullPage ? "text-xl px-8 py-3 mb-10" : "text-[11px]")}>
                         WELCOME TO
                     </div>
 
-                    <h1 className={cn("font-black tracking-tight leading-none mb-10 drop-shadow-xl", isFullPage ? "text-[95px] mb-20" : "text-4xl")}>
+                    <h1 className={cn("font-black tracking-tight leading-none mb-10 drop-shadow-xl", isFullPage ? "text-[70px] mb-12" : "text-4xl")}>
                         {storeName}
                     </h1>
 
-                    <div className={cn("bg-white p-6 rounded-[3rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.3)] mb-12", isFullPage ? "p-12 mb-16" : "p-6")}>
-                        <QRCode value={url} size={isFullPage ? 340 : 150} />
+                    <div className={cn("bg-white p-6 rounded-[3rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.3)] mb-12", isFullPage ? "p-10 mb-12" : "p-6")}>
+                        <QRCode value={url} size={isFullPage ? 300 : 150} />
                     </div>
 
                     <div className="space-y-6 max-w-sm">
-                        <p className={cn("font-black text-white whitespace-pre-wrap leading-[1.3]", isFullPage ? "text-5xl" : "text-[15px]")}>
+                        <p className={cn("font-black text-white whitespace-pre-wrap leading-[1.3]", isFullPage ? "text-3xl" : "text-[15px]")}>
                             {guideMessage}
                         </p>
-                        <p className={cn("text-white/60 font-medium", isFullPage ? "text-2xl mt-10" : "text-[9px]")}>
+                        <p className={cn("text-white/60 font-medium", isFullPage ? "text-lg mt-6" : "text-[9px]")}>
                             카메라를 비춰주시면 즉시 대기 등록 페이지로 이동합니다.
                         </p>
                     </div>
                 </div>
 
-                <div className={cn("py-10 bg-black/10 backdrop-blur-sm border-t border-white/10 flex justify-center items-center gap-3", isFullPage ? "py-20" : "py-4")}>
-                    <div className={cn("w-2 h-2 rounded-full bg-white", isFullPage ? "w-4 h-4" : "w-1.5 h-1.5")} />
-                    <span className={cn("font-medium tracking-[0.2em] opacity-80 uppercase", isFullPage ? "text-2xl" : "text-[9px]")}>Wait-Free Solution</span>
-                    <div className={cn("w-2 h-2 rounded-full bg-white", isFullPage ? "w-4 h-4" : "w-1.5 h-1.5")} />
+                <div className={cn("py-10 bg-black/10 backdrop-blur-sm border-t border-white/10 flex justify-center items-center gap-3", isFullPage ? "py-10" : "py-4")}>
+                    <div className={cn("w-2 h-2 rounded-full bg-white", isFullPage ? "w-3 h-3" : "w-1.5 h-1.5")} />
+                    <span className={cn("font-medium tracking-[0.2em] opacity-80 uppercase", isFullPage ? "text-lg" : "text-[9px]")}>Wait-Free Solution</span>
+                    <div className={cn("w-2 h-2 rounded-full bg-white", isFullPage ? "w-3 h-3" : "w-1.5 h-1.5")} />
                 </div>
             </div>
         );
@@ -310,32 +310,32 @@ function QRPrintTemplate({ style, storeName, guideMessage, url, isFullPage = fal
 
             <div className="flex-1 flex flex-col p-[12%] z-10">
                 <div className="mb-auto">
-                    <h1 className={cn("text-white font-black leading-tight tracking-tight mb-8", isFullPage ? "text-[80px]" : "text-3xl")}>
+                    <h1 className={cn("text-white font-black leading-tight tracking-tight mb-8", isFullPage ? "text-[60px]" : "text-3xl")}>
                         {storeName}
                         <span className="block mt-2" style={{ color: '#93C5FD' }}>대기 접수 파트너</span>
                     </h1>
-                    <div className={cn("h-1 w-20 bg-blue-400 rounded-full", isFullPage ? "h-3 w-40" : "h-1 w-12")} style={{ backgroundColor: '#60A5FA' }} />
+                    <div className={cn("h-1 w-20 bg-blue-400 rounded-full", isFullPage ? "h-2 w-32" : "h-1 w-12")} style={{ backgroundColor: '#60A5FA' }} />
                 </div>
 
                 <div className="flex flex-col items-center gap-12 my-12">
-                    <div className={cn("bg-white p-6 rounded-[2rem] shadow-[#38bdf820_0_0_80px] border border-white/10", isFullPage ? "p-14 rounded-[4rem]" : "p-6")}>
-                        <QRCode value={url} size={isFullPage ? 340 : 150} fgColor="#0F172A" />
+                    <div className={cn("bg-white p-6 rounded-[2rem] shadow-[#38bdf820_0_0_80px] border border-white/10", isFullPage ? "p-10 rounded-[3rem]" : "p-6")}>
+                        <QRCode value={url} size={isFullPage ? 300 : 150} fgColor="#0F172A" />
                     </div>
                 </div>
 
                 <div className="mt-auto">
-                    <p className={cn("text-slate-200 font-bold whitespace-pre-wrap leading-relaxed mb-8", isFullPage ? "text-[45px]" : "text-[13px]")}>
+                    <p className={cn("text-slate-200 font-bold whitespace-pre-wrap leading-relaxed mb-8", isFullPage ? "text-3xl" : "text-[13px]")}>
                         {guideMessage}
                     </p>
 
                     <div className="flex items-center justify-between">
                         <div className="flex gap-1.5">
                             {[1, 2, 3].map(i => (
-                                <div key={i} className={cn("bg-blue-400 rounded-full", isFullPage ? "w-4 h-4" : "w-2 h-2")}
+                                <div key={i} className={cn("bg-blue-400 rounded-full", isFullPage ? "w-3 h-3" : "w-2 h-2")}
                                     style={{ opacity: 1 - (i * 0.25) }} />
                             ))}
                         </div>
-                        <span className={cn("text-slate-500 font-bold tracking-[.3em] uppercase", isFullPage ? "text-2xl" : "text-[8px]")}>Digital Entry</span>
+                        <span className={cn("text-slate-500 font-bold tracking-[.3em] uppercase", isFullPage ? "text-lg" : "text-[8px]")}>Digital Entry</span>
                     </div>
                 </div>
             </div>
