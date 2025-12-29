@@ -20,7 +20,7 @@ export function BoardCard({ item }: BoardCardProps) {
         const now = new Date().getTime();
         const diffMinutes = (now - lastCalled) / (1000 * 60);
 
-        return diffMinutes < 2; // Show "Calling" only for 2 minutes
+        return diffMinutes < 1; // Show "Calling" only for 1 minute
     })();
 
     return (
