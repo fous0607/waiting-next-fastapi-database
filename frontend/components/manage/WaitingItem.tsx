@@ -55,7 +55,7 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
         isDragging,
     } = useSortable({ id: item.id });
 
-    const { classes, fetchWaitingList } = useWaitingStore();
+    const { classes, fetchWaitingList, revisitBadgeStyle } = useWaitingStore();
     const [isMoveDialogOpen, setIsMoveDialogOpen] = useState(false);
     const [isNameDialogOpen, setIsNameDialogOpen] = useState(false);
     const [isMemberDetailOpen, setIsMemberDetailOpen] = useState(false);
@@ -157,7 +157,7 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                     {item.revisit_count != null && item.revisit_count > 0 && (
                         <div className="absolute -top-2.5 -right-1.5 z-20">
                             {(() => {
-                                const style = storeSettings?.revisit_badge_style || 'indigo_solid';
+                                const style = revisitBadgeStyle || 'indigo_solid';
                                 let badgeClass = "bg-indigo-600 text-white hover:bg-indigo-700 px-2 py-0.5 text-[11px] font-bold shadow-sm whitespace-nowrap rounded-full";
 
                                 if (style === 'amber_outline') {

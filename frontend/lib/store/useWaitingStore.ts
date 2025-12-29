@@ -43,6 +43,7 @@ interface WaitingState {
     isConnected: boolean;
     hideClosedClasses: boolean;
     sequentialClosing: boolean;
+    revisitBadgeStyle: string;
 
     syncToken: string | null;
     setSyncToken: (token: string | null) => void;
@@ -88,6 +89,7 @@ export const useWaitingStore = create<WaitingState>((set, get) => ({
     isConnected: false,
     hideClosedClasses: true, // Default to hidden
     sequentialClosing: false,
+    revisitBadgeStyle: 'indigo_solid',
     syncToken: null,
     connectionBlockState: null,
     isLoading: true,
@@ -126,7 +128,8 @@ export const useWaitingStore = create<WaitingState>((set, get) => ({
             set({
                 storeName: storeName,
                 businessDate: dateRes.data.business_date || '미개점',
-                sequentialClosing: storeData?.sequential_closing ?? false
+                sequentialClosing: storeData?.sequential_closing ?? false,
+                revisitBadgeStyle: storeData?.revisit_badge_style ?? 'indigo_solid'
             });
 
         } catch (error) {
