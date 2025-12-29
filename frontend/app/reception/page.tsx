@@ -321,42 +321,64 @@ export default function ReceptionPage() {
     }, [storeSettings]);
 
     const speak = useCallback((text: string) => {
-        if (!storeSettings?.enable_waiting_voice_alert) return;
-        if (typeof window === 'undefined' || !window.speechSynthesis) return;
+        if (!storeSettings?.enable_waiting_voice_alert) {
+            console.log('[Voice] Voice alert disabled in settings');
+            return;
+        }
+        if (typeof window === 'undefined' || !window.speechSynthesis) {
+            console.error('[Voice] SpeechSynthesis API not available');
+            return;
+        }
 
-        // Cancel previous speech
-        // window.speechSynthesis.cancel();
+        console.log('[Voice] Attempting to speak:', text);
 
-        // 연속된 공백(2개 이상)을 기준으로 분할하여 딜레이 생성
-        const parts = text.split(/(\s{2,})/);
-        let currentTime = 0;
+        // 1. Cancel previous speech to reset state
+        window.speechSynthesis.cancel();
 
-        parts.forEach((part, index) => {
-            // 공백만으로 이루어진 파트 (딜레이로 처리)
-            if (/^\s{2,}$/.test(part)) {
-                // 공백 2개당 0.5초 딜레이 (예: 공백 4개면 1.0초)
-                const delayCount = Math.floor(part.length / 2);
-                currentTime += delayCount * 500;
-            } else if (part.trim()) {
-                setTimeout(() => {
-                    const utterance = new SpeechSynthesisUtterance(part.trim());
-                    utterance.lang = 'ko-KR';
-                    utterance.rate = storeSettings?.waiting_voice_rate || 1.0;
-                    utterance.pitch = storeSettings?.waiting_voice_pitch || 1.0;
+        // 2. Prepare voices (handling async loading)
+        let voices = window.speechSynthesis.getVoices();
+        const speakWithVoice = () => {
+            // Retry fetching voices if empty
+            if (voices.length === 0) voices = window.speechSynthesis.getVoices();
 
-                    if (storeSettings?.waiting_voice_name) {
-                        const voices = window.speechSynthesis.getVoices();
-                        const voice = voices.find(v => v.name === storeSettings.waiting_voice_name);
-                        if (voice) utterance.voice = voice;
-                    }
+            const selectedVoiceName = storeSettings?.waiting_voice_name;
+            const targetVoice = voices.find(v => v.name === selectedVoiceName) || voices.find(v => v.lang === 'ko-KR') || null;
 
-                    window.speechSynthesis.speak(utterance);
-                }, currentTime);
+            console.log('[Voice] Selected voice:', targetVoice?.name || 'Default');
 
-                // 다음 파트를 위한 예상 발화 시간 추가 (텍스트 길이 기반)
-                currentTime += part.length * 100; // 대략적인 발화 시간
-            }
-        });
+            // 3. Simple Queuing Strategy (Native)
+            // Split by double spaces for natural pauses, but queue them natively
+            const parts = text.split(/(\s{2,})/);
+
+            parts.forEach((part) => {
+                if (!part.trim()) return; // Skip empty/whitespace-only parts
+
+                const utterance = new SpeechSynthesisUtterance(part.trim());
+                utterance.lang = 'ko-KR';
+                utterance.rate = storeSettings?.waiting_voice_rate || 1.0;
+                utterance.pitch = storeSettings?.waiting_voice_pitch || 1.0;
+                if (targetVoice) utterance.voice = targetVoice;
+
+                utterance.onstart = () => console.log('[Voice] Started:', part.substring(0, 10) + '...');
+                utterance.onerror = (e) => console.error('[Voice] Error:', e);
+
+                window.speechSynthesis.speak(utterance);
+            });
+        };
+
+        if (voices.length === 0) {
+            console.log('[Voice] Voices not loaded yet, waiting for onvoiceschanged...');
+            window.speechSynthesis.onvoiceschanged = () => {
+                voices = window.speechSynthesis.getVoices();
+                speakWithVoice();
+                // Remove listener to prevent memory leaks/multiple calls
+                window.speechSynthesis.onvoiceschanged = null;
+            };
+            // Fallback: try anyway after small delay if event doesn't fire
+            setTimeout(speakWithVoice, 500);
+        } else {
+            speakWithVoice();
+        }
     }, [storeSettings]);
 
     const handleNumberClick = (num: string) => {
