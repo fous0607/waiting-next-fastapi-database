@@ -624,15 +624,13 @@ export default function ReceptionPage() {
                     </div>
                 </div>
 
-                {/* Center: Store Name */}
-                <div className="flex-[2] text-center">
-                    <div className="text-2xl font-black tracking-tight">{storeName}</div>
-                </div>
+                {/* Center: Placeholder for balance */}
+                <div className="flex-1 hidden md:block"></div>
 
-                {/* Right: Reception Status */}
+                {/* Right: Reception Status (Larger) */}
                 <div className="flex-1 text-right">
                     <div className={`text-sm ${keypadStyle === 'dark' ? 'text-slate-400' : 'text-gray-500'}`}>현재 접수 현황</div>
-                    <div className={`font-bold text-lg ${waitingStatus?.is_full ? 'text-red-600' : (keypadStyle === 'dark' ? 'text-blue-400' : 'text-blue-600')}`}>
+                    <div className={`font-black text-3xl ${waitingStatus?.is_full ? 'text-red-600' : (keypadStyle === 'dark' ? 'text-blue-400' : 'text-blue-600')}`}>
                         {waitingStatus ? (
                             waitingStatus.is_full ? '접수 마감' : `${waitingStatus.class_name} ${waitingStatus.class_number}번째`
                         ) : '로딩 중...'}
@@ -640,7 +638,17 @@ export default function ReceptionPage() {
                 </div>
             </div>
 
-            <div className={`flex-1 w-full max-w-3xl p-6 flex flex-col justify-center overflow-y-auto ${keypadStyle === 'dark' ? 'scrollbar-thin scrollbar-thumb-slate-700' : ''}`}>
+            <div className={`flex-1 w-full max-w-3xl p-6 flex flex-col justify-start pt-12 overflow-y-auto ${keypadStyle === 'dark' ? 'scrollbar-thin scrollbar-thumb-slate-700' : ''}`}>
+                {/* Store Info & Status (Near Input) */}
+                <div className="text-center mb-8 space-y-2">
+                    <h1 className={`text-4xl font-black tracking-tight ${keypadStyle === 'dark' ? 'text-white' : 'text-slate-900'}`}>{storeName}</h1>
+                    <div className={`text-2xl font-bold ${waitingStatus?.is_full ? 'text-red-500' : 'text-blue-500'}`}>
+                        {waitingStatus ? (
+                            waitingStatus.is_full ? '현재 접수가 마감되었습니다' : `${waitingStatus.class_name} ${waitingStatus.class_number}번째 대기 접수 중`
+                        ) : ''}
+                    </div>
+                </div>
+
                 {/* Display */}
                 <div className={`${styles.display} rounded-3xl p-8 mb-6 text-center transition-all duration-300 min-h-[140px] flex flex-col justify-center`}>
                     <div className={`text-5xl font-mono font-bold tracking-widest h-16 flex items-center justify-center ${styles.displayText} ${phoneNumber.length === 4 ? '!text-blue-600' : ''}`}>
