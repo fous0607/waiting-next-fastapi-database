@@ -55,12 +55,6 @@ export default function EntryPage({ params }: { params: Promise<{ store_code: st
             let processedPhone = values.phone.replace(/[^0-9]/g, '');
             if (processedPhone.length === 8) {
                 processedPhone = '010' + processedPhone;
-            } else if (processedPhone.length === 11 && !processedPhone.startsWith('010')) {
-                // Keep as is or handle? Typical KR mobile is 010.
-            } else if (processedPhone.length < 8) {
-                toast.error('올바른 휴대폰 번호를 입력해주세요.');
-                setRegistering(false);
-                return;
             }
 
             // Process name: if empty, use last 4 digits of phone
@@ -93,11 +87,18 @@ export default function EntryPage({ params }: { params: Promise<{ store_code: st
     return (
         <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
             <Card className="w-full max-w-md shadow-lg">
-                <CardHeader className="text-center">
+                <CardHeader className="text-center pb-2">
                     <div className="mx-auto bg-primary/10 w-12 h-12 rounded-full flex items-center justify-center mb-4">
                         <span className="text-xl font-bold text-primary">WAIT</span>
                     </div>
-                    <CardTitle className="text-2xl">{store.name}</CardTitle>
+                    <CardTitle className="text-2xl mb-1">{store.name}</CardTitle>
+                    <div className="flex justify-center mb-4">
+                        <div className="bg-slate-100 px-4 py-2 rounded-lg flex items-center gap-2">
+                            <span className="text-slate-600 font-medium">현재 총 대기</span>
+                            <span className="text-xl font-bold text-primary">{store.current_waiting_count || 0}팀</span>
+                        </div>
+                    </div>
+
                     <CardDescription>
                         휴대폰 번호를 입력하여 대기를 등록해주세요.<br />
                         <span className="text-xs text-muted-foreground">(성함을 입력하지 않으면 휴대폰 번호 뒷자리로 등록됩니다)</span>
@@ -113,7 +114,31 @@ export default function EntryPage({ params }: { params: Promise<{ store_code: st
                                     <FormItem>
                                         <FormLabel>휴대폰 번호</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="01012345678" {...field} type="tel" className="text-lg h-12" />
+                                            <Input
+                                                placeholder="010-0000-0000"
+                                                {...field}
+                                                type="tel"
+                                                className="text-lg h-12"
+                                                onChange={(e) => {
+                                                    let val = e.target.value.replace(/[^0-9]/g, '');
+                                                    if (!val.startsWith('010')) {
+                                                        val = '010' + val.replace(/^0+/, '');
+                                                    }
+                                                    // Limit length to 11 digits (010 + 8 digits)
+                                                    if (val.length > 11) val = val.slice(0, 11);
+
+                                                    // Format with dashes
+                                                    let formatted = val;
+                                                    if (val.length > 3 && val.length <= 7) {
+                                                        formatted = `${val.slice(0, 3)}-${val.slice(3)}`;
+                                                    } else if (val.length > 7) {
+                                                        formatted = `${val.slice(0, 3)}-${val.slice(3, 7)}-${val.slice(7)}`;
+                                                    }
+
+                                                    field.onChange(formatted);
+                                                }}
+                                                value={field.value}
+                                            />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -137,12 +162,6 @@ export default function EntryPage({ params }: { params: Promise<{ store_code: st
                             </Button>
                         </form>
                     </Form>
-
-                    <div className="mt-6 text-center">
-                        <Button variant="link" size="sm" onClick={() => router.push(`/entry/${store_code}/status`)}>
-                            내 대기 순서 확인하기
-                        </Button>
-                    </div>
                 </CardContent>
             </Card>
         </div>

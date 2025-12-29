@@ -149,7 +149,7 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
         <>
             <div ref={setNodeRef} style={style} {...attributes}>
                 <Card className={cn(
-                    "hover:shadow-md transition-all relative overflow-visible",
+                    "hover:shadow-md transition-all relative overflow-visible py-3",
                     item.status === 'called' && "border-yellow-400 bg-yellow-50/50 dark:bg-yellow-900/20",
                     isDragging && "shadow-2xl border-primary border-2 bg-primary/5"
                 )}>
@@ -157,7 +157,7 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                     {item.revisit_count != null && item.revisit_count > 0 && (
                         <div className="absolute -top-2 -right-1 z-20">
                             <Badge className="bg-indigo-600 text-white hover:bg-indigo-700 px-2 py-0.5 text-[11px] font-bold shadow-sm whitespace-nowrap">
-                                재방문 {item.revisit_count}
+                                재{item.revisit_count}
                             </Badge>
                         </div>
                     )}
@@ -167,7 +167,7 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                         <div
                             {...listeners}
                             className={cn(
-                                "flex flex-col items-center justify-center mr-2 min-w-[2.5rem] cursor-grab select-none p-1 -ml-1 rounded-lg transition-all",
+                                "flex flex-col items-center justify-center mr-1 min-w-[2.5rem] cursor-grab select-none p-1 -ml-1 rounded-lg transition-all",
                                 isDragging ? "scale-110 bg-primary/20 cursor-grabbing" : "active:scale-110 active:bg-primary/10 active:cursor-grabbing"
                             )}
                         >

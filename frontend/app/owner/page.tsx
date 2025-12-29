@@ -43,9 +43,10 @@ export default function OwnerDashboard() {
 
     // 1. Separate States for each view type
     // Common Range (Hourly & Daily): Week Range (default: This Week)
+    // Common Range (Hourly & Daily): Defaults to Today
     const [commonRange, setCommonRange] = useState<DateRange | undefined>({
-        from: startOfWeek(new Date(), { weekStartsOn: 1 }),
-        to: endOfWeek(new Date(), { weekStartsOn: 1 })
+        from: new Date(),
+        to: new Date()
     });
 
     // Monthly: Month Range (default: This Month)

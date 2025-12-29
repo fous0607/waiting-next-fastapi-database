@@ -34,9 +34,18 @@ def get_public_store_info(store_code: str, db: Session = Depends(get_db)):
     # Store settings for customization
     settings = db.query(StoreSettings).filter(StoreSettings.store_id == store.id).first()
     
+    # Calculate current waiting count
+    today = get_current_business_date(db, store.id)
+    current_waiting_count = db.query(func.count(WaitingList.id)).filter(
+        WaitingList.business_date == today,
+        WaitingList.status == "waiting",
+        WaitingList.store_id == store.id
+    ).scalar()
+
     return {
         "id": store.id,
         "name": store.name,
+        "current_waiting_count": current_waiting_count,
         "settings": {
             "require_member_registration": settings.require_member_registration if settings else False,
             "registration_message": settings.registration_message if settings else "",
