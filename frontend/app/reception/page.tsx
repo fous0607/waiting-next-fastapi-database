@@ -632,7 +632,7 @@ export default function ReceptionPage() {
                     <div className={`text-sm ${keypadStyle === 'dark' ? 'text-slate-400' : 'text-gray-500'}`}>현재 접수 현황</div>
                     <div className={`font-black text-3xl ${waitingStatus?.is_full ? 'text-red-600' : (keypadStyle === 'dark' ? 'text-blue-400' : 'text-blue-600')}`}>
                         {waitingStatus ? (
-                            waitingStatus.is_full ? '접수 마감' : `${waitingStatus.class_name} ${waitingStatus.class_number}번째`
+                            waitingStatus.is_full ? '접수 마감' : `${waitingStatus.class_name} ${waitingStatus.class_order}번째`
                         ) : '로딩 중...'}
                     </div>
                 </div>
