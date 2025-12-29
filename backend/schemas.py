@@ -367,6 +367,7 @@ class WaitingBoardItem(BaseModel):
     is_empty_seat: bool = False
     status: str
     call_count: int = 0
+    last_called_at: Optional[datetime] = None
 
 class WaitingBoard(BaseModel):
     store_name: str

@@ -13,7 +13,15 @@ export function BoardCard({ item }: BoardCardProps) {
         )
     }
 
-    const isCalled = item.call_count > 0;
+    const isCalled = (() => {
+        if (item.call_count <= 0 || !item.last_called_at) return false;
+
+        const lastCalled = new Date(item.last_called_at).getTime();
+        const now = new Date().getTime();
+        const diffMinutes = (now - lastCalled) / (1000 * 60);
+
+        return diffMinutes < 2; // Show "Calling" only for 2 minutes
+    })();
 
     return (
         <Card className={`relative h-full p-3 flex flex-row items-center justify-between shadow-sm border-l-4 animate-in fade-in slide-in-from-bottom-2 duration-300 ${isCalled

@@ -27,6 +27,7 @@ interface BoardWaitingItem {
     is_empty_seat: boolean;
     status: string;
     call_count: number;
+    last_called_at: string | null;
 }
 
 

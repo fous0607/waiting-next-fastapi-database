@@ -278,7 +278,8 @@ async def get_waiting_board(
             class_order=waiting.class_order,
             is_empty_seat=waiting.is_empty_seat or False,
             status=waiting.status,
-            call_count=waiting.call_count
+            call_count=waiting.call_count,
+            last_called_at=waiting.last_called_at
         ))
 
     # ClassInfo 객체들을 dict로 변환 (weekday_schedule 파싱 포함)
