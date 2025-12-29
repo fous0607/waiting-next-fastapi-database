@@ -997,6 +997,27 @@ export function GeneralSettings() {
                                                 </FormItem>
                                             )}
                                         />
+                                        <FormField
+                                            control={form.control}
+                                            name="waiting_call_voice_repeat_count"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel className="text-xs">호출 방송 반복 횟수</FormLabel>
+                                                    <Select onValueChange={(val) => field.onChange(parseInt(val))} value={field.value?.toString() || "1"}>
+                                                        <FormControl>
+                                                            <SelectTrigger className="h-9 text-xs">
+                                                                <SelectValue />
+                                                            </SelectTrigger>
+                                                        </FormControl>
+                                                        <SelectContent>
+                                                            {[1, 2, 3, 4, 5].map(num => (
+                                                                <SelectItem key={num} value={num.toString()} className="text-xs">{num}회</SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </FormItem>
+                                            )}
+                                        />
                                         <div className="md:col-span-2 flex justify-end">
                                             <Button
                                                 type="button"

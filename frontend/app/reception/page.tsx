@@ -615,19 +615,26 @@ export default function ReceptionPage() {
     return (
         <div className={`min-h-screen flex flex-col items-center transition-colors duration-300 ${styles.container}`}>
             {/* Header */}
-            <div className={`${keypadStyle === 'dark' ? 'bg-slate-800 text-white border-slate-700' : 'bg-white text-slate-900'} w-full p-6 shadow-sm flex justify-between items-center transition-colors duration-300`}>
-                <div className="flex flex-col gap-1">
-                    <div className="text-xl font-bold">{storeName}</div>
+            <div className={`${keypadStyle === 'dark' ? 'bg-slate-800 text-white border-slate-700' : 'bg-white text-slate-900'} w-full p-6 shadow-sm flex flex-row items-center transition-colors duration-300`}>
+                {/* Left: Status */}
+                <div className="flex-1">
                     <div className={`flex items-center gap-2 text-xs font-medium ${isConnected ? 'text-green-600' : 'text-red-600'}`}>
                         <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-600' : 'bg-red-600'}`} />
                         {isConnected ? '연결됨' : '연결 끊김'}
                     </div>
                 </div>
-                <div className="text-right">
+
+                {/* Center: Store Name */}
+                <div className="flex-[2] text-center">
+                    <div className="text-2xl font-black tracking-tight">{storeName}</div>
+                </div>
+
+                {/* Right: Reception Status */}
+                <div className="flex-1 text-right">
                     <div className={`text-sm ${keypadStyle === 'dark' ? 'text-slate-400' : 'text-gray-500'}`}>현재 접수 현황</div>
                     <div className={`font-bold text-lg ${waitingStatus?.is_full ? 'text-red-600' : (keypadStyle === 'dark' ? 'text-blue-400' : 'text-blue-600')}`}>
                         {waitingStatus ? (
-                            waitingStatus.is_full ? '접수 마감' : `${waitingStatus.class_name} ${waitingStatus.class_order}번째`
+                            waitingStatus.is_full ? '접수 마감' : `${waitingStatus.class_name} ${waitingStatus.class_number}번째`
                         ) : '로딩 중...'}
                     </div>
                 </div>

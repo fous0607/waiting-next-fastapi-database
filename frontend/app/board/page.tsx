@@ -173,7 +173,19 @@ export default function BoardPage() {
                         .replace(/{클래스명}/g, item.class_name);
 
                     console.log("Speaking Call:", message);
-                    speak(message);
+
+                    // Repeat Logic
+                    const repeatCount = storeSettings?.waiting_call_voice_repeat_count || 1;
+                    for (let i = 0; i < repeatCount; i++) {
+                        // Add some delay between repeats if it's not the first one
+                        if (i === 0) {
+                            speak(message);
+                        } else {
+                            // Calculate delay: message duration approx (message.length * 200ms) + 1s pause
+                            const delay = i * (message.length * 300 + 1000);
+                            setTimeout(() => speak(message), delay);
+                        }
+                    }
                 }
 
                 processedCallsRef.current.add(key);

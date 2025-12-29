@@ -107,6 +107,7 @@ async def get_store_settings(
             set_default(settings, 'waiting_voice_name', "유나")
             set_default(settings, 'waiting_voice_rate', 0.8)
             set_default(settings, 'waiting_voice_pitch', 1.0)
+            set_default(settings, 'waiting_call_voice_repeat_count', 1)
             set_default(settings, 'waiting_board_page_size', 12)
             set_default(settings, 'waiting_board_rotation_interval', 5)
             set_default(settings, 'waiting_board_transition_effect', "slide")

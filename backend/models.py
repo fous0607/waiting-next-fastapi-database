@@ -162,6 +162,7 @@ class StoreSettings(Base):
     waiting_voice_name = Column(String, nullable=True)  # 대기접수 완료 음성 안내 선택된 목소리 이름
     waiting_voice_rate = Column(Float, default=1.0)  # 대기접수 완료 음성 안내 속도 (0.1 ~ 10, 기본 1.0)
     waiting_voice_pitch = Column(Float, default=1.0)  # 대기접수 완료 음성 안내 높낮이 (0 ~ 2, 기본 1.0)
+    waiting_call_voice_repeat_count = Column(Integer, default=1) # 호출 음성 안내 반복 횟수
 
     # 대기관리자 화면 레이아웃 설정
     waiting_manager_max_width = Column(Integer, nullable=True)  # 대기관리자 화면 최대 너비 (px), None이면 기본값(95%)
