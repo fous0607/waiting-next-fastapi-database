@@ -147,38 +147,42 @@ export default function ReceptionPage() {
     const audioContextRef = useRef<AudioContext | null>(null);
 
     const playKeypadSound = useCallback((key: string = '0', actionType: 'number' | 'action' = 'number') => {
-        // 기본값은 true (설정이 없거나 명시적으로 false일 때만 비활성화)
-        console.log('[Keypad Sound] enabled:', storeSettings?.keypad_sound_enabled, 'type:', storeSettings?.keypad_sound_type, 'key:', key);
-        if (storeSettings?.keypad_sound_enabled === false) return;
-
+        // Initialize Audio Context on first interaction (User Gesture)
         try {
             if (!audioContextRef.current) {
                 audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
             }
             const ctx = audioContextRef.current;
-            const now = ctx.currentTime;
 
-            const soundType = storeSettings?.keypad_sound_type || 'button';
-
-            // 버튼 클릭음 - 다양한 연령대를 위한 피드백
             if (ctx.state === 'suspended') {
                 ctx.resume().catch(e => console.warn('[Audio] Failed to resume context:', e));
             }
 
-            // --- Voice Warmup (Added for debugging silent voice issue) ---
-            // If this is the very first interaction, trigger a silent speech to wake up the engine
-            // Using a simple flag on the window/component ref to track 'warmedUp'
+            // --- Voice Warmup ---
+            // Critical: Ensure SpeechSynthesis is "woken up" inside a user gesture event
+            // This prevents browsers from blocking subsequent async speak() calls
             if (!(window as any).__voiceWarmedUp && window.speechSynthesis) {
                 console.log('[Audio] Warming up SpeechSynthesis engine...');
                 (window as any).__voiceWarmedUp = true;
-                window.speechSynthesis.cancel(); // Clear queue
-                // Create a silent utterance
+                window.speechSynthesis.cancel();
                 const silentUtterance = new SpeechSynthesisUtterance(" ");
-                silentUtterance.volume = 0; // Silent
-                silentUtterance.rate = 10; // Fast
+                silentUtterance.volume = 0;
+                silentUtterance.rate = 10;
                 window.speechSynthesis.speak(silentUtterance);
             }
-            // -----------------------------------------------------------
+        } catch (e) {
+            console.warn('[Audio] Init failed:', e);
+        }
+
+        // Check Settings for Sound Effect
+        // console.log('[Keypad Sound] enabled:', storeSettings?.keypad_sound_enabled, 'type:', storeSettings?.keypad_sound_type, 'key:', key);
+        if (storeSettings?.keypad_sound_enabled === false) return;
+
+        try {
+            const ctx = audioContextRef.current;
+            if (!ctx) return;
+            const now = ctx.currentTime;
+            const soundType = storeSettings?.keypad_sound_type || 'button';
 
             if (soundType === 'modern') {
                 // 현대적인 맑은 소리
