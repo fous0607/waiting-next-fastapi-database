@@ -97,6 +97,7 @@ const settingsSchema = z.object({
     enable_reception_desk: z.boolean().default(true),
     max_dashboard_connections: z.coerce.number().min(1).max(10).default(2),
     dashboard_connection_policy: z.enum(['eject_old', 'block_new']).default('eject_old'),
+    calling_status_display_second: z.coerce.number().min(10).default(60),
 
     sequential_closing: z.boolean().default(false),
 
@@ -1036,18 +1037,62 @@ export function GeneralSettings() {
                                 )}
                                 <FormField
                                     control={form.control}
-                                    name="require_member_registration"
+                                    name="enable_waiting_board"
                                     render={({ field }) => (
-                                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 bg-blue-50/30">
-                                            <FormControl>
-                                                <Checkbox checked={!!field.value} onCheckedChange={field.onChange} />
-                                            </FormControl>
-                                            <div className="space-y-1 leading-none">
-                                                <FormLabel className="text-blue-700 font-bold">신규고객 자동 회원가입 사용</FormLabel>
+                                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 shadow-sm">
+                                            <div className="space-y-0.5">
+                                                <FormLabel className="text-base">대기현황판 사용</FormLabel>
                                                 <FormDescription>
-                                                    처음 방문한 고객의 핸드폰 번호 입력 시, 이름 입력 화면을 띄워 회원으로 자동 등록합니다.
+                                                    대기현황판 화면(TV/모니터)을 사용합니다.
                                                 </FormDescription>
                                             </div>
+                                            <FormControl>
+                                                <Switch
+                                                    checked={field.value}
+                                                    onCheckedChange={field.onChange}
+                                                />
+                                            </FormControl>
+                                        </FormItem>
+                                    )}
+                                />
+
+                                <FormField
+                                    control={form.control}
+                                    name="calling_status_display_second"
+                                    render={({ field }) => (
+                                        <FormItem className="flex flex-col gap-2 rounded-lg border p-4 shadow-sm bg-slate-50/50">
+                                            <div className="flex justify-between items-center">
+                                                <div className="space-y-0.5">
+                                                    <FormLabel className="text-base flex items-center gap-2">
+                                                        <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                                                        '호출중' 배지 표시 시간
+                                                    </FormLabel>
+                                                    <FormDescription>
+                                                        고객 호출 시 현황판에 배지가 표시되는 시간을 설정합니다.
+                                                    </FormDescription>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-sm font-bold text-primary">{field.value}초</span>
+                                                </div>
+                                            </div>
+                                            <FormControl>
+                                                <div className="flex gap-2 mt-2">
+                                                    {[10, 30, 60, 180].map((sec) => (
+                                                        <div
+                                                            key={sec}
+                                                            onClick={() => field.onChange(sec)}
+                                                            className={cn(
+                                                                "flex-1 py-2 text-center rounded-md cursor-pointer text-sm transition-all border",
+                                                                field.value === sec
+                                                                    ? "bg-primary text-white border-primary font-bold shadow-sm"
+                                                                    : "bg-white text-slate-600 border-slate-200 hover:border-primary/50"
+                                                            )}
+                                                        >
+                                                            {sec < 60 ? `${sec}초` : `${sec / 60}분`}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </FormControl>
                                         </FormItem>
                                     )}
                                 />
