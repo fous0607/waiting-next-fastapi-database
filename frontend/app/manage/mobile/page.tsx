@@ -57,20 +57,14 @@ function MobileManagerContent() {
 
         try {
             if (action === 'call') {
-                await api.post(`/waiting/${item.id}/call`);
+                await api.post(`/board/${item.id}/call`);
                 toast.success(`${item.waiting_number}번 호출됨`);
             } else if (action === 'attend') {
-                await api.patch('/waiting/status', {
-                    status: 'attended',
-                    waiting_ids: [item.id]
-                });
+                await api.put(`/board/${item.id}/status`, { status: 'attended' });
                 toast.success(`${item.waiting_number}번 입장 완료`);
             } else if (action === 'cancel') {
                 if (!confirm('정말 취소하시겠습니까?')) return;
-                await api.patch('/waiting/status', {
-                    status: 'cancelled',
-                    waiting_ids: [item.id]
-                });
+                await api.put(`/board/${item.id}/status`, { status: 'cancelled' });
                 toast.success(`${item.waiting_number}번 취소됨`);
             }
             if (currentClassId) fetchWaitingList(currentClassId);
@@ -126,82 +120,94 @@ function MobileManagerContent() {
             </div>
 
             {/* Content */}
-            <div className="p-4 space-y-4">
+            <div className="p-4 space-y-3">
                 {currentClassId ? (
                     sortedList.length > 0 ? (
                         sortedList.map((item) => (
-                            <Card key={item.id} className={`relative overflow-visible transition-all ${item.status === 'called' ? 'border-orange-200 bg-orange-50 shadow-md ring-1 ring-orange-200' : ''}`}>
+                            <Card key={item.id} className={`relative overflow-hidden transition-all ${item.status === 'called' ? 'border-orange-200 bg-orange-50 shadow-md ring-1 ring-orange-200' : ''}`}>
                                 {/* Revisit Badge - Top Right Absolute */}
                                 {item.revisit_count && item.revisit_count > 0 && (
-                                    <div className="absolute -top-2 -right-1 z-20">
-                                        <span className="bg-indigo-600 text-white px-2 py-0.5 rounded-full text-[11px] font-bold shadow-sm whitespace-nowrap">
+                                    <div className="absolute top-1.5 right-1.5 z-20">
+                                        <span className="bg-indigo-600 text-white px-2 py-0.5 rounded-full text-[10px] font-bold shadow-sm whitespace-nowrap">
                                             재방문 {item.revisit_count}
                                         </span>
                                     </div>
                                 )}
-                                <CardContent className="p-4">
-                                    <div className="flex justify-between items-start mb-3">
-                                        <div>
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-2xl font-bold text-slate-900">#{item.waiting_number}</span>
-                                                {item.status === 'called' && (
-                                                    <span className="bg-orange-100 text-orange-700 text-xs px-2 py-0.5 rounded-full font-bold animate-pulse">
-                                                        호출중
-                                                    </span>
-                                                )}
+                                <CardContent className="flex flex-col p-3 gap-2">
+                                    {/* Top: Info Row */}
+                                    <div className="flex items-start justify-between w-full">
+                                        <div className="flex items-center gap-2 overflow-hidden flex-1 mr-12">
+                                            {/* Number */}
+                                            <div className="flex items-center select-none rounded bg-slate-100 py-1 px-1.5">
+                                                <span className="text-xl font-black text-primary leading-none">#{item.waiting_number}</span>
                                             </div>
-                                            <div className="font-medium text-lg mt-0.5">{item.name}</div>
-                                        </div>
-                                        <div className="text-right">
-                                            <div className="flex items-center justify-end gap-1 text-slate-600">
-                                                <Users className="w-4 h-4" />
-                                                <span className="font-bold">{classes.find(c => c.id === item.class_id)?.max_capacity}명</span>
-                                            </div>
-                                            <div className="text-xs text-muted-foreground mt-1">
-                                                {new Date(item.registered_at).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} 접수
-                                            </div>
+
+                                            {/* Name */}
+                                            <h3 className="text-lg font-bold truncate leading-tight flex-1 min-w-0">
+                                                {item.name || item.phone.slice(-4)}
+                                            </h3>
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-3 gap-2 mt-4">
-                                        <Button
-                                            onClick={() => handleAction(item, 'call')}
-                                            variant={item.status === 'called' ? "outline" : "default"}
-                                            className={item.status === 'called' ? "border-orange-200 text-orange-700 hover:bg-orange-100" : "bg-green-600 hover:bg-green-700 text-white"}
-                                            disabled={!!processingId}
-                                        >
-                                            <Bell className="w-4 h-4 mr-1.5" />
-                                            {item.status === 'called' ? '재호출' : '호출'}
-                                        </Button>
-                                        <Button
-                                            onClick={() => handleAction(item, 'attend')}
-                                            variant="secondary"
-                                            className="bg-blue-600 hover:bg-blue-700 text-white"
-                                            disabled={!!processingId}
-                                        >
-                                            <CheckCircle className="w-4 h-4 mr-1.5" />
-                                            입장
-                                        </Button>
-                                        <Button
-                                            onClick={() => handleAction(item, 'cancel')}
-                                            variant="outline"
-                                            className="border-red-200 text-red-600 hover:bg-red-50"
-                                            disabled={!!processingId}
-                                        >
-                                            <XCircle className="w-4 h-4 mr-1.5" />
-                                            취소
-                                        </Button>
+                                    {/* Bottom: Sub-info & Actions Row */}
+                                    <div className="flex items-center justify-between gap-2">
+                                        {/* Phone & Status Badge */}
+                                        <div className="flex flex-col gap-0.5">
+                                            <div className="flex items-center text-xs font-medium text-slate-500">
+                                                <Phone className="w-3 h-3 mr-1" strokeWidth={2.5} />
+                                                <span className="tracking-tight">{item.phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3')}</span>
+                                            </div>
+                                            {item.status === 'called' && (
+                                                <span className="w-fit bg-orange-100 text-orange-700 text-[10px] px-1.5 py-0 rounded-full font-bold animate-pulse h-4 leading-none flex items-center">
+                                                    호출중
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        {/* Actions */}
+                                        <div className="grid grid-cols-3 gap-1.5 flex-1 max-w-[200px]">
+                                            <Button
+                                                onClick={() => handleAction(item, 'call')}
+                                                variant={item.status === 'called' ? "outline" : "default"}
+                                                size="sm"
+                                                className={`h-8 px-0 text-xs font-bold ${item.status === 'called' ? "border-orange-200 text-orange-700 hover:bg-orange-100" : "bg-green-600 hover:bg-green-700 text-white"}`}
+                                                disabled={!!processingId}
+                                            >
+                                                <Bell className="w-3 h-3 mr-1" />
+                                                {item.status === 'called' ? '재호출' : '호출'}
+                                            </Button>
+                                            <Button
+                                                onClick={() => handleAction(item, 'attend')}
+                                                variant="secondary"
+                                                size="sm"
+                                                className="h-8 px-0 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white"
+                                                disabled={!!processingId}
+                                            >
+                                                <CheckCircle className="w-3 h-3 mr-1" />
+                                                입장
+                                            </Button>
+                                            <Button
+                                                onClick={() => handleAction(item, 'cancel')}
+                                                variant="outline"
+                                                size="sm"
+                                                className="h-8 px-0 text-xs font-bold border-red-200 text-red-600 hover:bg-red-50"
+                                                disabled={!!processingId}
+                                            >
+                                                <XCircle className="w-3 h-3 mr-1" />
+                                                취소
+                                            </Button>
+                                        </div>
                                     </div>
                                 </CardContent>
                             </Card>
                         ))
                     ) : (
-                        <div className="text-center py-12 text-muted-foreground bg-white rounded-lg border border-dashed">
+                        <div className="text-center py-12 text-muted-foreground bg-white rounded-lg border border-dashed text-sm">
                             대기자가 없습니다.
                         </div>
                     )
                 ) : (
-                    <div className="text-center py-12 text-muted-foreground">
+                    <div className="text-center py-12 text-muted-foreground text-sm">
                         클래스를 선택해주세요.
                     </div>
                 )}
