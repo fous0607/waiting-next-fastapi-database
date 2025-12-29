@@ -40,10 +40,10 @@ export function QRPrintModal({ storeName, storeCode, trigger }: QRPrintModalProp
             <DialogTrigger asChild>
                 {trigger || <Button variant="default" size="sm">인쇄하기</Button>}
             </DialogTrigger>
-            <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto p-0 gap-0">
-                <div className="flex flex-col md:flex-row h-full">
+            <DialogContent className="max-w-[95vw] w-full h-[90vh] p-0 gap-0 overflow-hidden flex flex-col">
+                <div className="flex flex-col md:flex-row h-full overflow-hidden">
                     {/* Left: Settings Panel */}
-                    <div className="w-full md:w-[320px] p-6 border-r bg-slate-50/50 flex flex-col gap-6 shrink-0">
+                    <div className="w-full md:w-[320px] p-6 border-r bg-slate-50/50 flex flex-col gap-6 shrink-0 h-full overflow-y-auto">
                         <div>
                             <DialogTitle className="text-lg">QR 인쇄 디자인 설정</DialogTitle>
                             <DialogDescription className="mt-1">
@@ -108,15 +108,15 @@ export function QRPrintModal({ storeName, storeCode, trigger }: QRPrintModalProp
                     </div>
 
                     {/* Right: Real-time Preview */}
-                    <div className="flex-1 bg-slate-200 flex flex-col min-h-0 relative">
+                    <div className="flex-1 bg-slate-200 flex flex-col min-h-0 relative h-full">
                         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10">
                             <span className="px-3 py-1 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold rounded-full uppercase tracking-widest border border-white/20">
                                 A4 Print Preview
                             </span>
                         </div>
 
-                        <div className="flex-1 overflow-auto p-8 flex justify-center items-start no-scrollbar relative">
-                            <div className="bg-white shadow-2xl w-[450px] aspect-[1/1.414] origin-top scale-[1.0] sticky top-0 transition-all duration-500 ease-in-out">
+                        <div className="flex-1 overflow-auto p-8 flex justify-center items-center no-scrollbar relative w-full h-full">
+                            <div className="bg-white shadow-2xl w-[450px] aspect-[1/1.414] origin-center scale-[1.0] transition-all duration-500 ease-in-out shrink-0">
                                 <QRPrintTemplate
                                     style={selectedStyle}
                                     storeName={storeName}
@@ -126,7 +126,7 @@ export function QRPrintModal({ storeName, storeCode, trigger }: QRPrintModalProp
                             </div>
                         </div>
 
-                        <div className="p-6 bg-white border-t flex items-center justify-between">
+                        <div className="p-6 bg-white border-t flex items-center justify-between shrink-0">
                             <div className="flex items-center gap-2 text-slate-400">
                                 <Printer className="w-4 h-4" />
                                 <span className="text-xs font-medium">Auto-A4 Optimization Active</span>
@@ -147,30 +147,36 @@ export function QRPrintModal({ storeName, storeCode, trigger }: QRPrintModalProp
                         __html: `
                         @media print {
                             body * { visibility: hidden; }
-                            .print-content, .print-content * { visibility: visible; }
+                            .print-content, .print-content * { 
+                                visibility: visible; 
+                                -webkit-print-color-adjust: exact !important;
+                                print-color-adjust: exact !important;
+                            }
                             .print-content { 
-                                position: absolute; 
+                                position: fixed;
                                 left: 0; 
                                 top: 0; 
-                                width: 210mm;
-                                height: 297mm;
+                                width: 100vw;
+                                height: 100vh;
                                 margin: 0;
                                 padding: 0;
                             }
                             @page {
-                                size: A4;
-                                margin: 0;
+                                size: auto;
+                                margin: 0mm;
                             }
                         }
                     `}} />
                     <div className="print-content">
-                        <QRPrintTemplate
-                            style={selectedStyle}
-                            storeName={storeName}
-                            guideMessage={guideMessage}
-                            url={entryUrl}
-                            isFullPage
-                        />
+                        {selectedStyle === 'clean' && (
+                            <QRPrintTemplate style="clean" storeName={storeName} guideMessage={guideMessage} url={entryUrl} isFullPage />
+                        )}
+                        {selectedStyle === 'vibrant' && (
+                            <QRPrintTemplate style="vibrant" storeName={storeName} guideMessage={guideMessage} url={entryUrl} isFullPage />
+                        )}
+                        {selectedStyle === 'modern' && (
+                            <QRPrintTemplate style="modern" storeName={storeName} guideMessage={guideMessage} url={entryUrl} isFullPage />
+                        )}
                     </div>
                 </div>
             </DialogContent>
