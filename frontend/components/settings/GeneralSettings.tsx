@@ -89,6 +89,8 @@ const settingsSchema = z.object({
     waiting_voice_rate: z.coerce.number().min(0.1).max(2.0).default(1.0),
     waiting_voice_pitch: z.coerce.number().min(0).max(2).default(1.0),
     waiting_call_voice_repeat_count: z.coerce.number().min(1).max(5).default(1),
+    enable_duplicate_registration_voice: z.boolean().default(false),
+    duplicate_registration_voice_message: z.string().optional().default("이미 대기 중인 번호입니다."),
 
     // Traffic
     enable_waiting_board: z.boolean().default(true),

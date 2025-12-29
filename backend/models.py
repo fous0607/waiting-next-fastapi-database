@@ -163,6 +163,8 @@ class StoreSettings(Base):
     waiting_voice_rate = Column(Float, default=1.0)  # 대기접수 완료 음성 안내 속도 (0.1 ~ 10, 기본 1.0)
     waiting_voice_pitch = Column(Float, default=1.0)  # 대기접수 완료 음성 안내 높낮이 (0 ~ 2, 기본 1.0)
     waiting_call_voice_repeat_count = Column(Integer, default=1) # 호출 음성 안내 반복 횟수
+    enable_duplicate_registration_voice = Column(Boolean, default=False) # 중복 접수 시 음성 안내 여부
+    duplicate_registration_voice_message = Column(String, default="이미 대기 중인 번호입니다.") # 중복 접수 시 음성 안내 메시지
 
     # 대기관리자 화면 레이아웃 설정
     waiting_manager_max_width = Column(Integer, nullable=True)  # 대기관리자 화면 최대 너비 (px), None이면 기본값(95%)

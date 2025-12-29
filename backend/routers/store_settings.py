@@ -108,6 +108,8 @@ async def get_store_settings(
             set_default(settings, 'waiting_voice_rate', 0.8)
             set_default(settings, 'waiting_voice_pitch', 1.0)
             set_default(settings, 'waiting_call_voice_repeat_count', 1)
+            set_default(settings, 'enable_duplicate_registration_voice', False)
+            set_default(settings, 'duplicate_registration_voice_message', "이미 대기 중인 번호입니다.")
             set_default(settings, 'waiting_board_page_size', 12)
             set_default(settings, 'waiting_board_rotation_interval', 5)
             set_default(settings, 'waiting_board_transition_effect', "slide")
@@ -396,13 +398,11 @@ async def clone_store_settings(
         
         # 대기접수 완료 모달 설정
         "waiting_modal_timeout": source_settings.waiting_modal_timeout,
-        "show_member_name_in_waiting_modal": source_settings.show_member_name_in_waiting_modal,
-        "show_new_member_text_in_waiting_modal": source_settings.show_new_member_text_in_waiting_modal,
-        "enable_waiting_voice_alert": source_settings.enable_waiting_voice_alert,
-        "waiting_voice_message": source_settings.waiting_voice_message,
-        "waiting_voice_name": source_settings.waiting_voice_name,
         "waiting_voice_rate": source_settings.waiting_voice_rate,
         "waiting_voice_pitch": source_settings.waiting_voice_pitch,
+        "waiting_call_voice_repeat_count": source_settings.waiting_call_voice_repeat_count,
+        "enable_duplicate_registration_voice": source_settings.enable_duplicate_registration_voice,
+        "duplicate_registration_voice_message": source_settings.duplicate_registration_voice_message,
         
         # 대기관리자 화면 레이아웃 설정
         "waiting_list_box_size": source_settings.waiting_list_box_size,

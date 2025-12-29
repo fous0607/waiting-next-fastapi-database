@@ -65,6 +65,8 @@ class StoreSettingsBase(BaseModel):
     waiting_voice_rate: float = 1.0
     waiting_voice_pitch: float = 1.0
     waiting_call_voice_repeat_count: int = 1
+    enable_duplicate_registration_voice: bool = False
+    duplicate_registration_voice_message: str = "이미 대기 중인 번호입니다."
 
     # 대기관리자 화면 레이아웃 설정
     manager_button_size: str = "medium"  # xsmall, small, medium, large
@@ -159,6 +161,8 @@ class StoreSettingsUpdate(BaseModel):
     waiting_voice_rate: Optional[float] = None
     waiting_voice_pitch: Optional[float] = None
     waiting_call_voice_repeat_count: Optional[int] = None
+    enable_duplicate_registration_voice: Optional[bool] = None
+    duplicate_registration_voice_message: Optional[str] = None
     
     # 대기관리자 화면 레이아웃 설정
     waiting_manager_max_width: Optional[int] = None

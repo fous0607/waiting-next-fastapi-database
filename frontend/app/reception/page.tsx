@@ -455,6 +455,12 @@ export default function ReceptionPage() {
             if (err.response?.status === 400 || errorMessage.includes('이미') || errorMessage.includes('대기')) {
                 setErrorDialog({ open: true, message: errorMessage });
 
+                // Duplicate/Business Login Error Voice Feedback
+                if (storeSettings?.enable_duplicate_registration_voice) {
+                    const duplicateMessage = storeSettings.duplicate_registration_voice_message || "이미 대기 중인 번호입니다.";
+                    speak(duplicateMessage);
+                }
+
                 // Auto-close error dialog too
                 const timeout = (storeSettings?.waiting_modal_timeout || 5) * 1000;
                 if (modalTimeoutRef.current) clearTimeout(modalTimeoutRef.current); // safe clear
