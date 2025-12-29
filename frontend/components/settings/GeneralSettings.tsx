@@ -81,7 +81,7 @@ const settingsSchema = z.object({
     waiting_modal_timeout: z.coerce.number().min(1).default(5),
     show_member_name_in_waiting_modal: z.boolean().default(true),
     show_new_member_text_in_waiting_modal: z.boolean().default(true),
-    enable_waiting_voice_alert: z.boolean().default(false),
+    enable_waiting_voice_alert: z.boolean().default(true),
     waiting_voice_message: z.string().optional().nullable(),
     waiting_call_voice_message: z.string().optional().nullable(),
 
@@ -90,7 +90,7 @@ const settingsSchema = z.object({
     waiting_voice_rate: z.coerce.number().min(0.1).max(2.0).default(1.0),
     waiting_voice_pitch: z.coerce.number().min(0).max(2).default(1.0),
     waiting_call_voice_repeat_count: z.coerce.number().min(1).max(5).default(1),
-    enable_duplicate_registration_voice: z.boolean().default(false),
+    enable_duplicate_registration_voice: z.boolean().default(true),
     duplicate_registration_voice_message: z.string().optional().default("이미 대기 중인 번호입니다."),
 
     // Traffic
@@ -99,7 +99,7 @@ const settingsSchema = z.object({
     max_dashboard_connections: z.coerce.number().min(1).max(10).default(2),
     dashboard_connection_policy: z.enum(['eject_old', 'block_new']).default('eject_old'),
     calling_status_display_second: z.coerce.number().min(10).default(60),
-    enable_calling_voice_alert: z.boolean().default(false),
+    enable_calling_voice_alert: z.boolean().default(true),
 
     sequential_closing: z.boolean().default(false),
 
@@ -887,16 +887,7 @@ export function GeneralSettings() {
                                 />
                             </div>
                             <div className="flex flex-col gap-2">
-                                <FormField
-                                    control={form.control}
-                                    name="keypad_sound_enabled"
-                                    render={({ field }) => (
-                                        <FormItem className="flex flex-row items-center space-x-2 space-y-0">
-                                            <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
-                                            <FormLabel className='font-normal'>키패드 효과음 사용</FormLabel>
-                                        </FormItem>
-                                    )}
-                                />
+
                                 <FormField
                                     control={form.control}
                                     name="show_member_name_in_waiting_modal"

@@ -58,17 +58,17 @@ class StoreSettingsBase(BaseModel):
     waiting_modal_timeout: int = 5
     show_member_name_in_waiting_modal: bool = True
     show_new_member_text_in_waiting_modal: bool = True
-    enable_waiting_voice_alert: bool = False
+    enable_waiting_voice_alert: bool = True
     waiting_voice_message: Optional[str] = "{클래스명}  {회원명}님 대기 접수 되었습니다."
     waiting_call_voice_message: Optional[str] = "{순번}번 {회원명}님, 데스크로 오시기 바랍니다."
     waiting_voice_name: Optional[str] = None
     waiting_voice_rate: float = 1.0
     waiting_voice_pitch: float = 1.0
     waiting_call_voice_repeat_count: int = 1
-    enable_duplicate_registration_voice: bool = False
+    enable_duplicate_registration_voice: bool = True
     duplicate_registration_voice_message: str = "이미 대기 중인 번호입니다."
     calling_status_display_second: int = 60
-    enable_calling_voice_alert: bool = False
+    enable_calling_voice_alert: bool = True
 
     # 대기관리자 화면 레이아웃 설정
     manager_button_size: str = "medium"  # xsmall, small, medium, large

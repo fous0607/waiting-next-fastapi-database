@@ -175,8 +175,8 @@ export default function ReceptionPage() {
         }
 
         // Check Settings for Sound Effect
-        // console.log('[Keypad Sound] enabled:', storeSettings?.keypad_sound_enabled, 'type:', storeSettings?.keypad_sound_type, 'key:', key);
-        if (storeSettings?.keypad_sound_enabled === false) return;
+        // Forced to ALWAYS ON as per user request
+        // if (storeSettings?.keypad_sound_enabled === false) return;
 
         try {
             const ctx = audioContextRef.current;
