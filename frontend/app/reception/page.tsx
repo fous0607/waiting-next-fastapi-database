@@ -660,96 +660,131 @@ export default function ReceptionPage() {
 
 
     return (
-        <div className={`min-h-screen flex flex-col items-center transition-colors duration-300 ${styles.container}`}>
+        <div className={`h-screen w-screen flex flex-col items-center bg-slate-50 transition-colors duration-300 overflow-hidden ${styles.container}`}>
             {/* Header */}
-            <div className={`${keypadStyle === 'dark' ? 'bg-slate-800 text-white border-slate-700' : 'bg-white text-slate-900'} w-full p-6 shadow-sm flex flex-row items-center transition-colors duration-300`}>
-                {/* Left: Status */}
-                <div className="flex-1">
-                    <div className={`flex items-center gap-2 text-xs font-medium ${isConnected ? 'text-green-600' : 'text-red-600'}`}>
-                        <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-600' : 'bg-red-600'}`} />
-                        {isConnected ? '연결됨' : '연결 끊김'}
+            <div className={`w-full h-[80px] px-8 flex flex-row items-center justify-between shrink-0 transition-colors duration-300 ${keypadStyle === 'dark' ? 'bg-slate-800 text-white border-b border-slate-700' : 'bg-white text-slate-900 shadow-sm z-10'}`}>
+                {/* Left: Connection Status */}
+                <div className="flex-1 flex items-center justify-start">
+                    <div className={`flex items-center gap-2 text-sm font-medium ${isConnected ? 'text-green-600' : 'text-red-600'}`}>
+                        <div className={`w-2.5 h-2.5 rounded-full ${isConnected ? 'bg-green-600' : 'bg-red-600'} animate-pulse`} />
+                        {isConnected ? '시스템 정상 가동중' : '연결 끊김'}
                     </div>
                 </div>
 
-                {/* Center: Placeholder for balance */}
-                <div className="flex-1 hidden md:block"></div>
+                {/* Center: Store Name */}
+                <div className="flex-[2] flex items-center justify-center">
+                    <h1 className={`text-3xl font-black tracking-tight ${keypadStyle === 'dark' ? 'text-white' : 'text-slate-900'}`}>{storeName}</h1>
+                </div>
 
-                {/* Right: Reception Status (Larger) */}
-                <div className="flex-1 text-right">
-                    <div className={`text-sm ${keypadStyle === 'dark' ? 'text-slate-400' : 'text-gray-500'}`}>현재 접수 현황</div>
-                    <div className={`font-black text-3xl ${waitingStatus?.is_full ? 'text-red-600' : (keypadStyle === 'dark' ? 'text-blue-400' : 'text-blue-600')}`}>
-                        {waitingStatus ? (
-                            waitingStatus.is_full ? '접수 마감' : `${waitingStatus.class_name} ${waitingStatus.class_order}번째`
-                        ) : '로딩 중...'}
+                {/* Right: Business Date/Time */}
+                <div className="flex-1 flex flex-col items-end justify-center">
+                    <div className={`text-xs font-bold uppercase tracking-widest mb-0.5 ${keypadStyle === 'dark' ? 'text-slate-400' : 'text-slate-400'}`}>Current Time</div>
+                    <div className={`text-lg font-bold font-mono leading-none ${keypadStyle === 'dark' ? 'text-blue-400' : 'text-slate-700'}`}>
+                        {new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
                     </div>
                 </div>
             </div>
 
-            <div className={`flex-1 w-full max-w-3xl p-6 flex flex-col justify-start pt-12 overflow-y-auto ${keypadStyle === 'dark' ? 'scrollbar-thin scrollbar-thumb-slate-700' : ''}`}>
-                {/* Store Info & Status (Near Input) */}
-                <div className="text-center mb-8 space-y-2">
-                    <h1 className={`text-4xl font-black tracking-tight ${keypadStyle === 'dark' ? 'text-white' : 'text-slate-900'}`}>{storeName}</h1>
-                    <div className={`text-2xl font-bold ${waitingStatus?.is_full ? 'text-red-500' : 'text-blue-500'}`}>
-                        {waitingStatus ? (
-                            waitingStatus.is_full ? '현재 접수가 마감되었습니다' : `${waitingStatus.class_name} ${waitingStatus.class_order}번째 대기 접수 중`
-                        ) : ''}
-                    </div>
+            {/* Main Content - Full Height & Centered */}
+            <div className={`flex-1 w-full max-w-4xl p-8 flex flex-col justify-between items-center ${keypadStyle === 'dark' ? 'scrollbar-thin scrollbar-thumb-slate-700' : ''}`}>
+
+                {/* Status Message (Luxurious Style) */}
+                <div className="w-full flex flex-col items-center justify-center min-h-[120px] transition-all">
+                    {waitingStatus?.is_full ? (
+                        <div className="text-center animate-pulse">
+                            <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+                            <span className="text-3xl font-bold text-red-600">현재 대기 접수가 마감되었습니다</span>
+                        </div>
+                    ) : (
+                        <div className="text-center space-y-3">
+                            <div className={`text-lg font-medium tracking-[0.2em] uppercase ${keypadStyle === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
+                                Current Waiting Status
+                            </div>
+                            <div className="relative inline-block">
+                                <span className={`text-4xl md:text-5xl font-black tracking-tight ${keypadStyle === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+                                    {waitingStatus ? `${waitingStatus.class_name}` : '...'}
+                                </span>
+                                <span className={`mx-4 text-3xl font-light ${keypadStyle === 'dark' ? 'text-slate-500' : 'text-slate-300'}`}>|</span>
+                                <span className="text-4xl md:text-5xl font-black text-blue-600">
+                                    {waitingStatus ? `${waitingStatus.class_order}번째` : '...'}
+                                </span>
+                                <div className="text-xl md:text-2xl font-medium text-slate-400 mt-2 font-serif italic">
+                                    대기 접수 중입니다
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
-                {/* Display */}
-                <div className={`${styles.display} rounded-3xl p-8 mb-6 text-center transition-all duration-300 min-h-[140px] flex flex-col justify-center`}>
-                    <div className={`text-5xl font-mono font-bold tracking-widest h-16 flex items-center justify-center ${styles.displayText} ${phoneNumber.length === 4 ? '!text-blue-600' : ''}`}>
-                        {formatDisplay(phoneNumber)}
+                {/* Main Interaction Area (Display + Keypad + Button) */}
+                <div className="w-full flex-1 flex flex-col gap-4 min-h-0 pt-4">
+                    {/* Phone Display */}
+                    <div className={`${styles.display} rounded-[2rem] h-[160px] flex flex-col items-center justify-center relative shadow-lg ring-1 ring-black/5 transition-all duration-300 shrink-0`}>
+                        <div className={`text-6xl font-mono font-bold tracking-[0.15em] ${styles.displayText} ${phoneNumber.length === 4 ? '!text-blue-600' : ''}`}>
+                            {formatDisplay(phoneNumber)}
+                        </div>
+                        <div className={`absolute bottom-6 text-lg font-bold ${styles.displayLabel} transition-all duration-300 ${phoneNumber.length === 4 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}>
+                            뒷번호 4자리 조회
+                        </div>
+                        {!phoneNumber && (
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-slate-300 text-3xl font-medium animate-pulse">
+                                휴대폰 번호를 입력하세요
+                            </div>
+                        )}
                     </div>
-                    <div className={`text-xl mt-2 font-bold ${styles.displayLabel} transition-opacity duration-200 ${phoneNumber.length === 4 ? 'opacity-100' : 'opacity-0'}`}>
-                        뒷번호 4자리 조회
-                    </div>
-                </div>
 
-                {/* Keypad */}
-                <div className="grid grid-cols-3 gap-4 mb-6">
-                    {numbers.map(num => (
+                    {/* Keypad Grid */}
+                    <div className="flex-1 grid grid-cols-3 gap-3 min-h-0">
+                        {numbers.map(num => (
+                            <Button
+                                key={num}
+                                variant={keypadStyle === 'dark' ? 'secondary' : 'outline'}
+                                className={`text-4xl md:text-5xl font-bold rounded-2xl h-full transition-all duration-100 active:scale-95 shadow-sm border-b-4 active:border-b-0 active:translate-y-1 ${styles.button}`}
+                                onClick={() => handleNumberClick(num)}
+                            >
+                                {num}
+                            </Button>
+                        ))}
                         <Button
-                            key={num}
-                            variant={keypadStyle === 'dark' ? 'secondary' : 'outline'}
-                            className={`h-24 text-4xl font-bold rounded-2xl transition-all duration-100 active:scale-95 ${styles.button}`}
-                            onClick={() => handleNumberClick(num)}
+                            variant={keypadStyle === 'dark' ? 'ghost' : 'outline'}
+                            className={`text-2xl font-bold rounded-2xl h-full transition-all duration-100 active:scale-95 shadow-sm ${styles.clearButton}`}
+                            onClick={handleClear}
                         >
-                            {num}
+                            전체취소
                         </Button>
-                    ))}
+                        <Button
+                            variant={keypadStyle === 'dark' ? 'secondary' : 'outline'}
+                            className={`text-4xl md:text-5xl font-bold rounded-2xl h-full transition-all duration-100 active:scale-95 shadow-sm border-b-4 active:border-b-0 active:translate-y-1 ${styles.button}`}
+                            onClick={() => handleNumberClick('0')}
+                        >
+                            0
+                        </Button>
+                        <Button
+                            variant={keypadStyle === 'dark' ? 'ghost' : 'outline'}
+                            className={`rounded-2xl h-full transition-all duration-100 active:scale-95 shadow-sm ${styles.backButton}`}
+                            onClick={handleBackspace}
+                        >
+                            <Delete className="w-10 h-10" />
+                        </Button>
+                    </div>
+
+                    {/* Submit Button */}
                     <Button
-                        variant={keypadStyle === 'dark' ? 'ghost' : 'outline'}
-                        className={`h-24 text-2xl font-bold rounded-2xl transition-all duration-100 active:scale-95 ${styles.clearButton}`}
-                        onClick={handleClear}
+                        className={`w-full h-[100px] text-4xl md:text-5xl font-black rounded-[2rem] shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all active:scale-[0.98] shrink-0 mt-2 ${styles.submitButton}`}
+                        size="lg"
+                        disabled={isSubmitting || (waitingStatus?.is_full === true)}
+                        onClick={handleSubmit}
                     >
-                        전체취소
-                    </Button>
-                    <Button
-                        variant={keypadStyle === 'dark' ? 'secondary' : 'outline'}
-                        className={`h-24 text-4xl font-bold rounded-2xl transition-all duration-100 active:scale-95 ${styles.button}`}
-                        onClick={() => handleNumberClick('0')}
-                    >
-                        0
-                    </Button>
-                    <Button
-                        variant={keypadStyle === 'dark' ? 'ghost' : 'outline'}
-                        className={`h-24 font-bold rounded-2xl transition-all duration-100 active:scale-95 ${styles.backButton}`}
-                        onClick={handleBackspace}
-                    >
-                        <Delete className="w-12 h-12" />
+                        {isSubmitting ? (
+                            <div className="flex items-center gap-4">
+                                <div className="w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin" />
+                                <span>처리 중...</span>
+                            </div>
+                        ) : (
+                            phoneNumber.length === 4 ? '회원 조회하기' : '대 기 접 수'
+                        )}
                     </Button>
                 </div>
-
-                {/* Submit */}
-                <Button
-                    className={`w-full h-24 text-3xl font-bold rounded-3xl transition-all ${styles.submitButton}`}
-                    size="lg"
-                    disabled={isSubmitting || (waitingStatus?.is_full === true)}
-                    onClick={handleSubmit}
-                >
-                    {isSubmitting ? '처리 중...' : (phoneNumber.length === 4 ? '회원 조회' : '대기 접수')}
-                </Button>
             </div>
 
             {/* Selection Modal (Multiple Candidates) */}

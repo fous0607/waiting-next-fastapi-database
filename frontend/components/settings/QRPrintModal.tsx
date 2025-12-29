@@ -46,7 +46,7 @@ export function QRPrintModal({ storeName, storeCode, trigger }: QRPrintModalProp
             <DialogTrigger asChild>
                 {trigger || <Button variant="default" size="sm">인쇄하기</Button>}
             </DialogTrigger>
-            <DialogContent className="max-w-[95vw] w-full h-[90vh] p-0 gap-0 overflow-hidden flex flex-col">
+            <DialogContent className="max-w-[100vw] w-screen h-screen p-0 gap-0 overflow-hidden flex flex-col rounded-none border-none">
                 <div className="flex flex-col md:flex-row h-full overflow-hidden">
                     {/* Left: Settings Panel */}
                     <div className="w-full md:w-[320px] p-6 border-r bg-slate-50/50 flex flex-col gap-6 shrink-0 h-full overflow-y-auto">
