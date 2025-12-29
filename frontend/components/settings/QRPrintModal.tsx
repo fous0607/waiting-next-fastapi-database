@@ -40,12 +40,12 @@ export function QRPrintModal({ storeName, storeCode, trigger }: QRPrintModalProp
             <DialogTrigger asChild>
                 {trigger || <Button variant="default" size="sm">인쇄하기</Button>}
             </DialogTrigger>
-            <DialogContent className="max-w-5xl max-h-[95vh] overflow-y-auto p-0 gap-0">
+            <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto p-0 gap-0">
                 <div className="flex flex-col md:flex-row h-full">
                     {/* Left: Settings Panel */}
-                    <div className="w-full md:w-[400px] p-6 border-r bg-slate-50/50 flex flex-col gap-6">
+                    <div className="w-full md:w-[320px] p-6 border-r bg-slate-50/50 flex flex-col gap-6 shrink-0">
                         <div>
-                            <DialogTitle className="text-xl">QR 인쇄 디자인 설정</DialogTitle>
+                            <DialogTitle className="text-lg">QR 인쇄 디자인 설정</DialogTitle>
                             <DialogDescription className="mt-1">
                                 매장에 비치될 QR 코드의 스타일을 커스텀하세요.
                             </DialogDescription>
@@ -115,8 +115,8 @@ export function QRPrintModal({ storeName, storeCode, trigger }: QRPrintModalProp
                             </span>
                         </div>
 
-                        <div className="flex-1 overflow-auto p-8 flex justify-center items-start no-scrollbar">
-                            <div className="bg-white shadow-2xl w-[350px] aspect-[1/1.414] origin-top scale-[1.1] sticky top-0 transition-all duration-500 ease-in-out">
+                        <div className="flex-1 overflow-auto p-8 flex justify-center items-start no-scrollbar relative">
+                            <div className="bg-white shadow-2xl w-[450px] aspect-[1/1.414] origin-top scale-[1.0] sticky top-0 transition-all duration-500 ease-in-out">
                                 <QRPrintTemplate
                                     style={selectedStyle}
                                     storeName={storeName}
