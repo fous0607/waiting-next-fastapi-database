@@ -108,7 +108,7 @@ export default function BoardPage() {
         if (!storeSettings?.enable_waiting_voice_alert) return;
         if (typeof window === 'undefined' || !window.speechSynthesis) return;
 
-        window.speechSynthesis.cancel();
+        // window.speechSynthesis.cancel();
 
         const parts = text.split(/(\s{2,})/);
         let currentTime = 0;
@@ -140,6 +140,45 @@ export default function BoardPage() {
     useEffect(() => {
         loadData();
     }, [loadData]);
+
+
+    // Call Announcement Logic
+    const processedCallsRef = useRef<Set<string>>(new Set());
+    const isFirstDataLoad = useRef(true);
+
+    useEffect(() => {
+        if (!data) return;
+
+        // On first load, just mark existing calls as processed to avoid re-announcing
+        if (isFirstDataLoad.current) {
+            data.waiting_list.forEach(item => {
+                if (item.call_count > 0) processedCallsRef.current.add(`${item.id}:${item.call_count}`);
+            });
+            isFirstDataLoad.current = false;
+            return;
+        }
+
+        data.waiting_list.forEach(item => {
+            const key = `${item.id}:${item.call_count}`;
+            // If item is called (count > 0) and we haven't processed this specific count yet
+            if (item.call_count > 0 && !processedCallsRef.current.has(key)) {
+
+                // Trigger Voice
+                if (storeSettings?.enable_waiting_voice_alert) {
+                    const template = storeSettings?.waiting_voice_call_message || "{순번}번 {회원명}님, 데스크로 오시기 바랍니다.";
+                    const message = template
+                        .replace(/{순번}/g, item.class_order.toString())
+                        .replace(/{회원명}/g, item.display_name)
+                        .replace(/{클래스명}/g, item.class_name);
+
+                    console.log("Speaking Call:", message);
+                    speak(message);
+                }
+
+                processedCallsRef.current.add(key);
+            }
+        });
+    }, [data, storeSettings, speak]);
 
     // SWR Polling Implementation
     // Replaces SSE for Vercel Serverless environment

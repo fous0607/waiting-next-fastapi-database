@@ -226,7 +226,7 @@ export function MemberDetailModal({ member, open, onClose }: MemberDetailModalPr
                                                             "text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm mr-3",
                                                             h.status === 'attended' ? "bg-rose-50 text-rose-600" : "bg-slate-100 text-slate-500"
                                                         )}>
-                                                            {h.status === 'attended' ? '출석' : '결석'}
+                                                            {h.status === 'attended' ? '출석' : (h.status === 'cancelled' ? '취소' : h.status)}
                                                         </div>
                                                     </div>
                                                 </div>

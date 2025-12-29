@@ -747,7 +747,8 @@ export default function ReceptionPage() {
                                     </span>
                                 )}
                             </span>
-                            {storeSettings?.show_member_name_in_waiting_modal && resultDialog.data?.name && (
+                            {/* Always show member name if available */}
+                            {resultDialog.data?.name && (
                                 <span className="block text-3xl text-slate-900 font-bold mb-4">
                                     {resultDialog.data.name}님
                                 </span>

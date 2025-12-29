@@ -112,33 +112,41 @@ export default function EntryPage({ params }: { params: Promise<{ store_code: st
                                 name="phone"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>휴대폰 번호</FormLabel>
+                                        <FormLabel className="text-lg font-bold">휴대폰 번호</FormLabel>
                                         <FormControl>
-                                            <Input
-                                                placeholder="010-0000-0000"
-                                                {...field}
-                                                type="tel"
-                                                className="text-lg h-12"
-                                                onChange={(e) => {
-                                                    let val = e.target.value.replace(/[^0-9]/g, '');
-                                                    if (!val.startsWith('010')) {
-                                                        val = '010' + val.replace(/^0+/, '');
-                                                    }
-                                                    // Limit length to 11 digits (010 + 8 digits)
-                                                    if (val.length > 11) val = val.slice(0, 11);
+                                            <div className="flex items-center justify-center border-2 rounded-2xl overflow-hidden h-24 bg-white shadow-sm ring-offset-2 focus-within:ring-2 focus-within:ring-primary focus-within:border-primary transition-all">
+                                                <div className="bg-slate-100 h-full flex items-center justify-center px-6 border-r-2 border-slate-100 min-w-[100px]">
+                                                    <span className="text-3xl font-black text-slate-800 tracking-wider">010-</span>
+                                                </div>
+                                                <Input
+                                                    placeholder="0000-0000"
+                                                    {...field}
+                                                    type="tel"
+                                                    className="border-none shadow-none h-full text-4xl font-black tracking-[0.2em] text-center bg-white focus-visible:ring-0 px-4 placeholder:text-slate-200 placeholder:tracking-normal placeholder:font-bold"
+                                                    onChange={(e) => {
+                                                        // Get only digits from the input value
+                                                        let val = e.target.value.replace(/[^0-9]/g, '');
+                                                        // Limit to 8 digits for the suffix
+                                                        if (val.length > 8) val = val.slice(0, 8);
 
-                                                    // Format with dashes
-                                                    let formatted = val;
-                                                    if (val.length > 3 && val.length <= 7) {
-                                                        formatted = `${val.slice(0, 3)}-${val.slice(3)}`;
-                                                    } else if (val.length > 7) {
-                                                        formatted = `${val.slice(0, 3)}-${val.slice(3, 7)}-${val.slice(7)}`;
-                                                    }
+                                                        // Construct the full 11-digit phone number for the form field
+                                                        const fullPhoneNumber = '010' + val;
+                                                        field.onChange(fullPhoneNumber);
+                                                    }}
+                                                    // Override value prop for display formatting
+                                                    value={(() => {
+                                                        // Extract the 8-digit suffix from the full 11-digit field.value
+                                                        const rawFullNumber = field.value.replace(/[^0-9]/g, '');
+                                                        const suffix = rawFullNumber.startsWith('010') ? rawFullNumber.slice(3) : '';
 
-                                                    field.onChange(formatted);
-                                                }}
-                                                value={field.value}
-                                            />
+                                                        // Format the suffix with a dash
+                                                        if (suffix.length > 4) {
+                                                            return `${suffix.slice(0, 4)}-${suffix.slice(4)}`;
+                                                        }
+                                                        return suffix;
+                                                    })()}
+                                                />
+                                            </div>
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
