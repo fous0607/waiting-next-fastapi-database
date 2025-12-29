@@ -165,7 +165,7 @@ export default function BoardPage() {
 
                 // Trigger Voice
                 if (storeSettings?.enable_waiting_voice_alert) {
-                    const template = storeSettings?.waiting_voice_call_message || "{순번}번 {회원명}님, 데스크로 오시기 바랍니다.";
+                    const template = storeSettings?.waiting_call_voice_message || "{순번}번 {회원명}님, 데스크로 오시기 바랍니다.";
                     const message = template
                         .replace(/{순번}/g, item.class_order.toString())
                         .replace(/{회원명}/g, item.display_name)

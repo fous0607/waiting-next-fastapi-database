@@ -150,6 +150,7 @@ class StoreSettings(Base):
     # 대기자 재방문 설정 (Revisit Badge)
     enable_revisit_badge = Column(Boolean, default=False)  # 재방문 배지 사용 여부
     revisit_period_days = Column(Integer, default=0)  # 재방문 카운트 기간 (0 = 전체 기간, N = 최근 N일)
+    revisit_badge_style = Column(String, default="indigo_solid")  # 재방문 배지 스타일 (indigo_solid, amber_outline, emerald_pill, rose_gradient, sky_glass)
 
     # 대기접수 완료 모달 설정
     waiting_modal_timeout = Column(Integer, default=5)  # 대기접수 모달 타이머 (초)

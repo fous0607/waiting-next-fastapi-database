@@ -325,7 +325,7 @@ export default function ReceptionPage() {
         if (typeof window === 'undefined' || !window.speechSynthesis) return;
 
         // Cancel previous speech
-        window.speechSynthesis.cancel();
+        // window.speechSynthesis.cancel();
 
         // 연속된 공백(2개 이상)을 기준으로 분할하여 딜레이 생성
         const parts = text.split(/(\s{2,})/);

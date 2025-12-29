@@ -51,6 +51,7 @@ class StoreSettingsBase(BaseModel):
     # 대기자 재방문 설정 (Revisit Badge)
     enable_revisit_badge: bool = False
     revisit_period_days: int = 0
+    revisit_badge_style: str = "indigo_solid"
 
 
     # 대기접수 완료 모달 설정
@@ -144,6 +145,7 @@ class StoreSettingsUpdate(BaseModel):
     # 대기자 재방문 설정
     enable_revisit_badge: Optional[bool] = None
     revisit_period_days: Optional[int] = None
+    revisit_badge_style: Optional[str] = None
 
     # 대기접수 완료 모달 설정
     waiting_modal_timeout: Optional[int] = None

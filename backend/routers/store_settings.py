@@ -78,7 +78,8 @@ async def get_store_settings(
             defer(StoreSettings.dashboard_connection_policy),
             defer(StoreSettings.sequential_closing),
             defer(StoreSettings.enable_revisit_badge),
-            defer(StoreSettings.revisit_period_days)
+            defer(StoreSettings.revisit_period_days),
+            defer(StoreSettings.revisit_badge_style)
         ).filter(
             StoreSettings.store_id == current_store.id
         ).first()
@@ -120,6 +121,7 @@ async def get_store_settings(
             set_default(settings, 'sequential_closing', False)
             set_default(settings, 'enable_revisit_badge', False)
             set_default(settings, 'revisit_period_days', 0)
+            set_default(settings, 'revisit_badge_style', "indigo_solid")
 
     if not settings:
         # 기본 설정 생성
@@ -418,7 +420,8 @@ async def clone_store_settings(
         
         # 대기자 재방문 설정
         "enable_revisit_badge": source_settings.enable_revisit_badge,
-        "revisit_period_days": source_settings.revisit_period_days
+        "revisit_period_days": source_settings.revisit_period_days,
+        "revisit_badge_style": source_settings.revisit_badge_style
     }
 
     if target_settings:

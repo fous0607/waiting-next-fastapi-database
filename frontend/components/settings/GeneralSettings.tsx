@@ -2,6 +2,7 @@
 import QRCode from 'react-qr-code';
 
 import { useEffect, useState } from 'react';
+import { QRPrintModal } from './QRPrintModal';
 import { Loader2, Copy, Check } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -43,6 +44,7 @@ const settingsSchema = z.object({
     // Revisit Badge (New)
     enable_revisit_badge: z.boolean().default(false),
     revisit_period_days: z.coerce.number().min(0).default(0), // 0 = all time
+    revisit_badge_style: z.string().default("indigo_solid"),
 
     // Attendance
     attendance_count_type: z.enum(['days', 'monthly']).default('days'),
@@ -127,6 +129,7 @@ export function GeneralSettings() {
             require_member_registration: false,
             enable_revisit_badge: false,
             revisit_period_days: 0,
+            revisit_badge_style: "indigo_solid",
             attendance_count_type: 'days',
             attendance_lookback_days: 30,
             show_waiting_number: true,
@@ -218,6 +221,7 @@ export function GeneralSettings() {
                     require_member_registration: data.require_member_registration ?? false,
                     enable_revisit_badge: data.enable_revisit_badge ?? false,
                     revisit_period_days: data.revisit_period_days ?? 0,
+                    revisit_badge_style: data.revisit_badge_style ?? "indigo_solid",
                     show_member_name_in_waiting_modal: data.show_member_name_in_waiting_modal ?? true,
                     show_new_member_text_in_waiting_modal: data.show_new_member_text_in_waiting_modal ?? true,
                     enable_waiting_voice_alert: data.enable_waiting_voice_alert ?? false,
@@ -433,6 +437,49 @@ export function GeneralSettings() {
                                         )}
                                     />
                                 )}
+                                {form.watch('enable_revisit_badge') && (
+                                    <div className="md:col-span-2 space-y-4 pt-4 border-t">
+                                        <FormField
+                                            control={form.control}
+                                            name="revisit_badge_style"
+                                            render={({ field }) => (
+                                                <FormItem className="space-y-3">
+                                                    <FormLabel className="text-sm font-semibold">재방문 배지 스타일 선택</FormLabel>
+                                                    <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+                                                        {[
+                                                            { id: 'indigo_solid', name: '스탠다드', class: 'bg-indigo-600 text-white rounded-full' },
+                                                            { id: 'amber_outline', name: '골드라인', class: 'border-2 border-amber-400 text-amber-600 rounded-lg bg-amber-50' },
+                                                            { id: 'emerald_pill', name: '에메랄드', class: 'bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full border border-emerald-200 font-bold' },
+                                                            { id: 'rose_gradient', name: '로즈그라데이션', class: 'bg-gradient-to-r from-rose-400 to-pink-500 text-white rounded-md shadow-sm' },
+                                                            { id: 'sky_glass', name: '블루글래스', class: 'bg-sky-400/20 text-sky-700 backdrop-blur-sm border border-sky-300 rounded-full' }
+                                                        ].map((style) => (
+                                                            <div
+                                                                key={style.id}
+                                                                className={cn(
+                                                                    "relative p-3 rounded-xl border-2 cursor-pointer transition-all hover:border-primary/50 flex flex-col items-center justify-center gap-2",
+                                                                    field.value === style.id ? "border-primary bg-primary/5 shadow-sm" : "border-slate-100 bg-white"
+                                                                )}
+                                                                onClick={() => field.onChange(style.id)}
+                                                            >
+                                                                <div className={cn("px-2 py-0.5 text-[10px] whitespace-nowrap", style.class)}>
+                                                                    재방문 2
+                                                                </div>
+                                                                <span className="text-[11px] font-medium text-slate-600">{style.name}</span>
+                                                                {field.value === style.id && (
+                                                                    <div className="absolute top-1 right-1">
+                                                                        <div className="w-4 h-4 rounded-full bg-primary flex items-center justify-center">
+                                                                            <Check className="w-2.5 h-2.5 text-white" />
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </FormItem>
+                                            )}
+                                        />
+                                    </div>
+                                )}
                             </div>
                         </AccordionContent>
                     </AccordionItem>
@@ -481,16 +528,10 @@ export function GeneralSettings() {
                                                 >
                                                     페이지 열기
                                                 </Button>
-                                                <Button
-                                                    variant="default"
-                                                    size="sm"
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-                                                        window.print();
-                                                    }}
-                                                >
-                                                    인쇄하기
-                                                </Button>
+                                                <QRPrintModal
+                                                    storeName={form.watch('store_name')}
+                                                    storeCode={storeCode || ''}
+                                                />
                                             </div>
                                             <div className="pt-1 flex items-center gap-2">
                                                 <div className="bg-slate-100 p-1 px-2 rounded flex items-center gap-2 border">

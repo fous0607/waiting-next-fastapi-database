@@ -155,10 +155,27 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                 )}>
                     {/* Revisit Badge - Top Right Absolute */}
                     {item.revisit_count != null && item.revisit_count > 0 && (
-                        <div className="absolute -top-2 -right-1 z-20">
-                            <Badge className="bg-indigo-600 text-white hover:bg-indigo-700 px-2 py-0.5 text-[11px] font-bold shadow-sm whitespace-nowrap">
-                                재{item.revisit_count}
-                            </Badge>
+                        <div className="absolute -top-2.5 -right-1.5 z-20">
+                            {(() => {
+                                const style = storeSettings?.revisit_badge_style || 'indigo_solid';
+                                let badgeClass = "bg-indigo-600 text-white hover:bg-indigo-700 px-2 py-0.5 text-[11px] font-bold shadow-sm whitespace-nowrap rounded-full";
+
+                                if (style === 'amber_outline') {
+                                    badgeClass = "bg-amber-50 text-amber-600 border-2 border-amber-400 px-2 py-0.5 text-[11px] font-bold shadow-sm whitespace-nowrap rounded-lg";
+                                } else if (style === 'emerald_pill') {
+                                    badgeClass = "bg-emerald-100 text-emerald-700 border border-emerald-200 px-3 py-1 text-[11px] font-black shadow-sm whitespace-nowrap rounded-full";
+                                } else if (style === 'rose_gradient') {
+                                    badgeClass = "bg-gradient-to-r from-rose-400 to-pink-500 text-white px-2 py-0.5 text-[11px] font-bold shadow-md whitespace-nowrap rounded-md";
+                                } else if (style === 'sky_glass') {
+                                    badgeClass = "bg-sky-400/30 text-sky-800 backdrop-blur-md border border-sky-300 px-2 py-0.5 text-[11px] font-bold shadow-sm whitespace-nowrap rounded-full";
+                                }
+
+                                return (
+                                    <div className={cn("inline-flex items-center justify-center transition-all transform hover:scale-110", badgeClass)}>
+                                        재방문 {item.revisit_count}
+                                    </div>
+                                );
+                            })()}
                         </div>
                     )}
 
