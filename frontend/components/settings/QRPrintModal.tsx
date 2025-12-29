@@ -239,15 +239,15 @@ function QRPrintTemplate({ style, storeName, guideMessage, url, isFullPage = fal
                         </p>
                     </div>
 
-                    <div className={cn("relative p-6 rounded-[2.5rem] bg-white border-2 border-slate-100 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.12)] flex items-center justify-center", isFullPage ? "p-20 ring-[24px] ring-slate-50" : "p-6 ring-8 ring-slate-50")}>
+                    <div className={cn("relative p-6 rounded-[2.5rem] bg-white border-2 border-slate-100 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.12)] flex items-center justify-center", isFullPage ? "p-14 ring-[16px] ring-slate-50" : "p-6 ring-8 ring-slate-50")}>
                         <QRCode
                             value={url}
-                            size={isFullPage ? 500 : 160}
+                            size={isFullPage ? 400 : 160}
                             fgColor="#03C75A"
                             level="H"
                         />
                         <div className={cn("absolute inset-0 flex items-center justify-center pointer-events-none")}>
-                            <div className={cn("bg-white p-1 rounded-lg", isFullPage ? "p-3 rounded-2xl" : "p-1")}>
+                            <div className={cn("bg-white p-1 rounded-lg", isFullPage ? "p-2 rounded-xl" : "p-1")}>
                                 {/* Tiny logo or initial could go here if needed */}
                             </div>
                         </div>
