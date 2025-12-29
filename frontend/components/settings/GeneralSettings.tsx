@@ -99,6 +99,7 @@ const settingsSchema = z.object({
     max_dashboard_connections: z.coerce.number().min(1).max(10).default(2),
     dashboard_connection_policy: z.enum(['eject_old', 'block_new']).default('eject_old'),
     calling_status_display_second: z.coerce.number().min(10).default(60),
+    enable_calling_voice_alert: z.boolean().default(false),
 
     sequential_closing: z.boolean().default(false),
 
@@ -231,6 +232,7 @@ export function GeneralSettings() {
                     show_member_name_in_waiting_modal: data.show_member_name_in_waiting_modal ?? true,
                     show_new_member_text_in_waiting_modal: data.show_new_member_text_in_waiting_modal ?? true,
                     enable_waiting_voice_alert: data.enable_waiting_voice_alert ?? false,
+                    enable_calling_voice_alert: data.enable_calling_voice_alert ?? false,
                     enable_waiting_board: data.enable_waiting_board ?? true,
                     enable_reception_desk: data.enable_reception_desk ?? true,
                     max_dashboard_connections: data.max_dashboard_connections || 2,
@@ -966,19 +968,33 @@ export function GeneralSettings() {
                                     />
                                 </div>
 
-                                <FormField
-                                    control={form.control}
-                                    name="waiting_call_voice_message"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>호출 시 안내 메시지</FormLabel>
-                                            <FormControl><Input placeholder="예: {순번}번 {회원명}님, 데스크로 오시기 바랍니다." {...field} value={field.value ?? ''} /></FormControl>
-                                            <FormDescription className="text-[10px]">
-                                                {`{ 회원명 }, { 순번 }을 사용할 수 있습니다. (대기현황판 전용)`}
-                                            </FormDescription>
-                                        </FormItem>
+                                <div className="space-y-4 rounded-lg border p-4 bg-slate-50/50">
+                                    <FormField
+                                        control={form.control}
+                                        name="enable_calling_voice_alert"
+                                        render={({ field }) => (
+                                            <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                                                <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
+                                                <FormLabel className='font-normal'>호출 시 음성안내</FormLabel>
+                                            </FormItem>
+                                        )}
+                                    />
+                                    {form.watch('enable_calling_voice_alert') && (
+                                        <FormField
+                                            control={form.control}
+                                            name="waiting_call_voice_message"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel className="text-xs">호출 메시지 커스텀</FormLabel>
+                                                    <FormControl><Input placeholder="예: {순번}번 {회원명}님, 데스크로 오시기 바랍니다." {...field} value={field.value ?? ''} /></FormControl>
+                                                    <FormDescription className="text-[10px]">
+                                                        {`{ 회원명 }, { 순번 }, { 클래스명 }을 사용할 수 있습니다. (대기현황판 전용)`}
+                                                    </FormDescription>
+                                                </FormItem>
+                                            )}
+                                        />
                                     )}
-                                />
+                                </div>
 
                                 {form.watch('enable_waiting_voice_alert') && (
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2 p-4 bg-slate-50 rounded-lg border border-slate-100">

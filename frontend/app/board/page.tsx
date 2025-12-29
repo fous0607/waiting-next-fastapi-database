@@ -106,7 +106,7 @@ export default function BoardPage() {
     }, []);
 
     const speak = useCallback((text: string) => {
-        if (!storeSettings?.enable_waiting_voice_alert) return;
+        // if (!storeSettings?.enable_waiting_voice_alert) return; // Caller handles policy
         if (typeof window === 'undefined' || !window.speechSynthesis) return;
 
         // window.speechSynthesis.cancel();
@@ -165,7 +165,7 @@ export default function BoardPage() {
             if (item.call_count > 0 && !processedCallsRef.current.has(key)) {
 
                 // Trigger Voice
-                if (storeSettings?.enable_waiting_voice_alert) {
+                if (storeSettings?.enable_calling_voice_alert) {
                     const template = storeSettings?.waiting_call_voice_message || "{순번}번 {회원명}님, 데스크로 오시기 바랍니다.";
                     const message = template
                         .replace(/{순번}/g, item.class_order.toString())
