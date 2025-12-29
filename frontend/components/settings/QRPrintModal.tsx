@@ -280,8 +280,8 @@ function QRPrintTemplate({ style, storeName, guideMessage, url, isFullPage = fal
                         {storeName}
                     </h1>
 
-                    <div className={cn("bg-white p-6 rounded-[3rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.3)] mb-12", isFullPage ? "p-16 mb-24" : "p-6")}>
-                        <QRCode value={url} size={isFullPage ? 450 : 150} />
+                    <div className={cn("bg-white p-6 rounded-[3rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.3)] mb-12", isFullPage ? "p-12 mb-16" : "p-6")}>
+                        <QRCode value={url} size={isFullPage ? 380 : 150} />
                     </div>
 
                     <div className="space-y-6 max-w-sm">
