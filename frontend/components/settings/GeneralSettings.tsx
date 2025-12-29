@@ -172,6 +172,7 @@ export function GeneralSettings() {
 
     const [storeCode, setStoreCode] = useState<string | null>(null);
     const [isCopied, setIsCopied] = useState(false);
+    const [previewType, setPreviewType] = useState<'waiting' | 'duplicate' | 'calling'>('waiting');
 
     const handleCopyUrl = async (url: string) => {
         try {
@@ -297,8 +298,6 @@ export function GeneralSettings() {
     if (isLoading) {
         return <div className="p-8 flex justify-center">로딩 중...</div>;
     }
-
-    const [previewType, setPreviewType] = useState<'waiting' | 'duplicate' | 'calling'>('waiting');
 
     const handlePreviewVoice = () => {
         const values = form.getValues();
