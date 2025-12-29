@@ -172,7 +172,7 @@ function MobileManagerContent() {
                                                     )}
                                                 </div>
                                                 <div className="text-xs text-slate-400 font-medium">
-                                                    {new Date(item.created_at).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} 접수
+                                                    {new Date(item.registered_at).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} 접수
                                                 </div>
                                             </div>
                                         </div>
