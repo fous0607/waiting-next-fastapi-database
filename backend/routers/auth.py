@@ -92,7 +92,7 @@ async def login(
 
     # 매장 정보 포함하여 반환 (매장급 관리자 및 전용 단말기)
     store_info = None
-    if user.store and user.role in ['store_admin', 'store_manager', 'store_reception', 'store_board']:
+    if user.store and user.role in ['store_admin', 'store_manager', 'store_reception', 'store_board', 'store_mobile']:
         # 소속된 매장 정보를 함께 반환
         store_info = {
             "id": user.store.id,
