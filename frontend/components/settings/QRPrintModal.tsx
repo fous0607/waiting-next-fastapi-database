@@ -312,14 +312,14 @@ function QRPrintTemplate({ style, storeName, guideMessage, url, isFullPage = fal
                 <div className="mb-auto">
                     <h1 className={cn("text-white font-black leading-tight tracking-tight mb-8", isFullPage ? "text-[80px]" : "text-3xl")}>
                         {storeName}
-                        <span className="block text-blue-300 mt-2">대기 접수 파트너</span>
+                        <span className="block mt-2" style={{ color: '#93C5FD' }}>대기 접수 파트너</span>
                     </h1>
-                    <div className={cn("h-1 w-20 bg-blue-400 rounded-full", isFullPage ? "h-3 w-40" : "h-1 w-12")} />
+                    <div className={cn("h-1 w-20 bg-blue-400 rounded-full", isFullPage ? "h-3 w-40" : "h-1 w-12")} style={{ backgroundColor: '#60A5FA' }} />
                 </div>
 
                 <div className="flex flex-col items-center gap-12 my-12">
                     <div className={cn("bg-white p-6 rounded-[2rem] shadow-[#38bdf820_0_0_80px] border border-white/10", isFullPage ? "p-14 rounded-[4rem]" : "p-6")}>
-                        <QRCode value={url} size={isFullPage ? 400 : 150} fgColor="#0F172A" />
+                        <QRCode value={url} size={isFullPage ? 380 : 150} fgColor="#0F172A" />
                     </div>
                 </div>
 
