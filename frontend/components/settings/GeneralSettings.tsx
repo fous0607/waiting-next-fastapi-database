@@ -17,6 +17,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { toast } from 'sonner';
 import api from '@/lib/api';
 import { useRouter } from 'next/navigation';
+import { cn } from '@/lib/utils';
 
 // Comprehensive Schema matching Backend StoreSettings
 const settingsSchema = z.object({
