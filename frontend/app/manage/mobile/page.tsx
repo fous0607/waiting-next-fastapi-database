@@ -163,9 +163,7 @@ function MobileManagerContent() {
                                                     <h3 className="text-xl font-bold truncate text-slate-900">
                                                         {item.name || item.phone.slice(-4)}
                                                     </h3>
-                                                    <span className="text-sm font-medium text-slate-500 shrink-0">
-                                                        {item.people_count}명
-                                                    </span>
+
                                                     {/* Revisit Badge (Inline) */}
                                                     {item.revisit_count && item.revisit_count > 0 && (
                                                         <span className="bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded text-[10px] font-bold whitespace-nowrap">
