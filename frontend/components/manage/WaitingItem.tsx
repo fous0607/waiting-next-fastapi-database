@@ -55,7 +55,7 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
         isDragging,
     } = useSortable({ id: item.id });
 
-    const { classes, fetchWaitingList, revisitBadgeStyle } = useWaitingStore();
+    const { classes, fetchWaitingList, fetchClasses, revisitBadgeStyle } = useWaitingStore();
     const [isMoveDialogOpen, setIsMoveDialogOpen] = useState(false);
     const [isNameDialogOpen, setIsNameDialogOpen] = useState(false);
     const [isMemberDetailOpen, setIsMemberDetailOpen] = useState(false);
@@ -75,6 +75,7 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
             await api.put(`/board/${item.id}/status`, { status });
             toast.success("상태가 변경되었습니다.");
             if (item.class_id) fetchWaitingList(item.class_id);
+            fetchClasses(); // Update counts
         } catch (e) {
             toast.error("상태 변경 실패");
         }
@@ -97,6 +98,7 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
             setIsMoveDialogOpen(false);
             if (item.class_id) fetchWaitingList(item.class_id);
             fetchWaitingList(targetClassId);
+            fetchClasses(); // Update counts
         } catch (error) {
             const err = error as any;
             toast.error(err.response?.data?.detail || "교시 이동 실패");
@@ -253,8 +255,6 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
-                                        <DropdownMenuItem onClick={handleCall}>호출</DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleStatusUpdate('attended')}>입장</DropdownMenuItem>
                                         <DropdownMenuItem onClick={() => handleStatusUpdate('cancelled')}>취소</DropdownMenuItem>
                                         <DropdownMenuItem onSelect={() => setIsMoveDialogOpen(true)}>교시 이동</DropdownMenuItem>
                                         <DropdownMenuItem onSelect={() => setIsMemberDetailOpen(true)} disabled={!item.member_id}>회원 상세</DropdownMenuItem>
