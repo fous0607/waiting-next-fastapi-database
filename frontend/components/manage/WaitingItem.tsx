@@ -149,29 +149,29 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
         <>
             <div ref={setNodeRef} style={style} {...attributes}>
                 <Card className={cn(
-                    "hover:shadow-md transition-all relative overflow-visible py-3",
+                    "hover:shadow-md transition-all relative overflow-hidden", // changed overflow-visible to hidden for cleaner borders, remove py-3
                     item.status === 'called' && "border-yellow-400 bg-yellow-50/50 dark:bg-yellow-900/20",
                     isDragging && "shadow-2xl border-primary border-2 bg-primary/5"
                 )}>
-                    {/* Revisit Badge - Top Right Absolute */}
+                    {/* Revisit Badge - Top Right Absolute inside Card */}
                     {item.revisit_count != null && item.revisit_count > 0 && (
-                        <div className="absolute top-2 right-2 z-20">
+                        <div className="absolute top-1.5 right-1.5 z-20">
                             {(() => {
                                 const style = revisitBadgeStyle || 'indigo_solid';
-                                let badgeClass = "bg-indigo-600 text-white hover:bg-indigo-700 px-2 py-0.5 text-[11px] font-bold shadow-sm whitespace-nowrap rounded-full";
+                                let badgeClass = "bg-indigo-600 text-white hover:bg-indigo-700 px-2 py-0.5 text-[10px] font-bold shadow-sm whitespace-nowrap rounded-full";
 
                                 if (style === 'amber_outline') {
-                                    badgeClass = "bg-amber-50 text-amber-600 border-2 border-amber-400 px-2 py-0.5 text-[11px] font-bold shadow-sm whitespace-nowrap rounded-lg";
+                                    badgeClass = "bg-amber-50 text-amber-600 border border-amber-400 px-2 py-0.5 text-[10px] font-bold shadow-sm whitespace-nowrap rounded-lg";
                                 } else if (style === 'emerald_pill') {
-                                    badgeClass = "bg-emerald-100 text-emerald-700 border border-emerald-200 px-3 py-1 text-[11px] font-black shadow-sm whitespace-nowrap rounded-full";
+                                    badgeClass = "bg-emerald-100 text-emerald-700 border border-emerald-200 px-2 py-0.5 text-[10px] font-black shadow-sm whitespace-nowrap rounded-full";
                                 } else if (style === 'rose_gradient') {
-                                    badgeClass = "bg-gradient-to-r from-rose-400 to-pink-500 text-white px-2 py-0.5 text-[11px] font-bold shadow-md whitespace-nowrap rounded-md";
+                                    badgeClass = "bg-gradient-to-r from-rose-400 to-pink-500 text-white px-2 py-0.5 text-[10px] font-bold shadow-md whitespace-nowrap rounded-md";
                                 } else if (style === 'sky_glass') {
-                                    badgeClass = "bg-sky-400/30 text-sky-800 backdrop-blur-md border border-sky-300 px-2 py-0.5 text-[11px] font-bold shadow-sm whitespace-nowrap rounded-full";
+                                    badgeClass = "bg-sky-400/30 text-sky-800 backdrop-blur-md border border-sky-300 px-2 py-0.5 text-[10px] font-bold shadow-sm whitespace-nowrap rounded-full";
                                 }
 
                                 return (
-                                    <div className={cn("inline-flex items-center justify-center transition-all transform hover:scale-110", badgeClass)}>
+                                    <div className={cn("inline-flex items-center justify-center transition-all", badgeClass)}>
                                         재방문 {item.revisit_count}
                                     </div>
                                 );
@@ -179,110 +179,88 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                         </div>
                     )}
 
-                    <CardContent className="flex items-center px-2 py-1.5">
-                        {/* Drag Handle - Draggable area with grip icon */}
-                        <div
-                            {...listeners}
-                            className={cn(
-                                "flex flex-col items-center justify-center mr-1 min-w-[2.5rem] cursor-grab select-none p-1 -ml-1 rounded-lg transition-all",
-                                isDragging ? "scale-110 bg-primary/20 cursor-grabbing" : "active:scale-110 active:bg-primary/10 active:cursor-grabbing"
-                            )}
-                        >
-                            <GripVertical className={cn(
-                                "w-4 h-4 mb-0.5 transition-all",
-                                isDragging ? "text-primary scale-110" : "text-muted-foreground/50 active:scale-110"
-                            )} />
-                            <span className="text-lg font-black text-primary leading-none">{item.waiting_number}</span>
-                            <span className="text-[9px] text-muted-foreground mt-0.5">{index + 1}번째</span>
-                        </div>
+                    <CardContent className="flex flex-col p-3 gap-2">
+                        {/* Top: Info Row */}
+                        <div className="flex items-start justify-between w-full">
+                            <div className="flex items-center gap-2 overflow-hidden flex-1 mr-12"> {/* mr-12 for badge space */}
+                                {/* Drag Handle & Number */}
+                                <div
+                                    {...listeners}
+                                    className={cn(
+                                        "flex items-center cursor-grab select-none rounded active:bg-slate-100 transition-colors py-1 px-0.5",
+                                        isDragging ? "cursor-grabbing" : "cursor-grab"
+                                    )}
+                                >
+                                    <GripVertical className="w-4 h-4 text-slate-300 mr-1" />
+                                    <span className="text-xl font-black text-primary leading-none">#{item.waiting_number}</span>
+                                </div>
 
-                        {/* Info */}
-                        <div className="flex-1 min-w-0 pr-2">
-                            <div className="flex items-center space-x-1.5 mb-0.5">
-                                <h3 className="text-lg font-black truncate tracking-tight leading-tight">{item.name || item.phone.slice(-4)}</h3>
-                                {item.status === 'called' && <Badge className="bg-yellow-500 text-white hover:bg-yellow-600 px-1 py-0 text-[10px] h-4">호출</Badge>}
-                            </div>
-                            <div className="flex items-center text-sm font-bold text-slate-500 w-full">
-                                <Phone className="w-3 h-3 mr-1" strokeWidth={2.5} />
-                                <span className="tracking-tight">{item.phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3')}</span>
+                                {/* Name */}
+                                <h3 className="text-lg font-bold truncate leading-tight flex-1 min-w-0">
+                                    {item.name || item.phone.slice(-4)}
+                                </h3>
                             </div>
                         </div>
 
-                        {/* Actions */}
-                        <div className="flex items-center space-x-1">
-                            {/* Arrow buttons - Always visible and optimized for space */}
-                            <div className="flex flex-col gap-0.5 mr-0.5">
-                                <Button
-                                    variant="outline"
-                                    size="icon"
-                                    className="h-7 w-7 touch-manipulation"
-                                    onClick={() => handleOrderChange('up')}
-                                    title="순서 올리기"
-                                >
-                                    <ArrowUp className="w-3.5 h-3.5" />
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    size="icon"
-                                    className="h-7 w-7 touch-manipulation"
-                                    onClick={() => handleOrderChange('down')}
-                                    title="순서 내리기"
-                                >
-                                    <ArrowDown className="w-3.5 h-3.5" />
-                                </Button>
+                        {/* Bottom: Sub-info & Actions Row */}
+                        <div className="flex items-center justify-between gap-2">
+                            {/* Phone & Status Badge */}
+                            <div className="flex flex-col gap-0.5">
+                                <div className="flex items-center text-xs font-medium text-slate-500">
+                                    <Phone className="w-3 h-3 mr-1" strokeWidth={2.5} />
+                                    <span className="tracking-tight">{item.phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3')}</span>
+                                </div>
+                                {item.status === 'called' && (
+                                    <Badge className="w-fit bg-yellow-500 text-white hover:bg-yellow-600 px-1.5 py-0 text-[10px] h-4 leading-none">호출중</Badge>
+                                )}
                             </div>
 
-                            <Button variant="outline" size="icon" onClick={handleCall} className="hidden sm:flex h-7 w-7" title="호출">
-                                <BellRing className="w-3.5 h-3.5 text-orange-500" />
-                            </Button>
-                            <Button variant="outline" size="icon" onClick={() => handleStatusUpdate('attended')} className="hidden sm:flex h-7 w-7" title="출석">
-                                <CheckCircle className="w-3.5 h-3.5 text-green-600" />
-                            </Button>
-
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-7 w-7">
-                                        <MoreHorizontal className="w-4 h-4" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onClick={handleCall}>
-                                        <BellRing className="w-4 h-4 mr-2" /> 호출
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => handleStatusUpdate('attended')}>
-                                        <CheckCircle className="w-4 h-4 mr-2" /> 출석 처리
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => handleStatusUpdate('cancelled')}>
-                                        <XCircle className="w-4 h-4 mr-2" /> 취소 처리
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onSelect={async () => {
-                                        try {
-                                            await api.post('/board/insert-empty-seat', { waiting_id: item.id });
-                                            toast.success("빈 좌석이 삽입되었습니다.");
-                                            if (item.class_id) fetchWaitingList(item.class_id);
-                                        } catch (e) {
-                                            toast.error("빈 좌석 삽입 실패");
-                                        }
-                                    }}>
-                                        <UserPlus className="w-4 h-4 mr-2" /> 빈좌석 삽입
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onSelect={() => setIsMoveDialogOpen(true)}>
-                                        <ArrowRightLeft className="w-4 h-4 mr-2" /> 교시 이동
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onSelect={() => {
-                                        setNewName(item.name || "");
-                                        setIsNameDialogOpen(true);
-                                    }}>
-                                        <CheckCircle className="w-4 h-4 mr-2" /> 이름 등록
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem
-                                        onSelect={() => setIsMemberDetailOpen(true)}
-                                        disabled={!item.member_id}
+                            {/* Actions */}
+                            <div className="flex items-center gap-1">
+                                <div className="flex flex-col gap-0.5 mr-1">
+                                    <Button
+                                        variant="outline"
+                                        size="icon"
+                                        className="h-6 w-6 touch-manipulation"
+                                        onClick={() => handleOrderChange('up')}
                                     >
-                                        <ClipboardList className="w-4 h-4 mr-2" /> 출석 현황
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
+                                        <ArrowUp className="w-3 h-3" />
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="icon"
+                                        className="h-6 w-6 touch-manipulation"
+                                        onClick={() => handleOrderChange('down')}
+                                    >
+                                        <ArrowDown className="w-3 h-3" />
+                                    </Button>
+                                </div>
+
+                                <Button variant="outline" size="sm" onClick={handleCall} className="h-8 px-3 text-xs font-bold gap-1 bg-white hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 transition-colors">
+                                    <BellRing className="w-3 h-3" /> 호출
+                                </Button>
+                                <Button variant="outline" size="sm" onClick={() => handleStatusUpdate('attended')} className="h-8 px-3 text-xs font-bold gap-1 bg-white hover:bg-green-50 hover:text-green-600 hover:border-green-200 transition-colors">
+                                    <CheckCircle className="w-3 h-3" /> 입장
+                                </Button>
+                                <Button variant="ghost" size="sm" onClick={() => handleStatusUpdate('cancelled')} className="h-8 w-8 p-0 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full">
+                                    <XCircle className="w-4 h-4" />
+                                </Button>
+
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="sm" className="h-8 w-6 p-0">
+                                            <MoreHorizontal className="w-4 h-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem onClick={handleCall}>호출</DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleStatusUpdate('attended')}>입장</DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleStatusUpdate('cancelled')}>취소</DropdownMenuItem>
+                                        <DropdownMenuItem onSelect={() => setIsMoveDialogOpen(true)}>교시 이동</DropdownMenuItem>
+                                        <DropdownMenuItem onSelect={() => setIsMemberDetailOpen(true)} disabled={!item.member_id}>회원 상세</DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
