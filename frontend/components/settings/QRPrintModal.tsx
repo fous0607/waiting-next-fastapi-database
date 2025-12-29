@@ -226,11 +226,7 @@ function QRPrintTemplate({ style, storeName, guideMessage, url, isFullPage = fal
 
                 <div className="flex-1 flex flex-col items-center justify-between py-[12%] px-10">
                     <div className="text-center w-full">
-                        <div className={cn("inline-flex items-center gap-2 mb-8 bg-[#03C75A]/10 text-[#03C75A] px-4 py-1 rounded-full", isFullPage ? "text-3xl px-8 py-3 mb-16" : "text-[10px]")}>
-                            <span className="font-black">NAVER</span>
-                            <span className="w-px h-2 bg-[#03C75A]/30" />
-                            <span className="font-medium">대기접수 연동</span>
-                        </div>
+
                         <h1 className={cn("font-black text-slate-900 leading-[1.1] mb-6", isFullPage ? "text-[85px]" : "text-3xl")}>
                             {storeName}
                         </h1>
