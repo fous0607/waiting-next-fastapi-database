@@ -731,11 +731,7 @@ export default function ReceptionPage() {
                             <div className={`absolute bottom-6 text-lg font-bold ${styles.displayLabel} transition-all duration-300 ${phoneNumber.length === 4 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}>
                                 뒷번호 4자리 조회
                             </div>
-                            {!phoneNumber && (
-                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-slate-300 text-3xl font-medium animate-pulse">
-                                    휴대폰 번호를 입력하세요
-                                </div>
-                            )}
+
                         </div>
 
                         {/* Keypad Grid */}
@@ -799,14 +795,17 @@ export default function ReceptionPage() {
             ================================================================================= */}
             <div className={`flex md:hidden h-screen w-screen flex-col bg-slate-50 overflow-hidden ${styles.container}`}>
                 {/* Mobile Header: Compact */}
-                <div className={`w-full px-4 py-3 flex items-center justify-between shrink-0 shadow-sm z-10 ${keypadStyle === 'dark' ? 'bg-slate-800 text-white border-b border-slate-700' : 'bg-white text-slate-900'}`}>
-                    <div className="flex flex-col">
-                        <h1 className={`text-xl font-bold truncate max-w-[200px] ${keypadStyle === 'dark' ? 'text-white' : 'text-slate-900'}`}>{storeName}</h1>
-                        <div className={`flex items-center gap-1.5 text-xs font-medium mt-0.5 ${isConnected ? 'text-green-600' : 'text-red-600'}`}>
-                            <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-600' : 'bg-red-600'} animate-pulse`} />
-                            {isConnected ? '정상가동' : '연결끊김'}
-                        </div>
+                <div className={`w-full px-4 py-3 flex items-center justify-between shrink-0 shadow-sm z-10 relative ${keypadStyle === 'dark' ? 'bg-slate-800 text-white border-b border-slate-700' : 'bg-white text-slate-900'}`}>
+                    {/* Left: Status */}
+                    <div className={`flex items-center gap-1.5 text-xs font-medium ${isConnected ? 'text-green-600' : 'text-red-600'}`}>
+                        <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-600' : 'bg-red-600'} animate-pulse`} />
+                        {isConnected ? '정상가동' : '연결끊김'}
                     </div>
+
+                    {/* Center: Store Name */}
+                    <h1 className={`text-xl font-bold truncate max-w-[200px] absolute left-1/2 -translate-x-1/2 ${keypadStyle === 'dark' ? 'text-white' : 'text-slate-900'}`}>{storeName}</h1>
+
+                    {/* Right: Time */}
                     <div className={`text-sm font-mono font-bold ${keypadStyle === 'dark' ? 'text-blue-400' : 'text-slate-600'}`}>
                         {new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
                     </div>
@@ -838,11 +837,7 @@ export default function ReceptionPage() {
                         <div className={`text-4xl font-mono font-bold tracking-widest ${styles.displayText} ${phoneNumber.length === 4 ? '!text-blue-600' : ''}`}>
                             {formatDisplay(phoneNumber)}
                         </div>
-                        {!phoneNumber && (
-                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-slate-300 text-lg font-medium">
-                                번호 입력
-                            </div>
-                        )}
+
                     </div>
 
                     {/* Keypad */}
