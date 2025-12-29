@@ -342,10 +342,7 @@ export default function ReceptionPage() {
     }, [storeSettings]);
 
     const speak = useCallback((text: string) => {
-        if (!storeSettings?.enable_waiting_voice_alert) {
-            console.log('[Voice] Voice alert disabled in settings');
-            return;
-        }
+
         if (typeof window === 'undefined' || !window.speechSynthesis) {
             console.error('[Voice] SpeechSynthesis API not available');
             return;
