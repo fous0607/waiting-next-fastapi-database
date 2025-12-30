@@ -359,6 +359,7 @@ class WaitingListResponse(BaseModel):
     last_month_attendance_count: int = 0
     is_new_member: bool = False
     revisit_count: int = 0 # 재방문 횟수 (0이면 배지 미표시)
+    call_count: int = 0 # 호출 횟수
     total_party_size: int = 0
     party_size_details: Optional[str] = None
 
