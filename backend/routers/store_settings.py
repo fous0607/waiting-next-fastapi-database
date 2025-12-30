@@ -87,7 +87,11 @@ async def get_store_settings(
             defer(StoreSettings.enable_break_time),
             defer(StoreSettings.break_start_time),
             defer(StoreSettings.break_end_time),
-            defer(StoreSettings.operation_type)
+            defer(StoreSettings.break_end_time),
+            defer(StoreSettings.operation_type),
+            defer(StoreSettings.enable_party_size),
+            defer(StoreSettings.enable_menu_ordering),
+            defer(StoreSettings.party_size_config)
         ).filter(
             StoreSettings.store_id == current_store.id
         ).first()
@@ -138,6 +142,10 @@ async def get_store_settings(
             set_default(settings, 'business_start_time', time(9, 0))
             set_default(settings, 'business_end_time', time(22, 0))
             set_default(settings, 'enable_break_time', False)
+            set_default(settings, 'operation_type', 'general')
+            set_default(settings, 'enable_party_size', False)
+            set_default(settings, 'enable_menu_ordering', False)
+            set_default(settings, 'party_size_config', None)
             set_default(settings, 'break_start_time', time(12, 0))
             set_default(settings, 'break_end_time', time(13, 0))
             set_default(settings, 'operation_type', 'general')
