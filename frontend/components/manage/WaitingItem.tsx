@@ -188,19 +188,19 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                 )}>
                     {/* Revisit Badge - Top Right Absolute inside Card */}
                     {item.revisit_count != null && item.revisit_count > 0 && (
-                        <div className="absolute top-0.5 right-1 z-20">
+                        <div className="absolute top-0 right-0.5 z-20">
                             {(() => {
                                 const style = revisitBadgeStyle || 'indigo_solid';
-                                let badgeClass = "bg-indigo-600 text-white hover:bg-indigo-700 px-2 py-0.5 text-[10px] font-bold shadow-sm whitespace-nowrap rounded-full";
+                                let badgeClass = "bg-indigo-600 text-white hover:bg-indigo-700 px-1.5 py-0 text-[9px] font-bold shadow-sm whitespace-nowrap rounded-full";
 
                                 if (style === 'amber_outline') {
-                                    badgeClass = "bg-amber-50 text-amber-600 border border-amber-400 px-2 py-0.5 text-[10px] font-bold shadow-sm whitespace-nowrap rounded-lg";
+                                    badgeClass = "bg-amber-50 text-amber-600 border border-amber-400 px-1.5 py-0 text-[9px] font-bold shadow-sm whitespace-nowrap rounded-lg";
                                 } else if (style === 'emerald_pill') {
-                                    badgeClass = "bg-emerald-100 text-emerald-700 border border-emerald-200 px-2 py-0.5 text-[10px] font-black shadow-sm whitespace-nowrap rounded-full";
+                                    badgeClass = "bg-emerald-100 text-emerald-700 border border-emerald-200 px-1.5 py-0 text-[9px] font-black shadow-sm whitespace-nowrap rounded-full";
                                 } else if (style === 'rose_gradient') {
-                                    badgeClass = "bg-gradient-to-r from-rose-400 to-pink-500 text-white px-2 py-0.5 text-[10px] font-bold shadow-md whitespace-nowrap rounded-md";
+                                    badgeClass = "bg-gradient-to-r from-rose-400 to-pink-500 text-white px-1.5 py-0 text-[9px] font-bold shadow-md whitespace-nowrap rounded-md";
                                 } else if (style === 'sky_glass') {
-                                    badgeClass = "bg-sky-400/30 text-sky-800 backdrop-blur-md border border-sky-300 px-2 py-0.5 text-[10px] font-bold shadow-sm whitespace-nowrap rounded-full";
+                                    badgeClass = "bg-sky-400/30 text-sky-800 backdrop-blur-md border border-sky-300 px-1.5 py-0 text-[9px] font-bold shadow-sm whitespace-nowrap rounded-full";
                                 }
 
                                 return (
