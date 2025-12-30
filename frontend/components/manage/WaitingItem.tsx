@@ -180,7 +180,7 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
         <>
             <div ref={setNodeRef} style={style} {...attributes}>
                 <Card className={cn(
-                    "hover:shadow-md transition-all relative overflow-hidden", // changed overflow-visible to hidden for cleaner borders, remove py-3
+                    "hover:shadow-md transition-all relative overflow-hidden py-1", // changed overflow-visible to hidden for cleaner borders, remove py-3
                     item.status === 'called' && "border-yellow-400 bg-yellow-50/50 dark:bg-yellow-900/20",
                     isDragging && "shadow-2xl border-primary border-2 bg-primary/5"
                 )}>
@@ -280,9 +280,7 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                                 <Button variant="outline" size="sm" onClick={() => handleStatusUpdate('attended')} className="h-8 px-3 text-xs font-bold gap-1 bg-white hover:bg-green-50 hover:text-green-600 hover:border-green-200 transition-colors">
                                     <CheckCircle className="w-3 h-3" /> 입장
                                 </Button>
-                                <Button variant="ghost" size="sm" onClick={() => handleStatusUpdate('cancelled')} className="h-8 w-8 p-0 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full">
-                                    <XCircle className="w-4 h-4" />
-                                </Button>
+
 
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
