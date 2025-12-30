@@ -104,6 +104,17 @@ export default function BoardPage() {
         }
     }, []);
 
+    // Auto-dismiss/enable for TV/Non-touch screens (3 seconds)
+    useEffect(() => {
+        if (!isAudioEnabled) {
+            const timer = setTimeout(() => {
+                console.log('[Board] Auto-enabling audio (timeout)...');
+                enableAudio();
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [isAudioEnabled, enableAudio]);
+
     // Load store settings for font customization
     useEffect(() => {
         const loadStoreSettings = async () => {
@@ -416,7 +427,8 @@ export default function BoardPage() {
                         <div className="text-6xl mb-4">🔊</div>
                         <h2 className="text-2xl font-black text-slate-900 mb-2">음성 안내 시작하기</h2>
                         <p className="text-slate-600 mb-6">
-                            원활한 음성 호출을 위해<br />화면을 한 번 터치해주세요.
+                            원활한 음성 호출을 위해<br />화면을 한 번 터치해주세요.<br />
+                            <span className="text-xs text-slate-400 font-normal mt-2 block">(3초 후 자동으로 닫힙니다)</span>
                         </p>
                         <button className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold text-lg w-full">
                             확인
