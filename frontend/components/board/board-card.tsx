@@ -56,11 +56,11 @@ export function BoardCard({ item }: BoardCardProps) {
             </div>
 
             {isCalled && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-                    <span className="text-xl font-black text-red-600 animate-pulse bg-white/95 px-3 py-1 rounded-full shadow-sm border border-red-200 flex items-center gap-1">
+                <div className="absolute inset-x-0 -top-3 flex items-center justify-center pointer-events-none z-20">
+                    <span className="text-sm font-black text-red-600 animate-pulse bg-white px-2 py-0.5 rounded-full shadow-md border border-red-200 flex items-center gap-1">
                         호출중
                         {item.call_count > 1 && (
-                            <span className="text-xs bg-red-100 text-red-700 px-1.5 py-0.5 rounded-full border border-red-200 min-w-[1.2rem] text-center">
+                            <span className="text-[10px] bg-red-100 text-red-700 px-1 py-0 rounded-full border border-red-200 min-w-[1rem] text-center">
                                 {item.call_count}
                             </span>
                         )}
