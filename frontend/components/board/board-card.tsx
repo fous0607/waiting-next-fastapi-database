@@ -56,9 +56,14 @@ export function BoardCard({ item }: BoardCardProps) {
             </div>
 
             {isCalled && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <span className="text-3xl font-black text-red-600 animate-pulse bg-white/90 px-4 py-1 rounded-full shadow-sm border border-red-200">
-                        호출중 {item.call_count > 1 && `(${item.call_count})`}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+                    <span className="text-xl font-black text-red-600 animate-pulse bg-white/95 px-3 py-1 rounded-full shadow-sm border border-red-200 flex items-center gap-1">
+                        호출중
+                        {item.call_count > 1 && (
+                            <span className="text-xs bg-red-100 text-red-700 px-1.5 py-0.5 rounded-full border border-red-200 min-w-[1.2rem] text-center">
+                                {item.call_count}
+                            </span>
+                        )}
                     </span>
                 </div>
             )}
