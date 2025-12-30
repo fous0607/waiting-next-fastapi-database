@@ -153,7 +153,7 @@ function MobileManagerContent() {
 
         try {
             const details = JSON.parse(item.party_size_details);
-            const detailLabels: string[] = [];
+            const segments: string[] = [];
             let configMap: Record<string, string> = {};
             try {
                 const configs = JSON.parse(storeSettings?.party_size_config || '[]');
@@ -164,12 +164,12 @@ function MobileManagerContent() {
                 const numCount = Number(count);
                 if (numCount > 0) {
                     const label = configMap[id] || id;
-                    detailLabels.push(`${label} ${numCount}`);
+                    segments.push(`${label} ${numCount}`);
                 }
             });
 
-            if (detailLabels.length === 0) return `${item.total_party_size ?? 0}명`;
-            return `${detailLabels.join(', ')} (총 ${item.total_party_size ?? 0}명)`;
+            if (segments.length === 0) return `${item.total_party_size ?? 0}명`;
+            return segments.join(', ');
         } catch (e) {
             return `${item.total_party_size ?? 0}명`;
         }
@@ -254,10 +254,16 @@ function MobileManagerContent() {
 
                                             {/* Name & People Count */}
                                             <div className="flex flex-col leading-tight min-w-0">
-                                                <div className="flex items-baseline gap-1.5">
+                                                <div className="flex items-baseline gap-1.5 flex-wrap">
                                                     <h3 className="text-lg font-bold truncate text-slate-900">
                                                         {item.name || item.phone.slice(-4)}
                                                     </h3>
+                                                    {/* Party Size Details (Concise) */}
+                                                    {(item.total_party_size ?? 0) > 0 && (
+                                                        <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1 py-0.5 rounded border border-blue-100 whitespace-nowrap">
+                                                            {renderPartySize(item)} {item.party_size_details ? `(총 ${item.total_party_size}명)` : ''}
+                                                        </span>
+                                                    )}
 
                                                     {/* Revisit Badge (Inline) */}
                                                     {item.revisit_count && item.revisit_count > 0 && (
@@ -268,12 +274,6 @@ function MobileManagerContent() {
                                                 </div>
                                                 <div className="text-[10px] text-slate-400 font-medium flex items-center gap-1.5">
                                                     <span>{new Date(item.registered_at).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} 접수</span>
-                                                    {(item.total_party_size ?? 0) > 0 && (
-                                                        <>
-                                                            <span className="text-slate-200">|</span>
-                                                            <span className="text-blue-600 font-bold">{renderPartySize(item)}</span>
-                                                        </>
-                                                    )}
                                                 </div>
                                             </div>
                                         </div>
