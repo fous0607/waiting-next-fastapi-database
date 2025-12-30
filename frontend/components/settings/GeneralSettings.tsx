@@ -116,6 +116,7 @@ const settingsSchema = z.object({
 
     admin_password: z.string().optional(), // For verification if needed, usually just loaded
     registration_message: z.string().default("처음 방문하셨네요!\n성함을 입력해 주세요."),
+    detail_mode: z.enum(['standard', 'pickup']).default('standard'),
 
     // Dining Mode Phase 2 & 3
     enable_party_size: z.boolean().default(false),
@@ -139,6 +140,7 @@ export function GeneralSettings() {
             store_name: '',
             theme: 'zinc',
             operation_type: 'general',
+            detail_mode: 'standard',
             display_classes_count: 3,
             rows_per_class: 1,
             list_direction: 'vertical',
@@ -272,6 +274,7 @@ export function GeneralSettings() {
                     enable_party_size: data.enable_party_size ?? false,
                     enable_menu_ordering: data.enable_menu_ordering ?? false,
                     registration_message: data.registration_message || "처음 방문하셨네요!\n성함을 입력해 주세요.",
+                    detail_mode: data.detail_mode || 'standard',
                 });
 
                 // Set initial theme
@@ -442,6 +445,63 @@ export function GeneralSettings() {
                             )}
                         </div>
                     </div>
+
+                    {form.watch('operation_type') === 'dining' && (
+                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 shadow-sm space-y-3 mt-4">
+                            <div className="flex items-center justify-between">
+                                <div className="space-y-1">
+                                    <h4 className="text-sm font-bold flex items-center gap-2">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                                        세부 운영 방식 (Service Type)
+                                    </h4>
+                                    <p className="text-xs text-slate-500">매장 운영 형태를 선택해주세요.</p>
+                                </div>
+                                <FormField
+                                    control={form.control}
+                                    name="detail_mode"
+                                    render={({ field }) => (
+                                        <div className="flex items-center bg-white p-1 rounded-lg border shadow-sm">
+                                            <button
+                                                type="button"
+                                                onClick={() => field.onChange('standard')}
+                                                className={cn(
+                                                    "px-4 py-1.5 text-xs font-bold rounded-md transition-all",
+                                                    field.value === 'standard'
+                                                        ? "bg-orange-500 text-white shadow-sm"
+                                                        : "text-slate-500 hover:text-slate-900"
+                                                )}
+                                            >
+                                                일반 식당 (후불/테이블)
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => field.onChange('pickup')}
+                                                className={cn(
+                                                    "px-4 py-1.5 text-xs font-bold rounded-md transition-all",
+                                                    field.value === 'pickup'
+                                                        ? "bg-orange-500 text-white shadow-sm"
+                                                        : "text-slate-500 hover:text-slate-900"
+                                                )}
+                                            >
+                                                카페/픽업 (선불/진동벨)
+                                            </button>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                            <div className="bg-white/50 p-3 rounded-lg border border-dashed border-slate-200">
+                                {form.watch('detail_mode') === 'standard' ? (
+                                    <p className="text-[11px] text-slate-500 leading-relaxed">
+                                        <strong className="text-orange-600">일반 식당 모드:</strong> 손님이 테이블 입장을 대기하는 방식입니다. 호출 후 '입장' 처리하면 대기가 완료됩니다.
+                                    </p>
+                                ) : (
+                                    <p className="text-[11px] text-slate-500 leading-relaxed">
+                                        <strong className="text-orange-600">카페/픽업 모드:</strong> 손님이 주문 후 음식을 픽업(수령)하기 위해 대기합니다. 호출 메시지가 "음식이 준비되었습니다"로 변경되며, '수령 완료' 버튼이 제공됩니다.
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 <Accordion type="single" collapsible className="w-full">

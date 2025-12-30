@@ -229,7 +229,18 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                                 {/* Name */}
                                 <h3 className="text-lg font-bold truncate leading-tight flex-1 min-w-0">
                                     {item.name || item.phone.slice(-4)}
+                                    <span className="ml-2 text-sm font-normal text-slate-500">
+                                        {item.phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3')}
+                                    </span>
                                 </h3>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6 text-slate-400 hover:text-slate-600"
+                                    onClick={() => setIsNameDialogOpen(true)}
+                                >
+                                    <ClipboardList className="w-3.5 h-3.5" />
+                                </Button>
                             </div>
                         </div>
 
@@ -238,12 +249,8 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                             {/* Phone & Status Badge */}
                             <div className="flex flex-col gap-0.5">
                                 <div className="flex items-center text-xs font-medium text-slate-500 gap-2">
-                                    <div className="flex items-center">
-                                        <Phone className="w-3 h-3 mr-1" strokeWidth={2.5} />
-                                        <span className="tracking-tight">{item.phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3')}</span>
-                                    </div>
                                     {(item.total_party_size ?? 0) > 0 && (
-                                        <div className="flex items-center border-l pl-2 border-slate-200">
+                                        <div className="flex items-center">
                                             <span className="text-blue-600 font-bold">{renderPartySize()}</span>
                                         </div>
                                     )}
@@ -274,11 +281,35 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                                     </Button>
                                 </div>
 
-                                <Button variant="outline" size="sm" onClick={handleCall} className="h-8 px-3 text-xs font-bold gap-1 bg-white hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 transition-colors">
-                                    <BellRing className="w-3 h-3" /> 호출
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleCall}
+                                    className="h-8 px-3 text-xs font-bold gap-1 bg-white hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 transition-colors"
+                                >
+                                    <BellRing className="w-3 h-3" />
+                                    {useWaitingStore.getState().storeSettings?.detail_mode === 'pickup' ? "준비 완료" : "호출"}
                                 </Button>
-                                <Button variant="outline" size="sm" onClick={() => handleStatusUpdate('attended')} className="h-8 px-3 text-xs font-bold gap-1 bg-white hover:bg-green-50 hover:text-green-600 hover:border-green-200 transition-colors">
-                                    <CheckCircle className="w-3 h-3" /> 입장
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleStatusUpdate('attended')}
+                                    className={cn(
+                                        "h-8 px-3 text-xs font-bold gap-1 bg-white transition-colors",
+                                        useWaitingStore.getState().storeSettings?.detail_mode === 'pickup'
+                                            ? "hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200"
+                                            : "hover:bg-green-50 hover:text-green-600 hover:border-green-200"
+                                    )}
+                                >
+                                    {useWaitingStore.getState().storeSettings?.detail_mode === 'pickup' ? (
+                                        <>
+                                            <CheckCircle className="w-3 h-3" /> 수령 완료
+                                        </>
+                                    ) : (
+                                        <>
+                                            <CheckCircle className="w-3 h-3" /> 입장
+                                        </>
+                                    )}
                                 </Button>
 
 

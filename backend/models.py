@@ -187,6 +187,7 @@ class StoreSettings(Base):
     enable_party_size = Column(Boolean, default=False)
     enable_menu_ordering = Column(Boolean, default=False)
     party_size_config = Column(String, nullable=True) # JSON string for party size categories
+    detail_mode = Column(String, default="standard") # standard (table), pickup (cafe)
 
     # 순차적 마감 설정
     sequential_closing = Column(Boolean, default=False)  # 순차적 마감 사용 여부

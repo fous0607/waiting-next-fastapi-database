@@ -42,6 +42,7 @@ export interface StoreSettings {
     party_size_config?: string;
     enable_party_size?: boolean;
     enable_menu_ordering?: boolean;
+    detail_mode?: 'standard' | 'pickup';
     // Add other settings as needed
     [key: string]: any;
 }
