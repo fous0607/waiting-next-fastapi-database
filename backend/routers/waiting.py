@@ -932,7 +932,9 @@ async def get_waiting_list(
             "created_at": waiting.created_at,
             "updated_at": waiting.updated_at,
             "class_info": class_info_dict,
-            "member": member_dict
+            "member": member_dict,
+            "total_party_size": waiting.total_party_size,
+            "party_size_details": waiting.party_size_details
         }
 
         result.append(waiting_dict)
@@ -1008,7 +1010,9 @@ async def get_waiting_list_by_class(
                     "display_name": get_display_name(w),
                     "class_order": w.class_order,
                     "registered_at": w.registered_at,
-                    "member_id": w.member_id 
+                    "member_id": w.member_id,
+                    "total_party_size": w.total_party_size,
+                    "party_size_details": w.party_size_details
                 }
                 for w in waiting_list
             ]
