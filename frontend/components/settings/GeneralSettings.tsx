@@ -518,7 +518,7 @@ export function GeneralSettings() {
                                             <div className="space-y-0.5">
                                                 <FormLabel className="text-base">대기자 재방문 배지 사용</FormLabel>
                                                 <FormDescription>
-                                                    대기자 카드 우측 상단에 "재방문 N" 배지를 표시합니다.
+                                                    대기자 카드 우측 상단에 "재N" 배지를 표시합니다.
                                                 </FormDescription>
                                             </div>
                                             <FormControl>
@@ -601,8 +601,8 @@ export function GeneralSettings() {
                                                                 )}
                                                                 onClick={() => field.onChange(style.id)}
                                                             >
-                                                                <div className={cn("px-2 py-0.5 text-[10px] whitespace-nowrap", style.class)}>
-                                                                    재방문 2
+                                                                <div className={cn("px-1 py-0 text-[8px] whitespace-nowrap", style.class)}>
+                                                                    재2
                                                                 </div>
                                                                 <span className="text-[11px] font-medium text-slate-600">{style.name}</span>
                                                                 {field.value === style.id && (
