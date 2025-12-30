@@ -799,7 +799,11 @@ async def get_waiting_list(
     )
 
     if status:
-        query = query.filter(WaitingList.status == status)
+        if ',' in status:
+            status_list = status.split(',')
+            query = query.filter(WaitingList.status.in_(status_list))
+        else:
+            query = query.filter(WaitingList.status == status)
 
     if class_id:
         query = query.filter(WaitingList.class_id == class_id)

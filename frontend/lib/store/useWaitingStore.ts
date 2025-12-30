@@ -227,7 +227,7 @@ export const useWaitingStore = create<WaitingState>((set, get) => ({
 
     fetchWaitingList: async (classId) => {
         try {
-            const res = await api.get(`/waiting/list?status=waiting&class_id=${classId}&_t=${Date.now()}`);
+            const res = await api.get(`/waiting/list?status=waiting,called&class_id=${classId}&_t=${Date.now()}`);
             set((state) => ({
                 waitingList: {
                     ...state.waitingList,
