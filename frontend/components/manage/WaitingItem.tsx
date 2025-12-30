@@ -181,7 +181,7 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                         </div>
                     )}
 
-                    <CardContent className="flex flex-col p-3 gap-2">
+                    <CardContent className="flex flex-col px-3 py-1 gap-1">
                         {/* Top: Info Row */}
                         <div className="flex items-start justify-between w-full">
                             <div className="flex items-center gap-2 overflow-hidden flex-1 mr-12"> {/* mr-12 for badge space */}
