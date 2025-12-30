@@ -333,10 +333,13 @@ export default function BoardPage() {
                 </div>
             </header>
 
-            {/* Adjust grid columns based on internal rows (columns) per class to ensure enough width */}
+            {/* Adjust grid columns based on both rows_per_class (internal card columns) AND actual class count */}
             <div className={`flex-1 grid gap-4 ${(data.rows_per_class || 1) >= 2
-                ? "grid-cols-1 md:grid-cols-1 lg:grid-cols-2" // Wider cards for multi-column content
-                : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" // Standard uniform grid
+                    ? `grid-cols-1 ${data.classes.length >= 2 ? 'lg:grid-cols-2' : ''}`
+                    : `grid-cols-1 ${data.classes.length === 2 ? 'md:grid-cols-2' :
+                        data.classes.length === 3 ? 'md:grid-cols-2 lg:grid-cols-3' :
+                            data.classes.length >= 4 ? 'md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : ''
+                    }`
                 }`}>
                 {data.classes.map((cls) => {
                     const items = classGroups[cls.id] || [];

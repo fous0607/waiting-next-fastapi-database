@@ -448,6 +448,9 @@ export default function ReceptionPage() {
             } else if (num.length > 3) {
                 formatted = num.replace(/(\d{3})(\d{1,4})/, '$1-$2');
             }
+        } else if (num.length === 8) {
+            // Support 8-digit formatting for 010-XXXX-XXXX shortcut
+            formatted = num.replace(/(\d{4})(\d{4})/, '$1-$2');
         }
         return formatted;
     };
@@ -821,16 +824,20 @@ export default function ReceptionPage() {
                 {/* Mobile Header: Compact */}
                 <div className={`w-full px-4 py-3 flex items-center justify-between shrink-0 shadow-sm z-10 relative ${keypadStyle === 'dark' ? 'bg-slate-800 text-white border-b border-slate-700' : 'bg-white text-slate-900'}`}>
                     {/* Left: Status */}
-                    <div className={`flex items-center gap-1.5 text-xs font-medium ${isConnected ? 'text-green-600' : 'text-red-600'}`}>
-                        <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-600' : 'bg-red-600'} animate-pulse`} />
-                        {isConnected ? '정상가동' : '연결끊김'}
+                    <div className="flex flex-col">
+                        <div className={`flex items-center gap-1.5 text-xs font-bold ${isConnected ? 'text-green-600' : 'text-red-600'}`}>
+                            <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-600' : 'bg-red-600'} animate-pulse`} />
+                            {isConnected ? '정상가동' : '연결끊김'}
+                        </div>
                     </div>
 
-                    {/* Center: Store Name */}
-                    <h1 className={`text-xl font-bold truncate max-w-[200px] absolute left-1/2 -translate-x-1/2 ${keypadStyle === 'dark' ? 'text-white' : 'text-slate-900'}`}>{storeName}</h1>
+                    {/* Center: Store Name (Enhanced) */}
+                    <h1 className={`text-xl font-black truncate max-w-[180px] absolute left-1/2 -translate-x-1/2 text-center ${keypadStyle === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+                        {storeName}
+                    </h1>
 
                     {/* Right: Time */}
-                    <div className={`text-sm font-mono font-bold ${keypadStyle === 'dark' ? 'text-blue-400' : 'text-slate-600'}`}>
+                    <div className={`text-sm font-mono font-black ${keypadStyle === 'dark' ? 'text-blue-400' : 'text-slate-600'}`}>
                         {new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
                     </div>
                 </div>
