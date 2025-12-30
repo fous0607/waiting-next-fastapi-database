@@ -265,7 +265,7 @@ function MobileManagerContent() {
                                                 </div>
                                                 <div className="text-[10px] text-slate-400 font-medium flex items-center gap-1.5">
                                                     <span>{new Date(item.registered_at).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} 접수</span>
-                                                    {item.total_party_size > 0 && (
+                                                    {(item.total_party_size ?? 0) > 0 && (
                                                         <>
                                                             <span className="text-slate-200">|</span>
                                                             <span className="text-blue-600 font-bold">{renderPartySize(item)}</span>
