@@ -226,12 +226,13 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                                     <span className="text-xl font-black text-primary leading-none">#{item.waiting_number}</span>
                                 </div>
 
-                                {/* Name & Phone */}
-                                <div className="flex items-baseline gap-2 overflow-hidden truncate">
-                                    <h3 className="text-lg font-bold truncate leading-tight shrink-1">
+                                {/* Name & Phone - Modified for better visibility */}
+                                <div className="flex items-center gap-2 overflow-hidden flex-1">
+                                    <h3 className="text-lg font-bold truncate shrink-1 leading-tight">
                                         {item.name || "비회원"}
                                     </h3>
-                                    <span className="text-sm text-slate-500 font-mono truncate shrink-0">
+                                    {/* Phone: Increased size, ensuring visibility */}
+                                    <span className="text-base font-bold text-slate-700 dark:text-slate-300 tracking-tight font-mono whitespace-nowrap shrink-0">
                                         {item.phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3')}
                                     </span>
                                 </div>
@@ -239,65 +240,67 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="h-6 w-6 text-slate-400 hover:text-slate-600 shrink-0"
+                                    className="h-8 w-8 text-slate-400 hover:text-slate-600 shrink-0 ml-1"
                                     onClick={() => setIsNameDialogOpen(true)}
                                 >
-                                    <ClipboardList className="w-3.5 h-3.5" />
+                                    <ClipboardList className="w-4 h-4" />
                                 </Button>
                             </div>
                         </div>
 
-                        {/* Middle: Party Size & Status (If needed separate/dense) */}
-                        <div className="flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
+                        {/* Middle: Party Size & Status (Bundled with actions in one dense row if possible, or stacked compactly) */}
+                        {/* User requested actions to move LEFT to reduce width. We'll combine status and actions. */}
+
+                        <div className="flex items-center justify-start gap-3 mt-1 pt-1 border-t border-slate-100 dark:border-slate-800">
+                            {/* Status Info */}
+                            <div className="flex items-center gap-2 shrink-0">
                                 {(item.total_party_size ?? 0) > 0 && (
-                                    <span className="text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded-md">
+                                    <span className="text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded-md text-xs whitespace-nowrap">
                                         {renderPartySize()}
                                     </span>
                                 )}
                                 {item.status === 'called' && (
-                                    <Badge className="bg-yellow-500 text-white hover:bg-yellow-600 px-1.5 py-0 h-5">호출중</Badge>
+                                    <Badge className="bg-yellow-500 text-white hover:bg-yellow-600 px-1.5 py-0 h-5 whitespace-nowrap">호출중</Badge>
                                 )}
                             </div>
-                        </div>
 
-                        {/* Bottom: Actions Row */}
-                        <div className="flex items-center justify-between gap-1 mt-1 pt-1 border-t border-slate-100 dark:border-slate-800">
-                            <div className="flex items-center gap-1">
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8 hover:bg-slate-100 text-slate-400"
-                                    onClick={() => handleOrderChange('up')}
-                                >
-                                    <ArrowUp className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8 hover:bg-slate-100 text-slate-400"
-                                    onClick={() => handleOrderChange('down')}
-                                >
-                                    <ArrowDown className="w-4 h-4" />
-                                </Button>
-                            </div>
+                            {/* Actions - Moved to Left (Next to Status) */}
+                            <div className="flex items-center gap-1.5">
+                                <div className="flex items-center bg-slate-50 rounded-md border border-slate-100">
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-7 w-7 hover:bg-slate-200 text-slate-400 rounded-none rounded-l-md"
+                                        onClick={() => handleOrderChange('up')}
+                                    >
+                                        <ArrowUp className="w-3.5 h-3.5" />
+                                    </Button>
+                                    <div className="w-[1px] h-4 bg-slate-200" />
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-7 w-7 hover:bg-slate-200 text-slate-400 rounded-none rounded-r-md"
+                                        onClick={() => handleOrderChange('down')}
+                                    >
+                                        <ArrowDown className="w-3.5 h-3.5" />
+                                    </Button>
+                                </div>
 
-                            <div className="flex items-center gap-2">
                                 <Button
                                     variant="outline"
                                     size="sm"
                                     onClick={handleCall}
-                                    className="h-9 px-4 text-sm font-bold gap-1.5 bg-white hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 transition-colors shadow-sm"
+                                    className="h-8 px-3 text-xs font-bold gap-1 bg-white hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 transition-colors shadow-sm whitespace-nowrap"
                                 >
-                                    <BellRing className="w-3.5 h-3.5" />
-                                    {useWaitingStore.getState().storeSettings?.detail_mode === 'pickup' ? "준비 완료" : "호출"}
+                                    <BellRing className="w-3 h-3" />
+                                    {useWaitingStore.getState().storeSettings?.detail_mode === 'pickup' ? "준비" : "호출"}
                                 </Button>
                                 <Button
                                     variant="outline"
                                     size="sm"
                                     onClick={() => handleStatusUpdate('attended')}
                                     className={cn(
-                                        "h-9 px-4 text-sm font-bold gap-1.5 bg-white transition-colors shadow-sm",
+                                        "h-8 px-3 text-xs font-bold gap-1 bg-white transition-colors shadow-sm whitespace-nowrap",
                                         useWaitingStore.getState().storeSettings?.detail_mode === 'pickup'
                                             ? "hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200"
                                             : "hover:bg-green-50 hover:text-green-600 hover:border-green-200"
@@ -305,18 +308,18 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                                 >
                                     {useWaitingStore.getState().storeSettings?.detail_mode === 'pickup' ? (
                                         <>
-                                            <CheckCircle className="w-3.5 h-3.5" /> 수령 완료
+                                            <CheckCircle className="w-3 h-3" /> 수령
                                         </>
                                     ) : (
                                         <>
-                                            <CheckCircle className="w-3.5 h-3.5" /> 입장
+                                            <CheckCircle className="w-3 h-3" /> 입장
                                         </>
                                     )}
                                 </Button>
 
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="sm" className="h-9 w-8 p-0 hover:bg-slate-100">
+                                        <Button variant="ghost" size="sm" className="h-8 w-6 p-0 hover:bg-slate-100">
                                             <MoreHorizontal className="w-4 h-4 text-slate-500" />
                                         </Button>
                                     </DropdownMenuTrigger>
