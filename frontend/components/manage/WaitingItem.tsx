@@ -146,12 +146,15 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                 const numCount = Number(count);
                 if (numCount > 0) {
                     const label = configMap[id] || id;
-                    detailLabels.push(`${label} ${numCount}`);
+                    // Take only first character of label
+                    const shortLabel = label.charAt(0);
+                    detailLabels.push(`${shortLabel}${numCount}`);
                 }
             });
 
             if (detailLabels.length === 0) return `${item.total_party_size ?? 0}명`;
-            return `${detailLabels.join(', ')} (총 ${item.total_party_size ?? 0}명)`;
+            // Return abbreviated format without total
+            return detailLabels.join(' ');
         } catch (e) {
             return `${item.total_party_size ?? 0}명`;
         }
@@ -188,7 +191,7 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                 )}>
                     {/* Revisit Badge - Top Right Absolute inside Card */}
                     {item.revisit_count != null && item.revisit_count > 0 && (
-                        <div className="absolute top-0 right-0.5 z-20">
+                        <div className="absolute -top-0.5 right-0.5 z-20">
                             {(() => {
                                 const style = revisitBadgeStyle || 'indigo_solid';
                                 let badgeClass = "bg-indigo-600 text-white hover:bg-indigo-700 px-1 py-0 text-[8px] font-bold shadow-sm whitespace-nowrap rounded-full";
