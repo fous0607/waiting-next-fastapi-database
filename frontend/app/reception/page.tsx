@@ -438,6 +438,7 @@ export default function ReceptionPage() {
             setSelectionDialog({ open: false, members: [] }); // Close selection if open
             setRegistrationDialog({ open: false, phone: '' }); // Close registration if open
             setPartySizeDialog({ open: false, phone: '', name: '' }); // Close party size if open
+            setPartySizeSelections({}); // Reset party size selections for next time
             loadStatus();
 
             // Speak success (Non-blocking)
@@ -1104,14 +1105,14 @@ export default function ReceptionPage() {
                                                     -
                                                 </Button>
                                                 <div className="w-16 flex flex-col items-center">
-                                                    <span className="text-5xl font-black text-blue-600 font-mono leading-none">
+                                                    <span className="text-4xl font-bold text-slate-900 leading-none">
                                                         {currentCount}
                                                     </span>
-                                                    <span className="text-xs text-slate-300 font-bold mt-1">명</span>
+                                                    <span className="text-sm text-slate-400 font-medium mt-1">명</span>
                                                 </div>
                                                 <Button
                                                     variant="outline"
-                                                    className="w-14 h-14 rounded-full text-3xl font-bold border-2 border-blue-200 text-blue-600 hover:bg-blue-50 active:scale-95"
+                                                    className="w-14 h-14 rounded-full text-3xl font-bold border-2 border-slate-200 text-slate-600 hover:bg-slate-50 active:scale-95 transition-all"
                                                     disabled={cat.max > 0 && currentCount >= cat.max}
                                                     onClick={() => {
                                                         setPartySizeSelections(prev => ({
