@@ -33,6 +33,7 @@ function MobileManagerContent() {
         storeName,
         isLoading,
         classes,
+        closedClasses,
         setStoreId,
         selectClass,
         closeClass
@@ -156,7 +157,7 @@ function MobileManagerContent() {
             {/* Class Selector */}
             <div className="px-4 py-3 overflow-x-auto whitespace-nowrap bg-white border-b no-scrollbar">
                 <div className="flex gap-2">
-                    {classes.map((cls) => (
+                    {classes.filter(cls => !closedClasses.has(cls.id)).map((cls) => (
                         <Button
                             key={cls.id}
                             variant={currentClassId === cls.id ? "default" : "outline"}
@@ -171,12 +172,12 @@ function MobileManagerContent() {
             </div>
 
             {/* Content */}
-            <div className="p-1 space-y-1.5">
+            <div className="p-1 space-y-1">
                 {currentClassId ? (
                     sortedList.length > 0 ? (
                         sortedList.map((item) => (
                             <Card key={item.id} className={`relative overflow-hidden transition-all shadow-sm ${item.status === 'called' ? 'border-orange-400 bg-orange-50' : 'border-slate-200'}`}>
-                                <CardContent className="flex flex-col p-2 gap-1.5">
+                                <CardContent className="flex flex-col px-2 py-1 gap-1">
                                     {/* Info Row: Type & Compact */}
                                     <div className="flex items-center justify-between w-full">
                                         <div className="flex items-center gap-2 flex-1 min-w-0">
