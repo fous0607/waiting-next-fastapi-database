@@ -58,6 +58,7 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
     const { classes, fetchWaitingList, fetchClasses, revisitBadgeStyle } = useWaitingStore();
     const [isMoveDialogOpen, setIsMoveDialogOpen] = useState(false);
     const [isNameDialogOpen, setIsNameDialogOpen] = useState(false);
+    const [isPhoneDialogOpen, setIsPhoneDialogOpen] = useState(false);
     const [isMemberDetailOpen, setIsMemberDetailOpen] = useState(false);
     const [newName, setNewName] = useState(item.name || "");
 
@@ -226,26 +227,24 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                                     <span className="text-xl font-black text-primary leading-none">#{item.waiting_number}</span>
                                 </div>
 
-                                {/* Name & Phone - Modified: Name visibility priority, Phone without 010 */}
-                                <div className="flex items-baseline gap-2 overflow-hidden flex-1 min-w-0">
-                                    <h3 className="text-lg font-bold truncate leading-tight text-slate-900 dark:text-slate-100">
-                                        {item.name || "비회원"}
-                                    </h3>
-                                    {/* Phone & Party Size Details */}
-                                    <div className="flex items-center gap-1 shrink-0">
-                                        <span className="text-lg font-black text-slate-700 dark:text-slate-300 tracking-tight font-mono whitespace-nowrap">
-                                            {item.phone.startsWith('010')
-                                                ? item.phone.substring(3).replace(/(\d{4})(\d{4})/, '$1-$2')
-                                                : item.phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3')
-                                            }
-                                        </span>
-                                        {/* Party Size Details (Prominent) */}
-                                        {(item.total_party_size ?? 0) > 0 && (
-                                            <span className="text-sm font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-md border border-blue-100 whitespace-nowrap ml-1">
-                                                {renderPartySize()}
-                                            </span>
-                                        )}
+                                {/* Name (Clickable for Phone Lookup) & Party Size */}
+                                <div className="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
+                                    <div
+                                        onClick={() => setIsPhoneDialogOpen(true)}
+                                        className="cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 rounded px-1 -ml-1 transition-colors"
+                                        title="클릭하여 연락처 확인"
+                                    >
+                                        <h3 className="text-xl font-black truncate leading-tight text-slate-900 dark:text-slate-100 tracking-tight">
+                                            {item.name || "비회원"}
+                                        </h3>
                                     </div>
+
+                                    {/* Party Size Details (Prominent - Replaces Phone) */}
+                                    {(item.total_party_size ?? 0) > 0 && (
+                                        <span className="text-sm font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100 whitespace-nowrap">
+                                            {renderPartySize()}
+                                        </span>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -263,23 +262,23 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
 
                             {/* Actions - Compacted */}
                             <div className="flex items-center gap-1 ml-auto">
-                                {/* Stacked Arrows for Width Savings */}
-                                <div className="flex flex-col gap-0.5 mr-1">
+                                {/* Reverted to Side-by-Side Arrows (User Request) */}
+                                <div className="flex items-center gap-0.5 mr-1">
                                     <Button
                                         variant="outline"
                                         size="icon"
-                                        className="h-4 w-6 rounded-none rounded-t-md hover:bg-slate-100 border-slate-200 p-0"
+                                        className="h-8 w-8 bg-white hover:bg-slate-100 text-slate-500 border-slate-200 shadow-sm"
                                         onClick={() => handleOrderChange('up')}
                                     >
-                                        <ArrowUp className="w-3 h-3" />
+                                        <ArrowUp className="w-4 h-4" />
                                     </Button>
                                     <Button
                                         variant="outline"
                                         size="icon"
-                                        className="h-4 w-6 rounded-none rounded-b-md hover:bg-slate-100 border-slate-200 p-0"
+                                        className="h-8 w-8 bg-white hover:bg-slate-100 text-slate-500 border-slate-200 shadow-sm"
                                         onClick={() => handleOrderChange('down')}
                                     >
-                                        <ArrowDown className="w-3 h-3" />
+                                        <ArrowDown className="w-4 h-4" />
                                     </Button>
                                 </div>
 
@@ -403,6 +402,22 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                                 }
                             }}>저장</Button>
                         </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={isPhoneDialogOpen} onOpenChange={setIsPhoneDialogOpen}>
+                <DialogContent className="sm:max-w-[300px]">
+                    <DialogHeader>
+                        <DialogTitle>연락처 정보</DialogTitle>
+                        <DialogDescription>
+                            고객님의 전체 연락처입니다.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="flex items-center justify-center p-6 bg-slate-50 rounded-xl my-2">
+                        <span className="text-3xl font-black font-mono tracking-wider text-slate-800">
+                            {item.phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3')}
+                        </span>
                     </div>
                 </DialogContent>
             </Dialog>
