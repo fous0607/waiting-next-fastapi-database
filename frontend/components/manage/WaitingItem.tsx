@@ -260,23 +260,23 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
 
                             {/* Actions - Moved to Left (Next to Status) */}
                             <div className="flex items-center gap-1.5">
-                                <div className="flex items-center bg-slate-50 rounded-md border border-slate-100">
+                                {/* Separated Up/Down buttons for better touch targets */}
+                                <div className="flex items-center gap-1 mr-1">
                                     <Button
-                                        variant="ghost"
+                                        variant="outline"
                                         size="icon"
-                                        className="h-7 w-7 hover:bg-slate-200 text-slate-400 rounded-none rounded-l-md"
+                                        className="h-8 w-8 bg-white hover:bg-slate-100 text-slate-500 border-slate-200 shadow-sm"
                                         onClick={() => handleOrderChange('up')}
                                     >
-                                        <ArrowUp className="w-3.5 h-3.5" />
+                                        <ArrowUp className="w-4 h-4" />
                                     </Button>
-                                    <div className="w-[1px] h-4 bg-slate-200" />
                                     <Button
-                                        variant="ghost"
+                                        variant="outline"
                                         size="icon"
-                                        className="h-7 w-7 hover:bg-slate-200 text-slate-400 rounded-none rounded-r-md"
+                                        className="h-8 w-8 bg-white hover:bg-slate-100 text-slate-500 border-slate-200 shadow-sm"
                                         onClick={() => handleOrderChange('down')}
                                     >
-                                        <ArrowDown className="w-3.5 h-3.5" />
+                                        <ArrowDown className="w-4 h-4" />
                                     </Button>
                                 </div>
 
