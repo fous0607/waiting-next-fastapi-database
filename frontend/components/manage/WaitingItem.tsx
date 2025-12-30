@@ -1,6 +1,7 @@
 
 "use client";
 
+import { AutoResizingText } from "@/components/ui/AutoResizingText";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { WaitingItem as WaitingItemType, useWaitingStore } from "@/lib/store/useWaitingStore";
@@ -244,9 +245,11 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
 
                                     {/* Party Size Details (Prominent - Replaces Phone) */}
                                     {(item.total_party_size ?? 0) > 0 && (
-                                        <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100 break-keep">
-                                            {renderPartySize()}
-                                        </span>
+                                        <div className="flex-1 min-w-0 max-w-[60%]">
+                                            <AutoResizingText className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">
+                                                {renderPartySize()}
+                                            </AutoResizingText>
+                                        </div>
                                     )}
                                 </div>
                             </div>
