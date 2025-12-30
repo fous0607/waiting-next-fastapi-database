@@ -168,10 +168,10 @@ function MobileManagerContent() {
                 }
             });
 
-            if (detailLabels.length === 0) return `${item.total_party_size}명`;
-            return `${detailLabels.join(', ')} (총 ${item.total_party_size}명)`;
+            if (detailLabels.length === 0) return `${item.total_party_size ?? 0}명`;
+            return `${detailLabels.join(', ')} (총 ${item.total_party_size ?? 0}명)`;
         } catch (e) {
-            return `${item.total_party_size}명`;
+            return `${item.total_party_size ?? 0}명`;
         }
     };
 

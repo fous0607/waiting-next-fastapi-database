@@ -148,10 +148,10 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                 }
             });
 
-            if (detailLabels.length === 0) return `${item.total_party_size}명`;
-            return `${detailLabels.join(', ')} (총 ${item.total_party_size}명)`;
+            if (detailLabels.length === 0) return `${item.total_party_size ?? 0}명`;
+            return `${detailLabels.join(', ')} (총 ${item.total_party_size ?? 0}명)`;
         } catch (e) {
-            return `${item.total_party_size}명`;
+            return `${item.total_party_size ?? 0}명`;
         }
     };
 
@@ -242,7 +242,7 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                                         <Phone className="w-3 h-3 mr-1" strokeWidth={2.5} />
                                         <span className="tracking-tight">{item.phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3')}</span>
                                     </div>
-                                    {item.total_party_size > 0 && (
+                                    {(item.total_party_size ?? 0) > 0 && (
                                         <div className="flex items-center border-l pl-2 border-slate-200">
                                             <span className="text-blue-600 font-bold">{renderPartySize()}</span>
                                         </div>
