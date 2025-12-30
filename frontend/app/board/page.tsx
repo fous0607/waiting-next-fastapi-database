@@ -88,6 +88,21 @@ export default function BoardPage() {
 
     const [isConnected, setIsConnected] = useState(false);
     const [storeSettings, setStoreSettings] = useState<any>(null);
+    const [isAudioEnabled, setIsAudioEnabled] = useState(false);
+
+    // Audio Unlocker
+    const enableAudio = useCallback(() => {
+        if (typeof window !== 'undefined' && window.speechSynthesis) {
+            // Create a dummy utterance to unlock the audio context
+            const utterance = new SpeechSynthesisUtterance('대기현황판 음성 안내가 시작됩니다.');
+            utterance.volume = 0.1; // Low volume just to confirm
+            utterance.rate = 1.0;
+            utterance.lang = 'ko-KR';
+            window.speechSynthesis.speak(utterance);
+            setIsAudioEnabled(true);
+            console.log('[Board] Audio context unlocked by user interaction.');
+        }
+    }, []);
 
     // Load store settings for font customization
     useEffect(() => {
@@ -279,6 +294,15 @@ export default function BoardPage() {
             <header className="mb-4 flex justify-between items-center bg-white p-4 rounded-xl shadow-sm">
                 <h1 className="text-4xl font-black text-slate-800 tracking-tight">대기현황</h1>
                 <div className="flex items-center gap-3">
+                    {!isAudioEnabled && (
+                        <button
+                            onClick={enableAudio}
+                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-full text-sm font-bold animate-bounce shadow-lg hover:bg-blue-700 transition-colors"
+                        >
+                            <span>🔊</span>
+                            <span>터치하여 음성 켜기</span>
+                        </button>
+                    )}
                     <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${isConnected ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                         <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-600' : 'bg-red-600'}`} />
                         {isConnected ? '연결됨' : '연결 끊김'}
@@ -385,6 +409,21 @@ export default function BoardPage() {
                     );
                 })}
             </div>
+            {/* Audio Enable Overlay (If not enabled) - Optional: Can utilize a full screen overlay if the button is not enough */}
+            {!isAudioEnabled && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={enableAudio}>
+                    <div className="bg-white p-8 rounded-2xl shadow-2xl text-center max-w-md cursor-pointer transform transition-transform hover:scale-105">
+                        <div className="text-6xl mb-4">🔊</div>
+                        <h2 className="text-2xl font-black text-slate-900 mb-2">음성 안내 시작하기</h2>
+                        <p className="text-slate-600 mb-6">
+                            원활한 음성 호출을 위해<br />화면을 한 번 터치해주세요.
+                        </p>
+                        <button className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold text-lg w-full">
+                            확인
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
