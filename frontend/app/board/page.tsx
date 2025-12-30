@@ -103,8 +103,9 @@ export default function BoardPage() {
                 if (settings.board_font_size) {
                     document.documentElement.style.setProperty('--board-font-size', settings.board_font_size);
                 }
+                console.log('[Board] Store settings loaded:', settings);
             } catch (error) {
-                console.error('Failed to load store settings:', error);
+                console.error('[Board] Failed to load store settings:', error);
             }
         };
 
@@ -133,6 +134,7 @@ export default function BoardPage() {
 
         // On first load, just mark existing calls as processed to avoid re-announcing
         if (isFirstDataLoad.current) {
+            console.log('[Board] First load, marking existing calls as processed.');
             data.waiting_list.forEach(item => {
                 if (item.call_count > 0) processedCallsRef.current.add(`${item.id}:${item.call_count}`);
             });
@@ -145,6 +147,7 @@ export default function BoardPage() {
             // If item is called (count > 0) and we haven't processed this specific count yet
             if (item.call_count > 0 && !processedCallsRef.current.has(key)) {
                 // Trigger Voice through hook
+                console.log('[Board] Triggering voice for:', item.display_name, 'Call Count:', item.call_count);
                 speakCall({
                     class_order: item.class_order,
                     display_name: item.display_name,

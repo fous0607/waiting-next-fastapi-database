@@ -26,6 +26,7 @@ export function useVoiceAlert(settings: VoiceSettings | null) {
             if (availableVoices.length > 0) {
                 setVoices(availableVoices);
             }
+            console.log('[Voice] Voices loaded:', availableVoices.length);
         };
 
         loadVoices();
@@ -39,11 +40,16 @@ export function useVoiceAlert(settings: VoiceSettings | null) {
         repeat?: number,
         cancelPrevious?: boolean
     }) => {
-        if (typeof window === 'undefined' || !window.speechSynthesis) return;
+        if (typeof window === 'undefined' || !window.speechSynthesis) {
+            console.warn('[Voice] SpeechSynthesis not available');
+            return;
+        }
 
         if (options?.cancelPrevious) {
             window.speechSynthesis.cancel();
         }
+
+        console.log('[Voice] Speak called:', text, options);
 
         const rate = options?.rate ?? settings?.waiting_voice_rate ?? 1.0;
         const pitch = options?.pitch ?? settings?.waiting_voice_pitch ?? 1.0;
@@ -98,7 +104,10 @@ export function useVoiceAlert(settings: VoiceSettings | null) {
     }, [settings]);
 
     const speakCall = useCallback((item: { class_order: number, display_name: string, class_name: string }) => {
-        if (!settings?.enable_calling_voice_alert) return;
+        if (!settings?.enable_calling_voice_alert) {
+            console.log('[Voice] Calling alert disabled in settings:', settings);
+            return;
+        }
 
         const template = settings?.waiting_call_voice_message || "{순번}번 {회원명}님, 데스크로 오시기 바랍니다.";
         const message = template
