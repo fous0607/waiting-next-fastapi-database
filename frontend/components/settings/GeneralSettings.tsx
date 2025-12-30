@@ -19,11 +19,13 @@ import { toast } from 'sonner';
 import api from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { useOperationLabels } from '@/hooks/useOperationLabels';
 
 // Comprehensive Schema matching Backend StoreSettings
 const settingsSchema = z.object({
     store_name: z.string().min(1, '매장명을 입력해주세요.'),
     theme: z.enum(['zinc', 'blue', 'green', 'orange']).optional(),
+    operation_type: z.enum(['general', 'dining']).default('general'),
 
     // Display Config
     display_classes_count: z.coerce.number().min(1),
@@ -42,6 +44,13 @@ const settingsSchema = z.object({
     block_last_class_registration: z.boolean().default(false),
     auto_register_member: z.boolean().default(false),
     require_member_registration: z.boolean().default(false),
+
+    // Business Hours & Break Time
+    business_start_time: z.string().default('09:00'),
+    business_end_time: z.string().default('22:00'),
+    enable_break_time: z.boolean().default(false),
+    break_start_time: z.string().default('12:00'),
+    break_end_time: z.string().default('13:00'),
 
     // Revisit Badge (New)
     enable_revisit_badge: z.boolean().default(false),
@@ -106,7 +115,9 @@ const settingsSchema = z.object({
     admin_password: z.string().optional(), // For verification if needed, usually just loaded
     registration_message: z.string().default("처음 방문하셨네요!\n성함을 입력해 주세요."),
 
-
+    // Dining Mode Phase 2
+    enable_party_size: z.boolean().default(false),
+    enable_menu_ordering: z.boolean().default(false),
 });
 
 type SettingsFormValues = z.infer<typeof settingsSchema>;
@@ -116,12 +127,16 @@ export function GeneralSettings() {
     const [isLoading, setIsLoading] = useState(true);
     const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
 
+    const operationType = form.watch('operation_type') as 'general' | 'dining';
+    const labels = useOperationLabels(operationType);
+
     const form = useForm<SettingsFormValues>({
         /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
         resolver: zodResolver(settingsSchema) as any,
         defaultValues: {
             store_name: '',
             theme: 'zinc',
+            operation_type: 'general',
             display_classes_count: 3,
             rows_per_class: 1,
             list_direction: 'vertical',
@@ -134,6 +149,11 @@ export function GeneralSettings() {
             block_last_class_registration: false,
             auto_register_member: false,
             require_member_registration: false,
+            business_start_time: '09:00',
+            business_end_time: '22:00',
+            enable_break_time: false,
+            break_start_time: '12:00',
+            break_end_time: '13:00',
             enable_revisit_badge: false,
             revisit_period_days: 0,
             revisit_badge_style: "indigo_solid",
@@ -167,6 +187,8 @@ export function GeneralSettings() {
             dashboard_connection_policy: 'eject_old',
             sequential_closing: false,
             registration_message: "처음 방문하셨네요!\n성함을 입력해 주세요.",
+            enable_party_size: false,
+            enable_menu_ordering: false,
         },
     });
 
@@ -227,6 +249,11 @@ export function GeneralSettings() {
                     // Prevent uncontrolled to controlled warnings for all checkboxes
                     auto_register_member: data.auto_register_member ?? false,
                     require_member_registration: data.require_member_registration ?? false,
+                    business_start_time: data.business_start_time ? data.business_start_time.substring(0, 5) : '09:00',
+                    business_end_time: data.business_end_time ? data.business_end_time.substring(0, 5) : '22:00',
+                    enable_break_time: data.enable_break_time ?? false,
+                    break_start_time: data.break_start_time ? data.break_start_time.substring(0, 5) : '12:00',
+                    break_end_time: data.break_end_time ? data.break_end_time.substring(0, 5) : '13:00',
                     enable_revisit_badge: data.enable_revisit_badge ?? false,
                     revisit_period_days: data.revisit_period_days ?? 0,
                     revisit_badge_style: data.revisit_badge_style ?? "indigo_solid",
@@ -245,6 +272,9 @@ export function GeneralSettings() {
                     show_waiting_number: data.show_waiting_number ?? true,
                     mask_customer_name: data.mask_customer_name ?? false,
                     show_order_number: data.show_order_number ?? true,
+                    operation_type: data.operation_type || 'general',
+                    enable_party_size: data.enable_party_size ?? false,
+                    enable_menu_ordering: data.enable_menu_ordering ?? false,
                     registration_message: data.registration_message || "처음 방문하셨네요!\n성함을 입력해 주세요.",
                 });
 
@@ -380,6 +410,65 @@ export function GeneralSettings() {
                                 </FormItem>
                             )}
                         />
+                    </div>
+
+                    {/* Operation Mode Selection (Phase 1) */}
+                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 shadow-sm space-y-3">
+                        <div className="flex items-center justify-between">
+                            <div className="space-y-1">
+                                <h4 className="text-sm font-bold flex items-center gap-2">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                                    매장 영업 방식 선택
+                                </h4>
+                                <p className="text-xs text-slate-500">매장의 성격에 맞는 대기 관리 방식을 선택하세요.</p>
+                            </div>
+                            <FormField
+                                control={form.control}
+                                name="operation_type"
+                                render={({ field }) => (
+                                    <div className="flex items-center bg-white p-1 rounded-lg border shadow-sm">
+                                        <button
+                                            type="button"
+                                            onClick={() => field.onChange('general')}
+                                            className={cn(
+                                                "px-4 py-1.5 text-xs font-bold rounded-md transition-all",
+                                                field.value === 'general'
+                                                    ? "bg-primary text-white shadow-sm"
+                                                    : "text-slate-500 hover:text-slate-900"
+                                            )}
+                                        >
+                                            일반 (체험/상담)
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => field.onChange('dining')}
+                                            className={cn(
+                                                "px-4 py-1.5 text-xs font-bold rounded-md transition-all",
+                                                field.value === 'dining'
+                                                    ? "bg-primary text-white shadow-sm"
+                                                    : "text-slate-500 hover:text-slate-900"
+                                            )}
+                                        >
+                                            외식 (식당/카페)
+                                        </button>
+                                    </div>
+                                )}
+                            />
+                        </div>
+
+                        <div className="bg-white/50 p-3 rounded-lg border border-dashed border-slate-200">
+                            {form.watch('operation_type') === 'general' ? (
+                                <p className="text-[11px] text-slate-500 leading-relaxed">
+                                    <strong className="text-primary">일반 방식:</strong> 교시(수업) 기반이나 단순 순번 대기에 최적화되어 있습니다.
+                                    기존의 대기 접수 기능을 그대로 사용하며, 차후 업종별 특화 기능을 추가할 수 있습니다.
+                                </p>
+                            ) : (
+                                <p className="text-[11px] text-slate-500 leading-relaxed">
+                                    <strong className="text-primary">외식 방식:</strong> 식당이나 카페 등 테이블 회전이 중요한 매장에 최적화됩니다.
+                                    차후 <span className="font-bold underline">메뉴 미리 주문, 인원별 좌석 배치, 주방 출력</span> 등의 기능이 활성화될 예정입니다.
+                                </p>
+                            )}
+                        </div>
                     </div>
                 </div>
 
@@ -580,7 +669,7 @@ export function GeneralSettings() {
 
                     {/* Section 2: Display Configuration */}
                     <AccordionItem value="display">
-                        <AccordionTrigger>화면 표시 설정 (현황판/사이즈)</AccordionTrigger>
+                        <AccordionTrigger>화면 표시 설정 ({labels.waitingLabel} 현황/사이즈)</AccordionTrigger>
                         <AccordionContent className="space-y-4 p-2">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <FormField
@@ -588,7 +677,7 @@ export function GeneralSettings() {
                                     name="display_classes_count"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>현황판 표시 클래스 수</FormLabel>
+                                            <FormLabel>한 화면당 표시할 {labels.classLabel} 개수</FormLabel>
                                             <FormControl><Input type="number" {...field} /></FormControl>
                                         </FormItem>
                                     )}
@@ -598,7 +687,7 @@ export function GeneralSettings() {
                                     name="rows_per_class"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>클래스 당 줄 수</FormLabel>
+                                            <FormLabel>{labels.classLabel}별 표시 줄 수 (Row)</FormLabel>
                                             <FormControl><Input type="number" {...field} /></FormControl>
                                         </FormItem>
                                     )}
@@ -608,7 +697,7 @@ export function GeneralSettings() {
                                     name="list_direction"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>대기자 리스트 방향</FormLabel>
+                                            <FormLabel>{labels.waitingLabel} 리스트 방향</FormLabel>
                                             <Select onValueChange={field.onChange} value={field.value as string || ''}>
                                                 <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                                                 <SelectContent>
@@ -624,7 +713,7 @@ export function GeneralSettings() {
                                     name="manager_button_size"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>대기관리자 버튼 크기</FormLabel>
+                                            <FormLabel>{labels.waitingLabel}관리자 버튼 크기</FormLabel>
                                             <Select onValueChange={field.onChange} value={field.value as string || ''}>
                                                 <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                                                 <SelectContent>
@@ -737,6 +826,84 @@ export function GeneralSettings() {
                     <AccordionItem value="rules">
                         <AccordionTrigger>운영 규칙 (영업시간/마감/규칙)</AccordionTrigger>
                         <AccordionContent className="space-y-4 p-2">
+                            <div className="rounded-lg border bg-slate-50 p-4 space-y-4">
+                                <h4 className="text-sm font-semibold flex items-center gap-2">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                                    {labels.classAction} 및 휴게 시간 설정
+                                </h4>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <FormField
+                                        control={form.control}
+                                        name="business_start_time"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>영업 시작 시간</FormLabel>
+                                                <FormControl><Input type="time" {...field} /></FormControl>
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="business_end_time"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>영업 종료 시간</FormLabel>
+                                                <FormControl><Input type="time" {...field} /></FormControl>
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+
+                                <div className="space-y-4 pt-2 border-t border-slate-200">
+                                    <FormField
+                                        control={form.control}
+                                        name="enable_break_time"
+                                        render={({ field }) => (
+                                            <FormItem className="flex flex-row items-center justify-between rounded-lg border bg-white p-3 shadow-sm">
+                                                <div className="space-y-0.5">
+                                                    <FormLabel className="text-sm font-medium">브레이크 타임 사용</FormLabel>
+                                                    <FormDescription className="text-xs">
+                                                        설정된 시간에는 대기 접수를 자동으로 차단합니다.
+                                                    </FormDescription>
+                                                </div>
+                                                <FormControl>
+                                                    <Switch
+                                                        checked={field.value}
+                                                        onCheckedChange={field.onChange}
+                                                    />
+                                                </FormControl>
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    {form.watch('enable_break_time') && (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-1 duration-200">
+                                            <FormField
+                                                control={form.control}
+                                                name="break_start_time"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel className="text-xs">휴게 시작</FormLabel>
+                                                        <FormControl><Input type="time" {...field} /></FormControl>
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                name="break_end_time"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel className="text-xs">휴게 종료</FormLabel>
+                                                        <FormControl><Input type="time" {...field} /></FormControl>
+                                                    </FormItem>
+                                                )}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <FormField
                                     control={form.control}

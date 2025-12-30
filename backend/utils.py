@@ -20,3 +20,8 @@ def get_today_date(start_hour: int = 7) -> date:
         return (now - timedelta(days=1)).date()
     else:
         return now.date()
+
+def get_kst_now() -> datetime:
+    """KST(UTC+9) 기준 현재 일시 반환"""
+    kst = timezone(timedelta(hours=9))
+    return datetime.now(kst)

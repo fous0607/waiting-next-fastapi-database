@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func, and_
 from datetime import datetime, date
 from typing import List, Optional
+from utils import get_kst_now
 
 from database import get_db
 from models import (
@@ -42,10 +43,38 @@ def get_public_store_info(store_code: str, db: Session = Depends(get_db)):
         WaitingList.store_id == store.id
     ).scalar()
 
+    # Business Hours & Break Time Status
+    now_time = get_kst_now().time()
+    is_business_hours = True
+    is_break_time = False
+    
+    if settings:
+        if hasattr(settings, 'business_start_time') and hasattr(settings, 'business_end_time'):
+            if settings.business_start_time and settings.business_end_time:
+                if not (settings.business_start_time <= now_time <= settings.business_end_time):
+                    is_business_hours = False
+        
+        if hasattr(settings, 'enable_break_time') and settings.enable_break_time:
+            if hasattr(settings, 'break_start_time') and hasattr(settings, 'break_end_time'):
+                if settings.break_start_time and settings.break_end_time:
+                    if settings.break_start_time <= now_time <= settings.break_end_time:
+                        is_break_time = True
+
     return {
         "id": store.id,
         "name": store.name,
         "current_waiting_count": current_waiting_count,
+        "is_business_hours": is_business_hours,
+        "is_break_time": is_break_time,
+        "business_hours": {
+            "start": settings.business_start_time.strftime('%H:%M') if settings and settings.business_start_time else "09:00",
+            "end": settings.business_end_time.strftime('%H:%M') if settings and settings.business_end_time else "22:00",
+        },
+        "break_time": {
+            "enabled": settings.enable_break_time if settings else False,
+            "start": settings.break_start_time.strftime('%H:%M') if settings and settings.break_start_time else "12:00",
+            "end": settings.break_end_time.strftime('%H:%M') if settings and settings.break_end_time else "13:00",
+        },
         "settings": {
             "require_member_registration": settings.require_member_registration if settings else False,
             "registration_message": settings.registration_message if settings else "",
@@ -92,10 +121,34 @@ async def public_register_waiting(
     if existing:
         raise HTTPException(status_code=400, detail="이미 대기 중인 번호입니다.")
 
-    # 4. 설정 확인 (Limits)
+    # 4. 설정 확인 (Limits & Hours)
     settings = db.query(StoreSettings).filter(StoreSettings.store_id == current_store_id).first()
     
     if settings:
+        now_time = get_kst_now().time()
+        
+        # 영업 시간 체크
+        if hasattr(settings, 'business_start_time') and hasattr(settings, 'business_end_time'):
+            if settings.business_start_time and settings.business_end_time:
+                if not (settings.business_start_time <= now_time <= settings.business_end_time):
+                    start_str = settings.business_start_time.strftime('%H:%M')
+                    end_str = settings.business_end_time.strftime('%H:%M')
+                    raise HTTPException(
+                        status_code=400, 
+                        detail=f"영업 시간이 아닙니다.\n(영업시간: {start_str} ~ {end_str})"
+                    )
+        
+        # 브레이크 타임 체크
+        if hasattr(settings, 'enable_break_time') and settings.enable_break_time:
+            if hasattr(settings, 'break_start_time') and hasattr(settings, 'break_end_time'):
+                if settings.break_start_time and settings.break_end_time:
+                    if settings.break_start_time <= now_time <= settings.break_end_time:
+                        break_end_str = settings.break_end_time.strftime('%H:%M')
+                        raise HTTPException(
+                            status_code=400, 
+                            detail=f"지금은 휴게 시간(Break Time)입니다.\n{break_end_str} 이후에 다시 시도해주세요."
+                        )
+
         if settings.use_max_waiting_limit and settings.max_waiting_limit > 0:
             current_waiting_count = db.query(func.count(WaitingList.id)).filter(
                 WaitingList.business_date == today,

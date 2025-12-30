@@ -9,8 +9,18 @@ import { ModeToggle } from "@/components/mode-toggle";
 import { SSEMonitor } from "./SSEMonitor";
 
 export function ManageHeader() {
-    const { storeName, businessDate, isConnected, selectedStoreId } = useWaitingStore();
+    const { storeName, businessDate, isConnected, selectedStoreId, storeSettings } = useWaitingStore();
     const [showMonitor, setShowMonitor] = useState(false);
+
+    // Business Hours & Break Time Calculation (Client-side)
+    const now = new Date();
+    const nowStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+
+    const isClosed = (storeSettings?.business_start_time && storeSettings?.business_end_time) ?
+        (nowStr < storeSettings.business_start_time.substring(0, 5) || nowStr > storeSettings.business_end_time.substring(0, 5)) : false;
+
+    const isBreak = (storeSettings?.enable_break_time && storeSettings?.break_start_time && storeSettings?.break_end_time) ?
+        (nowStr >= storeSettings.break_start_time.substring(0, 5) && nowStr <= storeSettings.break_end_time.substring(0, 5)) : false;
 
     return (
         <div className="flex justify-between items-center py-4 mb-2 border-b">
@@ -23,9 +33,18 @@ export function ManageHeader() {
                     </div>
                     <span>대기자 관리</span>
                     {businessDate && (
-                        <span className="text-lg font-bold bg-secondary px-4 py-1 rounded-full text-secondary-foreground">
-                            {businessDate}
-                        </span>
+                        <div className="flex items-center gap-2">
+                            <span className="text-lg font-bold bg-secondary px-4 py-1 rounded-full text-secondary-foreground">
+                                {businessDate}
+                            </span>
+                            {isBreak ? (
+                                <span className="text-sm font-bold bg-orange-100 text-orange-700 px-3 py-1 rounded-full border border-orange-200">휴게 시간</span>
+                            ) : isClosed ? (
+                                <span className="text-sm font-bold bg-red-100 text-red-700 px-3 py-1 rounded-full border border-red-200">영업 종료</span>
+                            ) : (
+                                <span className="text-sm font-bold bg-green-100 text-green-700 px-3 py-1 rounded-full border border-green-200">영업 중</span>
+                            )}
+                        </div>
                     )}
                 </h1>
             </div>

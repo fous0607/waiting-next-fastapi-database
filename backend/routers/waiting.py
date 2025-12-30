@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from core.logger import logger
 from sqlalchemy.orm import Session, joinedload, defer
 from sqlalchemy import func, and_
-from datetime import datetime, date
+from datetime import datetime, date, time
 from typing import List, Optional, Dict
 import json
 
@@ -16,7 +16,7 @@ from schemas import (
     WaitingListDetail
 )
 from sse_manager import sse_manager
-from utils import get_today_date
+from utils import get_today_date, get_kst_now
 
 router = APIRouter()
 
@@ -181,8 +181,16 @@ def get_available_class(db: Session, business_date: date, store_id: int):
         logger.debug(f"[ClassAssign] Checking {cls.class_name} (ID: {cls.id}): {total_occupancy}/{cls.max_capacity}")
 
         if total_occupancy < cls.max_capacity:
-            logger.info(f"[ClassAssign] Assigned {cls.class_name} (ID: {cls.id}). Occupancy before: {total_occupancy}")
-            return cls, total_occupancy + 1
+            # 순번은 대기 중인 사람(waiting, called)만 카운트 (attended 제외)
+            queue_count = db.query(func.count(WaitingList.id)).filter(
+                WaitingList.class_id == cls.id,
+                WaitingList.business_date == business_date,
+                WaitingList.status.in_(["waiting", "called"]),
+                WaitingList.store_id == store_id
+            ).scalar()
+            
+            logger.info(f"[ClassAssign] Assigned {cls.class_name} (ID: {cls.id}). Occupancy: {total_occupancy}, Queue: {queue_count}")
+            return cls, queue_count + 1
             
     # 모든 교시가 꽉 찬 경우
     logger.warning("[ClassAssign] All classes are full.")
@@ -227,11 +235,35 @@ async def register_waiting(
     if existing:
         raise HTTPException(status_code=400, detail="이미 대기 중인 번호입니다.\n핸드폰번호를 다시 확인하여 주세요.")
 
-    # 매장 설정 조회 (Defer enable_franchise_monitoring to avoid error if missing in DB)
+    # 매장 설정 조회
     from models import StoreSettings
-    settings = db.query(StoreSettings).options(
-        defer(StoreSettings.enable_franchise_monitoring)
-    ).filter(StoreSettings.store_id == current_store.id).first()
+    settings = db.query(StoreSettings).filter(StoreSettings.store_id == current_store.id).first()
+    
+    # 영업 시간 및 브레이크 타임 체크 (관리자 수동 등록은 제외)
+    if settings and not waiting.is_admin_registration:
+        now_time = get_kst_now().time()
+        
+        # 영업 시간 체크
+        if hasattr(settings, 'business_start_time') and hasattr(settings, 'business_end_time'):
+            if settings.business_start_time and settings.business_end_time:
+                if not (settings.business_start_time <= now_time <= settings.business_end_time):
+                    start_str = settings.business_start_time.strftime('%H:%M')
+                    end_str = settings.business_end_time.strftime('%H:%M')
+                    raise HTTPException(
+                        status_code=400, 
+                        detail=f"영업 시간이 아닙니다.\n(영업시간: {start_str} ~ {end_str})"
+                    )
+        
+        # 브레이크 타임 체크
+        if hasattr(settings, 'enable_break_time') and settings.enable_break_time:
+            if hasattr(settings, 'break_start_time') and hasattr(settings, 'break_end_time'):
+                if settings.break_start_time and settings.break_end_time:
+                    if settings.break_start_time <= now_time <= settings.break_end_time:
+                        break_end_str = settings.break_end_time.strftime('%H:%M')
+                        raise HTTPException(
+                            status_code=400, 
+                            detail=f"지금은 휴게 시간(Break Time)입니다.\n{break_end_str} 이후에 다시 시도해주세요."
+                        )
     
     # 1. 최대 대기 인원 제한 체크 (use_max_waiting_limit가 활성화된 경우에만)
     if settings:
@@ -388,7 +420,16 @@ async def register_waiting(
         
         if current_count < cls.max_capacity:
             target_class = cls
-            class_order = current_count + 1
+            
+            # 순번은 대기 중인 사람(waiting, called)만 카운트
+            queue_count = db.query(func.count(WaitingList.id)).filter(
+                WaitingList.class_id == cls.id,
+                WaitingList.business_date == today,
+                WaitingList.status.in_(["waiting", "called"]),
+                WaitingList.store_id == current_store.id
+            ).scalar()
+            
+            class_order = queue_count + 1
             print(f"[REGISTER] Assigned to class {cls.id} ({cls.class_name}) as order {class_order}")
             break
             
@@ -552,6 +593,26 @@ async def get_next_slot(
         WaitingList.store_id == current_store.id
     ).scalar()
 
+    # Fetch settings
+    from models import StoreSettings
+    settings = db.query(StoreSettings).filter(StoreSettings.store_id == current_store.id).first()
+
+    now_time = get_kst_now().time()
+    is_business_hours = True
+    is_break_time = False
+    
+    if settings:
+        if hasattr(settings, 'business_start_time') and hasattr(settings, 'business_end_time'):
+            if settings.business_start_time and settings.business_end_time:
+                if not (settings.business_start_time <= now_time <= settings.business_end_time):
+                    is_business_hours = False
+        
+        if hasattr(settings, 'enable_break_time') and settings.enable_break_time:
+            if hasattr(settings, 'break_start_time') and hasattr(settings, 'break_end_time'):
+                if settings.break_start_time and settings.break_end_time:
+                    if settings.break_start_time <= now_time <= settings.break_end_time:
+                        is_break_time = True
+
     # 1. Available Classes (Same logic as register_waiting)
     all_classes_raw = db.query(ClassInfo).filter(
         ClassInfo.store_id == current_store.id,
@@ -567,6 +628,8 @@ async def get_next_slot(
             "class_order": 0,
             "max_capacity": 0,
             "is_full": True,
+            "is_business_hours": is_business_hours,
+            "is_break_time": is_break_time,
             "total_waiting": total_waiting 
         }
 
@@ -597,7 +660,16 @@ async def get_next_slot(
         
         if total_occupancy < cls.max_capacity:
             next_class = cls
-            next_order = total_occupancy + 1
+            
+            # 순번은 대기 중인 사람(waiting, called)만 카운트
+            queue_count = db.query(func.count(WaitingList.id)).filter(
+                WaitingList.class_id == cls.id,
+                WaitingList.business_date == today,
+                WaitingList.status.in_(["waiting", "called"]),
+                WaitingList.store_id == current_store.id
+            ).scalar()
+            
+            next_order = queue_count + 1
             is_fully_booked = False
             break
             
@@ -608,6 +680,8 @@ async def get_next_slot(
             "class_order": 0,
             "max_capacity": 0,
             "is_full": True,
+            "is_business_hours": is_business_hours,
+            "is_break_time": is_break_time,
             "total_waiting": total_waiting
         }
         
@@ -617,18 +691,29 @@ async def get_next_slot(
         "class_order": next_order,
         "max_capacity": next_class.max_capacity,
         "is_full": False,
+        "is_business_hours": is_business_hours,
+        "is_break_time": is_break_time,
         "total_waiting": total_waiting,
+        "business_hours": {
+            "start": settings.business_start_time.strftime('%H:%M') if settings and settings.business_start_time else "09:00",
+            "end": settings.business_end_time.strftime('%H:%M') if settings and settings.business_end_time else "22:00",
+        },
+        "break_time": {
+            "enabled": settings.enable_break_time if settings else False,
+            "start": settings.break_start_time.strftime('%H:%M') if settings and settings.break_start_time else "12:00",
+            "end": settings.break_end_time.strftime('%H:%M') if settings and settings.break_end_time else "13:00",
+        },
         "voice_settings": {
-            "enable_waiting_voice_alert": getattr(settings, 'enable_waiting_voice_alert', True) if 'settings' in locals() and settings else True,
-            "waiting_voice_message": getattr(settings, 'waiting_voice_message', None) if 'settings' in locals() and settings else None,
-            "waiting_call_voice_message": getattr(settings, 'waiting_call_voice_message', None) if 'settings' in locals() and settings else None,
-            "waiting_voice_name": getattr(settings, 'waiting_voice_name', None) if 'settings' in locals() and settings else None,
-            "waiting_voice_rate": getattr(settings, 'waiting_voice_rate', 1.0) if 'settings' in locals() and settings else 1.0,
-            "waiting_voice_pitch": getattr(settings, 'waiting_voice_pitch', 1.0) if 'settings' in locals() and settings else 1.0,
-            "waiting_call_voice_repeat_count": getattr(settings, 'waiting_call_voice_repeat_count', 1) if 'settings' in locals() and settings else 1,
-            "enable_duplicate_registration_voice": getattr(settings, 'enable_duplicate_registration_voice', True) if 'settings' in locals() and settings else True,
-            "duplicate_registration_voice_message": getattr(settings, 'duplicate_registration_voice_message', None) if 'settings' in locals() and settings else None,
-            "enable_calling_voice_alert": getattr(settings, 'enable_calling_voice_alert', True) if 'settings' in locals() and settings else True,
+            "enable_waiting_voice_alert": getattr(settings, 'enable_waiting_voice_alert', True) if settings else True,
+            "waiting_voice_message": getattr(settings, 'waiting_voice_message', None) if settings else None,
+            "waiting_call_voice_message": getattr(settings, 'waiting_call_voice_message', None) if settings else None,
+            "waiting_voice_name": getattr(settings, 'waiting_voice_name', None) if settings else None,
+            "waiting_voice_rate": getattr(settings, 'waiting_voice_rate', 1.0) if settings else 1.0,
+            "waiting_voice_pitch": getattr(settings, 'waiting_voice_pitch', 1.0) if settings else 1.0,
+            "waiting_call_voice_repeat_count": getattr(settings, 'waiting_call_voice_repeat_count', 1) if settings else 1,
+            "enable_duplicate_registration_voice": getattr(settings, 'enable_duplicate_registration_voice', True) if settings else True,
+            "duplicate_registration_voice_message": getattr(settings, 'duplicate_registration_voice_message', None) if settings else None,
+            "enable_calling_voice_alert": getattr(settings, 'enable_calling_voice_alert', True) if settings else True
         }
     }
 

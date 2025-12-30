@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, Date, Time, Table, Float, func
 from sqlalchemy.orm import relationship
 from database import Base
-from datetime import datetime, date
+from datetime import datetime, date, time
 
 # M:N 관계를 위한 연결 테이블
 user_stores = Table('user_stores', Base.metadata,
@@ -183,6 +183,9 @@ class StoreSettings(Base):
     
     # 테마 설정
     theme = Column(String, default="zinc")  # zinc, blue, green
+    operation_type = Column(String, default="general") # general: 일반 매장, dining: 외식 매장
+    enable_party_size = Column(Boolean, default=False)
+    enable_menu_ordering = Column(Boolean, default=False)
 
     # 순차적 마감 설정
     sequential_closing = Column(Boolean, default=False)  # 순차적 마감 사용 여부
@@ -191,6 +194,13 @@ class StoreSettings(Base):
     default_class_minute = Column(Integer, default=50)  # 기본 수업 시간 (분)
     default_break_minute = Column(Integer, default=10)  # 기본 쉬는 시간 (분)
     default_max_capacity = Column(Integer, default=10)  # 기본 정원 (명)
+
+    # 영업 시간 및 브레이크 타임 설정
+    business_start_time = Column(Time, default=time(9, 0))
+    business_end_time = Column(Time, default=time(22, 0))
+    enable_break_time = Column(Boolean, default=False)
+    break_start_time = Column(Time, default=time(12, 0))
+    break_end_time = Column(Time, default=time(13, 0))
 
     # 공지사항 설정
     show_program_notices = Column(Boolean, default=True)  # 프로그램 공지 표시 여부

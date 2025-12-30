@@ -11,6 +11,7 @@ import { Loader2, RefreshCw, Phone, User as UserIcon, Users, CheckCircle, XCircl
 import { toast } from 'sonner';
 import api from '@/lib/api';
 import { useRouter } from 'next/navigation';
+import { useOperationLabels } from '@/hooks/useOperationLabels';
 import {
     Dialog,
     DialogContent,
@@ -36,8 +37,11 @@ function MobileManagerContent() {
         closedClasses,
         setStoreId,
         selectClass,
-        closeClass
+        closeClass,
+        storeSettings
     } = useWaitingStore();
+
+    const labels = useOperationLabels(storeSettings?.operation_type || 'general');
 
     const [processingId, setProcessingId] = useState<number | null>(null);
     const [cancelTarget, setCancelTarget] = useState<WaitingItem | null>(null);
@@ -104,13 +108,36 @@ function MobileManagerContent() {
         if (!closeTargetId) return;
         try {
             await closeClass(closeTargetId);
-            toast.success('교시가 마감되었습니다.');
+            toast.success(`${labels.classLabel}가 마감되었습니다.`);
             setCloseTargetId(null);
             fetchClasses();
         } catch (error) {
-            toast.error('교시 마감 실패');
+            toast.error(`${labels.classLabel} 마감 실패`);
         }
     };
+
+    // Business Hours & Break Time Calculation (Client-side)
+    const [statusInfo, setStatusInfo] = useState<{ isBreak: boolean, isClosed: boolean }>({ isBreak: false, isClosed: false });
+
+    useEffect(() => {
+        const updateStatus = () => {
+            if (!storeSettings) return;
+            const now = new Date();
+            const nowStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+
+            const isClosed = (storeSettings.business_start_time && storeSettings.business_end_time) ?
+                (nowStr < storeSettings.business_start_time.substring(0, 5) || nowStr > storeSettings.business_end_time.substring(0, 5)) : false;
+
+            const isBreak = (storeSettings.enable_break_time && storeSettings.break_start_time && storeSettings.break_end_time) ?
+                (nowStr >= storeSettings.break_start_time.substring(0, 5) && nowStr <= storeSettings.break_end_time.substring(0, 5)) : false;
+
+            setStatusInfo({ isBreak, isClosed });
+        };
+
+        updateStatus();
+        const interval = setInterval(updateStatus, 30000); // Check every 30s
+        return () => clearInterval(interval);
+    }, [storeSettings]);
 
     if (isLoading) {
         return <div className="flex justify-center items-center h-screen"><Loader2 className="w-8 h-8 animate-spin" /></div>;
@@ -128,7 +155,16 @@ function MobileManagerContent() {
                     <Button variant="ghost" size="icon" className="-ml-2" onClick={() => router.push('/manage')}>
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
-                    <h1 className="text-lg font-bold truncate max-w-[200px]">{storeName}</h1>
+                    <div className="flex flex-col">
+                        <h1 className="text-lg font-bold truncate max-w-[150px] leading-tight">{storeName}</h1>
+                        {statusInfo.isBreak ? (
+                            <span className="text-[10px] font-bold text-orange-500 leading-tight">브레이크 타임</span>
+                        ) : statusInfo.isClosed ? (
+                            <span className="text-[10px] font-bold text-red-500 leading-tight">영업 종료</span>
+                        ) : (
+                            <span className="text-[10px] font-bold text-green-500 leading-tight">영업 중</span>
+                        )}
+                    </div>
                 </div>
                 <div className="flex gap-1">
                     {currentClassId && (
@@ -136,7 +172,7 @@ function MobileManagerContent() {
                             variant="ghost"
                             size="icon"
                             onClick={() => setCloseTargetId(currentClassId)}
-                            title="교시 마감"
+                            title={`${labels.classLabel} 마감`}
                         >
                             <DoorClosed className="h-5 w-5 text-slate-600" />
                         </Button>

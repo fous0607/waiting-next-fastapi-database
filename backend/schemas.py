@@ -94,6 +94,16 @@ class StoreSettingsBase(BaseModel):
     default_class_minute: int = 50
     default_break_minute: int = 10
     default_max_capacity: int = 10
+    
+    # 영업 시간 및 브레이크 타임 설정
+    business_start_time: time = time(9, 0)
+    business_end_time: time = time(22, 0)
+    enable_break_time: bool = False
+    break_start_time: time = time(12, 0)
+    break_end_time: time = time(13, 0)
+    operation_type: str = "general"
+    enable_party_size: bool = False
+    enable_menu_ordering: bool = False
 
 class StoreSettingsCreate(StoreSettingsBase):
     pass
@@ -191,6 +201,16 @@ class StoreSettingsUpdate(BaseModel):
     default_class_minute: Optional[int] = None
     default_break_minute: Optional[int] = None
     default_max_capacity: Optional[int] = None
+
+    # 영업 시간 및 브레이크 타임 설정
+    business_start_time: Optional[time] = None
+    business_end_time: Optional[time] = None
+    enable_break_time: Optional[bool] = None
+    break_start_time: Optional[time] = None
+    break_end_time: Optional[time] = None
+    operation_type: Optional[str] = None
+    enable_party_size: Optional[bool] = None
+    enable_menu_ordering: Optional[bool] = None
 
 class StoreSettings(StoreSettingsBase):
     id: int

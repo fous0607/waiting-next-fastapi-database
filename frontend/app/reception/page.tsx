@@ -9,6 +9,7 @@ import api from '@/lib/api';
 import { useWaitingStore } from '@/lib/store/useWaitingStore';
 import { Delete, Check, AlertCircle, UserRound, Loader2 } from 'lucide-react';
 import { GlobalLoader } from "@/components/ui/GlobalLoader";
+import { useOperationLabels, type OperationType } from '@/hooks/useOperationLabels';
 
 interface Member {
     id: number;
@@ -21,6 +22,10 @@ interface WaitingSlot {
     is_full: boolean;
     class_name?: string;
     class_order?: number;
+    is_business_hours?: boolean;
+    is_break_time?: boolean;
+    business_hours?: { start: string, end: string };
+    break_time?: { enabled: boolean, start: string, end: string };
 }
 
 
@@ -33,6 +38,8 @@ export default function ReceptionPage() {
     const [keypadStyle, setKeypadStyle] = useState('modern');
     const [storeSettings, setStoreSettings] = useState<any>(null);
     const [memberName, setMemberName] = useState('');
+
+    const labels = useOperationLabels(storeSettings?.operation_type || 'general');
 
     // Result Modal State
     const [resultDialog, setResultDialog] = useState<{ open: boolean, data: any }>({ open: false, data: null });
@@ -704,10 +711,18 @@ export default function ReceptionPage() {
 
                     {/* Status Message (Luxurious Style) */}
                     <div className="w-full flex flex-col items-center justify-center min-h-[120px] transition-all">
-                        {waitingStatus?.is_full ? (
-                            <div className="text-center animate-pulse">
+                        {waitingStatus?.is_full || waitingStatus?.is_business_hours === false || waitingStatus?.is_break_time === true ? (
+                            <div className="text-center animate-in zoom-in duration-300">
                                 <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-                                <span className="text-3xl font-bold text-red-600">현재 대기 접수가 마감되었습니다</span>
+                                <span className="text-3xl font-bold text-red-600 block">
+                                    {waitingStatus?.is_break_time ? (
+                                        <>휴게 시간(Break Time)입니다<br /><span className="text-lg font-medium text-slate-500 mt-2 block font-sans">{waitingStatus.break_time?.end} 이후에 다시 시도해주세요</span></>
+                                    ) : waitingStatus?.is_business_hours === false ? (
+                                        <>{labels.classAction} 시간이 아닙니다<br /><span className="text-lg font-medium text-slate-500 mt-2 block font-sans">{labels.classAction}시간: {waitingStatus.business_hours?.start} ~ {waitingStatus.business_hours?.end}</span></>
+                                    ) : (
+                                        `현재 ${labels.registerLabel}가 마감되었습니다`
+                                    )}
+                                </span>
                             </div>
                         ) : (
                             <div className="text-center space-y-3">
@@ -723,7 +738,7 @@ export default function ReceptionPage() {
                                         {waitingStatus ? `${waitingStatus.class_order}번째` : '...'}
                                     </span>
                                     <div className="text-xl md:text-2xl font-medium text-slate-400 mt-2 font-serif italic">
-                                        대기 접수 중입니다
+                                        {labels.registerLabel} 중입니다
                                     </div>
                                 </div>
                             </div>
@@ -782,7 +797,7 @@ export default function ReceptionPage() {
                         <Button
                             className={`w-full h-[100px] text-4xl md:text-5xl font-black rounded-[2rem] shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all active:scale-[0.98] shrink-0 mt-2 ${styles.submitButton}`}
                             size="lg"
-                            disabled={isSubmitting || (waitingStatus?.is_full === true)}
+                            disabled={isSubmitting || (waitingStatus?.is_full === true) || (waitingStatus?.is_business_hours === false) || (waitingStatus?.is_break_time === true)}
                             onClick={handleSubmit}
                         >
                             {isSubmitting ? (
@@ -890,7 +905,7 @@ export default function ReceptionPage() {
                         disabled={isSubmitting || (waitingStatus?.is_full === true)}
                         onClick={handleSubmit}
                     >
-                        {isSubmitting ? <Loader2 className="w-6 h-6 animate-spin" /> : (phoneNumber.length === 4 ? '조회' : '접수하기')}
+                        {isSubmitting ? <Loader2 className="w-6 h-6 animate-spin" /> : (phoneNumber.length === 4 ? '조회' : `${labels.registerLabel}하기`)}
                     </Button>
                 </div>
             </div>

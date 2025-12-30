@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session, defer
 from sqlalchemy.exc import OperationalError, ProgrammingError
+from datetime import time
 from typing import Optional
 from fastapi import Request
 
@@ -80,7 +81,13 @@ async def get_store_settings(
             defer(StoreSettings.sequential_closing),
             defer(StoreSettings.enable_revisit_badge),
             defer(StoreSettings.revisit_period_days),
-            defer(StoreSettings.revisit_badge_style)
+            defer(StoreSettings.revisit_badge_style),
+            defer(StoreSettings.business_start_time),
+            defer(StoreSettings.business_end_time),
+            defer(StoreSettings.enable_break_time),
+            defer(StoreSettings.break_start_time),
+            defer(StoreSettings.break_end_time),
+            defer(StoreSettings.operation_type)
         ).filter(
             StoreSettings.store_id == current_store.id
         ).first()
@@ -128,6 +135,12 @@ async def get_store_settings(
             set_default(settings, 'enable_revisit_badge', False)
             set_default(settings, 'revisit_period_days', 0)
             set_default(settings, 'revisit_badge_style', "indigo_solid")
+            set_default(settings, 'business_start_time', time(9, 0))
+            set_default(settings, 'business_end_time', time(22, 0))
+            set_default(settings, 'enable_break_time', False)
+            set_default(settings, 'break_start_time', time(12, 0))
+            set_default(settings, 'break_end_time', time(13, 0))
+            set_default(settings, 'operation_type', 'general')
 
     if not settings:
         # 기본 설정 생성

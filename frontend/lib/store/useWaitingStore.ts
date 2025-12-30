@@ -31,6 +31,12 @@ export interface WaitingItem {
 export interface StoreSettings {
     store_name: string;
     calling_status_display_second: number;
+    business_start_time: string;
+    business_end_time: string;
+    enable_break_time: boolean;
+    break_start_time: string;
+    break_end_time: string;
+    operation_type: 'general' | 'dining';
     // Add other settings as needed
     [key: string]: any;
 }

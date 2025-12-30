@@ -92,11 +92,26 @@ export default function EntryPage({ params }: { params: Promise<{ store_code: st
                         <span className="text-xl font-bold text-primary">WAIT</span>
                     </div>
                     <CardTitle className="text-2xl mb-1">{store.name}</CardTitle>
-                    <div className="flex justify-center mb-4">
+                    <div className="flex flex-col items-center gap-3 mb-4">
                         <div className="bg-slate-100 px-4 py-2 rounded-lg flex items-center gap-2">
                             <span className="text-slate-600 font-medium">현재 총 대기</span>
                             <span className="text-xl font-bold text-primary">{store.current_waiting_count || 0}팀</span>
                         </div>
+
+                        {(store.is_business_hours === false || store.is_break_time === true) && (
+                            <div className="w-full bg-red-50 border border-red-100 p-3 rounded-xl flex flex-col items-center gap-1 animate-in zoom-in duration-300">
+                                <span className="text-red-600 font-bold flex items-center gap-1.5">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                                    {store.is_break_time ? "휴게 시간 (Break Time)" : "영업 시간 종료"}
+                                </span>
+                                <span className="text-xs text-red-500 font-medium">
+                                    {store.is_break_time
+                                        ? `${store.break_time?.start} ~ ${store.break_time?.end} 동안 접수가 제한됩니다.`
+                                        : `영업시간: ${store.business_hours?.start} ~ ${store.business_hours?.end}`
+                                    }
+                                </span>
+                            </div>
+                        )}
                     </div>
 
                     <CardDescription>
@@ -167,7 +182,11 @@ export default function EntryPage({ params }: { params: Promise<{ store_code: st
                                     </FormItem>
                                 )}
                             />
-                            <Button type="submit" className="w-full h-12 text-lg font-bold" disabled={registering}>
+                            <Button
+                                type="submit"
+                                className="w-full h-12 text-lg font-bold"
+                                disabled={registering || (store.is_business_hours === false) || (store.is_break_time === true)}
+                            >
                                 {registering ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : '대기 등록하기'}
                             </Button>
                         </form>
