@@ -96,6 +96,7 @@ interface WaitingState {
     // Admin Actions
     closeClass: (classId: number) => Promise<void>;
     reorderWaitingList: (classId: number, fromIndex: number, toIndex: number) => void;
+    incrementCallCount: (classId: number, waitingId: number) => void;
     reset: () => void;
 }
 
@@ -387,5 +388,25 @@ export const useWaitingStore = create<WaitingState>((set, get) => ({
         isConnected: false,
         connectionBlockState: null,
         isLoading: false
-    })
+    }),
+
+    incrementCallCount: (classId, waitingId) => {
+        set((state) => {
+            const list = state.waitingList[classId];
+            if (!list) return state;
+
+            const newList = list.map(item =>
+                item.id === waitingId
+                    ? { ...item, call_count: (item.call_count || 0) + 1 }
+                    : item
+            );
+
+            return {
+                waitingList: {
+                    ...state.waitingList,
+                    [classId]: newList
+                }
+            };
+        });
+    }
 }));

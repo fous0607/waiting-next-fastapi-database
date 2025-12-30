@@ -86,6 +86,7 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
     const handleCall = async () => {
         try {
             await api.post(`/board/${item.id}/call`);
+            useWaitingStore.getState().incrementCallCount(item.class_id, item.id);
             toast.success("호출되었습니다.");
         } catch (e) {
             toast.error("호출 실패");
