@@ -232,8 +232,8 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                                         {item.name || "비회원"}
                                     </h3>
                                     {/* Phone & Party Size Details */}
-                                    <div className="flex items-center gap-2 shrink-0">
-                                        <span className="text-base font-bold text-slate-500 dark:text-slate-400 tracking-tight font-mono whitespace-nowrap">
+                                    <div className="flex items-center gap-1 shrink-0">
+                                        <span className="text-lg font-black text-slate-700 dark:text-slate-300 tracking-tight font-mono whitespace-nowrap">
                                             {item.phone.startsWith('010')
                                                 ? item.phone.substring(3).replace(/(\d{4})(\d{4})/, '$1-$2')
                                                 : item.phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3')
@@ -274,38 +274,38 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                         {/* Middle: Party Size & Status (Bundled with actions in one dense row if possible, or stacked compactly) */}
                         {/* User requested actions to move LEFT to reduce width. We'll combine status and actions. */}
 
-                        <div className="flex items-center justify-start gap-3 mt-1 pt-1 border-t border-slate-100 dark:border-slate-800">
+                        <div className="flex items-center justify-start gap-1 mt-1 pt-1 border-t border-slate-100 dark:border-slate-800">
                             {/* Status Info */}
-                            <div className="flex items-center gap-2 shrink-0">
+                            <div className="flex items-center gap-1 shrink-0">
                                 {(item.total_party_size ?? 0) > 0 && (
-                                    <span className="text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded-md text-xs whitespace-nowrap">
+                                    <span className="text-blue-600 font-bold bg-blue-50 px-1.5 py-0.5 rounded-md text-xs whitespace-nowrap">
                                         {renderPartySize()}
                                     </span>
                                 )}
                                 {item.status === 'called' && (
-                                    <Badge className="bg-yellow-500 text-white hover:bg-yellow-600 px-1.5 py-0 h-5 whitespace-nowrap">호출중</Badge>
+                                    <Badge className="bg-yellow-500 text-white hover:bg-yellow-600 px-1 py-0 h-5 text-[10px] whitespace-nowrap">호출중</Badge>
                                 )}
                             </div>
 
-                            {/* Actions - Moved to Left (Next to Status) */}
-                            <div className="flex items-center gap-1.5">
-                                {/* Separated Up/Down buttons for better touch targets */}
-                                <div className="flex items-center gap-1 mr-1">
+                            {/* Actions - Compacted */}
+                            <div className="flex items-center gap-1 ml-auto">
+                                {/* Stacked Arrows for Width Savings */}
+                                <div className="flex flex-col gap-0.5 mr-1">
                                     <Button
                                         variant="outline"
                                         size="icon"
-                                        className="h-8 w-8 bg-white hover:bg-slate-100 text-slate-500 border-slate-200 shadow-sm"
+                                        className="h-4 w-6 rounded-none rounded-t-md hover:bg-slate-100 border-slate-200 p-0"
                                         onClick={() => handleOrderChange('up')}
                                     >
-                                        <ArrowUp className="w-4 h-4" />
+                                        <ArrowUp className="w-3 h-3" />
                                     </Button>
                                     <Button
                                         variant="outline"
                                         size="icon"
-                                        className="h-8 w-8 bg-white hover:bg-slate-100 text-slate-500 border-slate-200 shadow-sm"
+                                        className="h-4 w-6 rounded-none rounded-b-md hover:bg-slate-100 border-slate-200 p-0"
                                         onClick={() => handleOrderChange('down')}
                                     >
-                                        <ArrowDown className="w-4 h-4" />
+                                        <ArrowDown className="w-3 h-3" />
                                     </Button>
                                 </div>
 
@@ -313,7 +313,7 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                                     variant="outline"
                                     size="sm"
                                     onClick={handleCall}
-                                    className="h-8 px-3 text-xs font-bold gap-1 bg-white hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 transition-colors shadow-sm whitespace-nowrap"
+                                    className="h-8 px-2 text-xs font-bold gap-1 bg-white hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 transition-colors shadow-sm whitespace-nowrap"
                                 >
                                     <BellRing className="w-3 h-3" />
                                     {useWaitingStore.getState().storeSettings?.detail_mode === 'pickup' ? "준비" : "호출"}
@@ -323,7 +323,7 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                                     size="sm"
                                     onClick={() => handleStatusUpdate('attended')}
                                     className={cn(
-                                        "h-8 px-3 text-xs font-bold gap-1 bg-white transition-colors shadow-sm whitespace-nowrap",
+                                        "h-8 px-2 text-xs font-bold gap-1 bg-white transition-colors shadow-sm whitespace-nowrap",
                                         useWaitingStore.getState().storeSettings?.detail_mode === 'pickup'
                                             ? "hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200"
                                             : "hover:bg-green-50 hover:text-green-600 hover:border-green-200"
@@ -342,7 +342,7 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
 
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="sm" className="h-8 w-6 p-0 hover:bg-slate-100">
+                                        <Button variant="ghost" size="sm" className="h-8 w-5 p-0 hover:bg-slate-100">
                                             <MoreHorizontal className="w-4 h-4 text-slate-500" />
                                         </Button>
                                     </DropdownMenuTrigger>
