@@ -135,6 +135,9 @@ export default function ReceptionPage() {
             poll();
         }
 
+        // Initial settings load
+        loadStoreSettings();
+
         return () => {
             isActive = false;
             clearTimeout(timeoutId);
