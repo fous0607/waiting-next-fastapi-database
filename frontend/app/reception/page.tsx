@@ -397,9 +397,12 @@ export default function ReceptionPage() {
             } else if (num.length > 3) {
                 formatted = num.replace(/(\d{3})(\d{1,4})/, '$1-$2');
             }
-        } else if (num.length === 8) {
-            // Support 8-digit formatting for 010-XXXX-XXXX shortcut
-            formatted = num.replace(/(\d{4})(\d{4})/, '$1-$2');
+        } else {
+            // General 4+ digit formatting (e.g. 12345 -> 1234-5)
+            // This covers the 8-digit shortcut and any intermediate state
+            if (num.length > 4) {
+                formatted = num.replace(/(\d{4})(\d{1,4})/, '$1-$2');
+            }
         }
         return formatted;
     };
