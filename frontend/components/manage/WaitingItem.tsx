@@ -226,25 +226,19 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                                     <span className="text-xl font-black text-primary leading-none">#{item.waiting_number}</span>
                                 </div>
 
-                                {/* Name & Phone - Modified for better visibility */}
-                                <div className="flex items-center gap-2 overflow-hidden flex-1">
-                                    <h3 className="text-lg font-bold truncate shrink-1 leading-tight">
+                                {/* Name & Phone - Modified: Name visibility priority, Phone without 010 */}
+                                <div className="flex items-baseline gap-2 overflow-hidden flex-1 min-w-0">
+                                    <h3 className="text-lg font-bold truncate leading-tight text-slate-900 dark:text-slate-100">
                                         {item.name || "비회원"}
                                     </h3>
-                                    {/* Phone: Increased size, ensuring visibility */}
-                                    <span className="text-base font-bold text-slate-700 dark:text-slate-300 tracking-tight font-mono whitespace-nowrap shrink-0">
-                                        {item.phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3')}
+                                    {/* Phone: Shortened (No 010-), distinct style */}
+                                    <span className="text-base font-bold text-slate-500 dark:text-slate-400 tracking-tight font-mono whitespace-nowrap shrink-0">
+                                        {item.phone.startsWith('010')
+                                            ? item.phone.substring(3).replace(/(\d{4})(\d{4})/, '$1-$2')
+                                            : item.phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3')
+                                        }
                                     </span>
                                 </div>
-
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8 text-slate-400 hover:text-slate-600 shrink-0 ml-1"
-                                    onClick={() => setIsNameDialogOpen(true)}
-                                >
-                                    <ClipboardList className="w-4 h-4" />
-                                </Button>
                             </div>
                         </div>
 
@@ -324,6 +318,7 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
+                                        <DropdownMenuItem onSelect={() => setIsNameDialogOpen(true)}>이름 변경</DropdownMenuItem>
                                         <DropdownMenuItem onClick={() => handleStatusUpdate('cancelled')}>취소</DropdownMenuItem>
                                         <DropdownMenuItem onSelect={() => setIsMoveDialogOpen(true)}>교시 이동</DropdownMenuItem>
                                         <DropdownMenuItem onSelect={() => setIsMemberDetailOpen(true)} disabled={!item.member_id}>회원 상세</DropdownMenuItem>
