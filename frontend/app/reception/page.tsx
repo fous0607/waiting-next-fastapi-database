@@ -1071,14 +1071,20 @@ export default function ReceptionPage() {
 
                                 return configs.map((cat: any) => {
                                     const currentCount = partySizeSelections[cat.id] || 0;
+                                    // Determine type: default to 'std' if undefined or if required is true (legacy)
+                                    const isStandard = cat.type === 'std' || cat.type === undefined || cat.required === true;
+
                                     return (
                                         <div key={cat.id} className="flex items-center justify-between bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
                                             <div className="text-left">
                                                 <div className="text-2xl font-bold text-slate-800 flex items-center gap-2">
                                                     {cat.label}
-                                                    {cat.required && <span className="text-[10px] bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Required</span>}
+                                                    {!isStandard && <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Option</span>}
                                                 </div>
-                                                <div className="text-sm text-slate-400">최대 {cat.max}명 선택 가능</div>
+                                                <div className="text-sm text-slate-400">
+                                                    {isStandard ? '인원수 포함' : '인원수 제외 (옵션)'}
+                                                    {cat.max > 0 ? ` / 최대 ${cat.max}명` : ''}
+                                                </div>
                                             </div>
                                             <div className="flex items-center gap-6">
                                                 <Button
@@ -1103,11 +1109,11 @@ export default function ReceptionPage() {
                                                 <Button
                                                     variant="outline"
                                                     className="w-14 h-14 rounded-full text-3xl font-bold border-2 border-blue-200 text-blue-600 hover:bg-blue-50 active:scale-95"
-                                                    disabled={currentCount >= (cat.max || 20)}
+                                                    disabled={cat.max > 0 && currentCount >= cat.max}
                                                     onClick={() => {
                                                         setPartySizeSelections(prev => ({
                                                             ...prev,
-                                                            [cat.id]: Math.min((cat.max || 20), currentCount + 1)
+                                                            [cat.id]: Math.min((cat.max || 99), currentCount + 1)
                                                         }));
                                                     }}
                                                 >
@@ -1138,13 +1144,36 @@ export default function ReceptionPage() {
                             className="flex-[2] h-20 text-3xl rounded-2xl bg-slate-900 hover:bg-slate-800 text-white shadow-xl active:scale-[0.98]"
                             disabled={(() => {
                                 const configs = JSON.parse(storeSettings?.party_size_config || '[]');
-                                const total = Object.values(partySizeSelections).reduce((a, b) => a + b, 0);
-                                const requiredMet = configs.filter((c: any) => c.required).every((c: any) => (partySizeSelections[c.id] || 0) > 0);
-                                return total === 0 || !requiredMet || isSubmitting;
+                                let stdTotal = 0;
+
+                                // Calculate standard total for validation
+                                configs.forEach((cat: any) => {
+                                    const count = partySizeSelections[cat.id] || 0;
+                                    const isStandard = cat.type === 'std' || cat.type === undefined || cat.required === true;
+                                    if (isStandard) stdTotal += count;
+                                });
+
+                                // Require at least 1 person in standard categories
+                                return stdTotal === 0 || isSubmitting;
                             })()}
                             onClick={async () => {
-                                const totalVal = Object.values(partySizeSelections).reduce((a, b) => a + b, 0);
-                                await processRegistration(partySizeDialog.phone, partySizeDialog.name, totalVal, partySizeSelections);
+                                const configs = JSON.parse(storeSettings?.party_size_config || '[]');
+
+                                let stdTotal = 0;
+                                const details: Record<string, number> = {};
+
+                                configs.forEach((cat: any) => {
+                                    const count = partySizeSelections[cat.id] || 0;
+                                    // Save name (label) and count
+                                    if (count > 0) {
+                                        details[cat.label] = count;
+                                    }
+
+                                    const isStandard = cat.type === 'std' || cat.type === undefined || cat.required === true;
+                                    if (isStandard) stdTotal += count;
+                                });
+
+                                await processRegistration(partySizeDialog.phone, partySizeDialog.name, stdTotal, details);
                             }}
                         >
                             {isSubmitting ? <Loader2 className="w-8 h-8 animate-spin mx-auto" /> : '접수 완료하기'}
@@ -1155,3 +1184,4 @@ export default function ReceptionPage() {
         </>
     );
 }
+
