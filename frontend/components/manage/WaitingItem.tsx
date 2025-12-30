@@ -239,33 +239,12 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                                                 : item.phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3')
                                             }
                                         </span>
-                                        {/* Party Size Details (Concise) */}
-                                        {(() => {
-                                            if (!item.party_size_details) return null;
-                                            try {
-                                                const details = JSON.parse(item.party_size_details);
-                                                const segments: string[] = [];
-                                                let configMap: Record<string, string> = {};
-                                                try {
-                                                    const configs = JSON.parse(useWaitingStore.getState().storeSettings?.party_size_config || '[]');
-                                                    configs.forEach((c: any) => { configMap[c.id] = c.label; });
-                                                } catch (e) { }
-
-                                                Object.entries(details).forEach(([id, count]) => {
-                                                    const numCount = Number(count);
-                                                    if (numCount > 0) {
-                                                        const label = configMap[id] || id;
-                                                        segments.push(`${label} ${numCount}`);
-                                                    }
-                                                });
-                                                if (segments.length === 0) return null;
-                                                return (
-                                                    <span className="text-xs font-medium text-slate-400 dark:text-slate-500 whitespace-nowrap bg-slate-50 dark:bg-slate-800/50 px-1.5 py-0.5 rounded border border-slate-100 dark:border-slate-800">
-                                                        {segments.join(', ')}
-                                                    </span>
-                                                );
-                                            } catch (e) { return null; }
-                                        })()}
+                                        {/* Party Size Details (Prominent) */}
+                                        {(item.total_party_size ?? 0) > 0 && (
+                                            <span className="text-sm font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-md border border-blue-100 whitespace-nowrap ml-1">
+                                                {renderPartySize()}
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -277,11 +256,6 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                         <div className="flex items-center justify-start gap-1 mt-1 pt-1 border-t border-slate-100 dark:border-slate-800">
                             {/* Status Info */}
                             <div className="flex items-center gap-1 shrink-0">
-                                {(item.total_party_size ?? 0) > 0 && (
-                                    <span className="text-blue-600 font-bold bg-blue-50 px-1.5 py-0.5 rounded-md text-xs whitespace-nowrap">
-                                        {renderPartySize()}
-                                    </span>
-                                )}
                                 {item.status === 'called' && (
                                     <Badge className="bg-yellow-500 text-white hover:bg-yellow-600 px-1 py-0 h-5 text-[10px] whitespace-nowrap">호출중</Badge>
                                 )}
