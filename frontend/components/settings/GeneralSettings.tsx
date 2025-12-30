@@ -219,12 +219,6 @@ export function GeneralSettings() {
     const { voices: koVoices, speak, speakCall, speakRegistration, speakDuplicate } = useVoiceAlert(formValues);
 
     useEffect(() => {
-        if (koVoices.length > 0) {
-            setVoices(koVoices);
-        }
-    }, [koVoices]);
-
-    useEffect(() => {
         const fetchSettings = async () => {
             try {
                 const { data } = await api.get('/store/');
@@ -1303,8 +1297,8 @@ export function GeneralSettings() {
                                                             </SelectTrigger>
                                                         </FormControl>
                                                         <SelectContent>
-                                                            {voices.length === 0 && <SelectItem value="default">시스템 기본값</SelectItem>}
-                                                            {voices.map((voice) => (
+                                                            {koVoices.length === 0 && <SelectItem value="default">시스템 기본값</SelectItem>}
+                                                            {koVoices.map((voice) => (
                                                                 <SelectItem key={voice.name} value={voice.name} className="text-xs">
                                                                     {voice.name.includes('Female') || voice.name.includes('Yuna') || voice.name.includes('Jiyoung') || voice.name.includes('Soyeon') ? ' [여성] ' : (voice.name.includes('Male') || voice.name.includes('Minsang') ? ' [남성] ' : ' [공공/기타] ')} {voice.name}
                                                                 </SelectItem>
