@@ -115,9 +115,10 @@ const settingsSchema = z.object({
     admin_password: z.string().optional(), // For verification if needed, usually just loaded
     registration_message: z.string().default("처음 방문하셨네요!\n성함을 입력해 주세요."),
 
-    // Dining Mode Phase 2
+    // Dining Mode Phase 2 & 3
     enable_party_size: z.boolean().default(false),
     enable_menu_ordering: z.boolean().default(false),
+    party_size_config: z.string().optional().nullable(),
 });
 
 type SettingsFormValues = z.infer<typeof settingsSchema>;
@@ -188,6 +189,9 @@ export function GeneralSettings() {
             registration_message: "처음 방문하셨네요!\n성함을 입력해 주세요.",
             enable_party_size: false,
             enable_menu_ordering: false,
+            party_size_config: JSON.stringify([
+                { id: 'total', label: '총 인원', min: 1, max: 20, required: true }
+            ]),
         },
     });
 
@@ -209,20 +213,14 @@ export function GeneralSettings() {
         }
     };
 
-    useEffect(() => {
-        const loadVoices = () => {
-            const availableVoices = window.speechSynthesis.getVoices();
-            // Filter only Korean voices by default or just show all if desired
-            // Let's show Korean primarily
-            const koVoices = availableVoices.filter(v => v.lang.includes('ko'));
-            setVoices(koVoices.length > 0 ? koVoices : availableVoices);
-        };
+    const formValues = form.watch();
+    const { voices: koVoices, speak, speakCall, speakRegistration, speakDuplicate } = useVoiceAlert(formValues);
 
-        loadVoices();
-        if (window.speechSynthesis.onvoiceschanged !== undefined) {
-            window.speechSynthesis.onvoiceschanged = loadVoices;
+    useEffect(() => {
+        if (koVoices.length > 0) {
+            setVoices(koVoices);
         }
-    }, []);
+    }, [koVoices]);
 
     useEffect(() => {
         const fetchSettings = async () => {
@@ -332,37 +330,13 @@ export function GeneralSettings() {
     }
 
     const handlePreviewVoice = () => {
-        const values = form.getValues();
-        if (!window.speechSynthesis) {
-            toast.error('이 브라우저는 음성 안내를 지원하지 않습니다.');
-            return;
-        }
-
-        window.speechSynthesis.cancel();
-        let text = '';
-
         if (previewType === 'waiting') {
-            text = values.waiting_voice_message?.replace('{클래스명}', '테스트교시').replace('{회원명}', '홍길동').replace('{순번}', '1')
-                || '테스트교시 홍길동님 1번째 대기 접수 되었습니다.';
+            speakRegistration({ class_name: '테스트교시', display_name: '홍길동', class_order: 1 });
         } else if (previewType === 'duplicate') {
-            text = values.duplicate_registration_voice_message || "이미 대기 중인 번호입니다.";
+            speakDuplicate();
         } else if (previewType === 'calling') {
-            // Note: calling voice alert might be disabled, but we preview it anyway
-            text = values.waiting_call_voice_message?.replace('{클래스명}', '테스트교시').replace('{회원명}', '홍길동').replace('{순번}', '1')
-                || '1번 홍길동님, 데스크로 오시기 바랍니다.';
+            speakCall({ class_order: 1, display_name: '홍길동', class_name: '테스트교시' });
         }
-
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'ko-KR';
-        utterance.rate = values.waiting_voice_rate || 1.0;
-        utterance.pitch = values.waiting_voice_pitch || 1.0;
-
-        if (values.waiting_voice_name) {
-            const voice = voices.find(v => v.name === values.waiting_voice_name);
-            if (voice) utterance.voice = voice;
-        }
-
-        window.speechSynthesis.speak(utterance);
     };
 
     return (
@@ -593,6 +567,151 @@ export function GeneralSettings() {
                             </div>
                         </AccordionContent>
                     </AccordionItem>
+
+                    {operationType === 'dining' && (
+                        <AccordionItem value="dining-specialized" className="border-orange-100 bg-orange-50/10">
+                            <AccordionTrigger className="text-orange-700 font-bold px-2 hover:no-underline">
+                                🍳 외식 모드 특화 기능 (Dining Specialized)
+                            </AccordionTrigger>
+                            <AccordionContent className="space-y-6 p-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <FormField
+                                        control={form.control}
+                                        name="enable_party_size"
+                                        render={({ field }) => (
+                                            <FormItem className="flex flex-row items-center justify-between rounded-lg border border-orange-200 p-4 bg-white shadow-sm">
+                                                <div className="space-y-0.5">
+                                                    <FormLabel className="text-base text-orange-900 font-bold">인원수 입력 사용</FormLabel>
+                                                    <FormDescription className="text-orange-700/70 text-xs">
+                                                        접수 시 인원수를 입력받습니다. (성인/유아 등 구분 가능)
+                                                    </FormDescription>
+                                                </div>
+                                                <FormControl>
+                                                    <Checkbox
+                                                        checked={field.value}
+                                                        onCheckedChange={field.onChange}
+                                                    />
+                                                </FormControl>
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="enable_menu_ordering"
+                                        render={({ field }) => (
+                                            <FormItem className="flex flex-row items-center justify-between rounded-lg border border-orange-200 p-4 bg-white shadow-sm">
+                                                <div className="space-y-0.5">
+                                                    <FormLabel className="text-base text-orange-900 font-bold">메뉴 미리 주문 사용</FormLabel>
+                                                    <FormDescription className="text-orange-700/70 text-xs">
+                                                        접수 시 메뉴를 미리 선택할 수 있게 합니다.
+                                                    </FormDescription>
+                                                </div>
+                                                <FormControl>
+                                                    <Checkbox
+                                                        checked={field.value}
+                                                        onCheckedChange={field.onChange}
+                                                    />
+                                                </FormControl>
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+
+                                {form.watch('enable_party_size') && (
+                                    <div className="space-y-4 pt-2 border-t border-orange-100">
+                                        <div className="flex items-center justify-between">
+                                            <h4 className="text-sm font-bold text-orange-900">👥 인원수 카테고리 구성</h4>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                className="h-8 text-[11px] bg-white border-orange-200 text-orange-700 hover:bg-orange-50"
+                                                onClick={() => {
+                                                    const current = JSON.parse(form.getValues('party_size_config') || '[]');
+                                                    const newItem = { id: `cat_${Date.now()}`, label: '새 항목', min: 0, max: 20, required: false };
+                                                    form.setValue('party_size_config', JSON.stringify([...current, newItem]));
+                                                }}
+                                            >
+                                                + 카테고리 추가
+                                            </Button>
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            {(() => {
+                                                try {
+                                                    const categories = JSON.parse(form.watch('party_size_config') || '[]');
+                                                    return categories.map((cat: any, index: number) => (
+                                                        <div key={cat.id} className="flex items-end gap-3 p-3 rounded-md bg-white border border-orange-100 shadow-sm relative group">
+                                                            <div className="flex-1 space-y-2">
+                                                                <Label className="text-[10px] text-orange-400">항목명</Label>
+                                                                <Input
+                                                                    className="h-9 text-sm"
+                                                                    value={cat.label}
+                                                                    onChange={(e) => {
+                                                                        const newCats = [...categories];
+                                                                        newCats[index].label = e.target.value;
+                                                                        form.setValue('party_size_config', JSON.stringify(newCats));
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                            <div className="w-16 space-y-2 text-center">
+                                                                <Label className="text-[10px] text-orange-400">분류</Label>
+                                                                <Select
+                                                                    value={cat.required ? 'req' : 'opt'}
+                                                                    onValueChange={(v) => {
+                                                                        const newCats = [...categories];
+                                                                        newCats[index].required = v === 'req';
+                                                                        form.setValue('party_size_config', JSON.stringify(newCats));
+                                                                    }}
+                                                                >
+                                                                    <SelectTrigger className="h-9 text-[11px]"><SelectValue /></SelectTrigger>
+                                                                    <SelectContent>
+                                                                        <SelectItem value="req">필수</SelectItem>
+                                                                        <SelectItem value="opt">선택</SelectItem>
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            </div>
+                                                            <div className="w-20 space-y-2">
+                                                                <Label className="text-[10px] text-orange-400">최대값</Label>
+                                                                <Input
+                                                                    type="number"
+                                                                    className="h-9 text-sm text-right"
+                                                                    value={cat.max}
+                                                                    onChange={(e) => {
+                                                                        const newCats = [...categories];
+                                                                        newCats[index].max = parseInt(e.target.value) || 0;
+                                                                        form.setValue('party_size_config', JSON.stringify(newCats));
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                            <Button
+                                                                type="button"
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                className="h-9 px-2 text-rose-500 hover:bg-rose-50 hover:text-rose-600"
+                                                                onClick={() => {
+                                                                    const newCats = categories.filter((_: any, i: number) => i !== index);
+                                                                    form.setValue('party_size_config', JSON.stringify(newCats));
+                                                                }}
+                                                            >
+                                                                삭제
+                                                            </Button>
+                                                        </div>
+                                                    ));
+                                                } catch (e) {
+                                                    return <p className="text-xs text-rose-500">설정 데이터 오류</p>;
+                                                }
+                                            })()}
+                                        </div>
+                                        <p className="text-[10px] text-slate-400">
+                                            * 필수 항목은 1명 이상 입력해야 접수가 가능합니다.<br />
+                                            * 최대값은 해당 카테고리에서 선택 가능한 최대 인원입니다.
+                                        </p>
+                                    </div>
+                                )}
+                            </AccordionContent>
+                        </AccordionItem>
+                    )}
 
                     {/* Section: QR Code / Mobile Entry (New) */}
                     <AccordionItem value="qr-code">
@@ -1167,7 +1286,7 @@ export function GeneralSettings() {
                                     )}
                                 </div>
 
-                                {form.watch('enable_waiting_voice_alert') && (
+                                {(form.watch('enable_waiting_voice_alert') || form.watch('enable_calling_voice_alert')) && (
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2 p-4 bg-slate-50 rounded-lg border border-slate-100">
                                         <FormField
                                             control={form.control}

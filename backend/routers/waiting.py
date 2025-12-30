@@ -441,6 +441,9 @@ async def register_waiting(
         else:
              raise HTTPException(status_code=400, detail="등록 가능한 교시가 없습니다 (모두 마감 또는 정원 초과).")
 
+    # 인원수 설정 (total_party_size가 0이면 기존 person_count 사용)
+    total_size = waiting.total_party_size if (waiting.total_party_size and waiting.total_party_size > 0) else (waiting.person_count or 1)
+
     # 대기자 등록
     new_waiting = WaitingList(
         business_date=today,
@@ -452,7 +455,9 @@ async def register_waiting(
         member_id=member_id,
         status="waiting",
         registered_at=datetime.now(),
-        store_id=current_store.id
+        store_id=current_store.id,
+        total_party_size=total_size,
+        party_size_details=waiting.party_size_details
     )
 
     db.add(new_waiting)

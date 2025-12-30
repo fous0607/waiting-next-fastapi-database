@@ -143,9 +143,34 @@ function MobileManagerContent() {
         return <div className="flex justify-center items-center h-screen"><Loader2 className="w-8 h-8 animate-spin" /></div>;
     }
 
-    // Stats Calculation
-    const totalWaiting = classes.reduce((acc, c) => acc + c.current_count, 0);
-    const totalAttended = classes.reduce((acc, c) => acc + (c.total_count - c.current_count), 0);
+    const renderPartySize = (item: any) => {
+        if (!item.party_size_details) {
+            return item.total_party_size ? `${item.total_party_size}명` : '';
+        }
+
+        try {
+            const details = JSON.parse(item.party_size_details);
+            const detailLabels: string[] = [];
+            let configMap: Record<string, string> = {};
+            try {
+                const configs = JSON.parse(storeSettings?.party_size_config || '[]');
+                configs.forEach((c: any) => { configMap[c.id] = c.label; });
+            } catch (e) { }
+
+            Object.entries(details).forEach(([id, count]) => {
+                const numCount = Number(count);
+                if (numCount > 0) {
+                    const label = configMap[id] || id;
+                    detailLabels.push(`${label} ${numCount}`);
+                }
+            });
+
+            if (detailLabels.length === 0) return `${item.total_party_size}명`;
+            return `${detailLabels.join(', ')} (총 ${item.total_party_size}명)`;
+        } catch (e) {
+            return `${item.total_party_size}명`;
+        }
+    };
 
     return (
         <div className="min-h-screen bg-slate-50 pb-20"> {/* pb-20 for safe bottom area */}
@@ -238,8 +263,14 @@ function MobileManagerContent() {
                                                         </span>
                                                     )}
                                                 </div>
-                                                <div className="text-[10px] text-slate-400 font-medium">
-                                                    {new Date(item.registered_at).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} 접수
+                                                <div className="text-[10px] text-slate-400 font-medium flex items-center gap-1.5">
+                                                    <span>{new Date(item.registered_at).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} 접수</span>
+                                                    {item.total_party_size > 0 && (
+                                                        <>
+                                                            <span className="text-slate-200">|</span>
+                                                            <span className="text-blue-600 font-bold">{renderPartySize(item)}</span>
+                                                        </>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>

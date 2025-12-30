@@ -106,6 +106,8 @@ export function QuickRegister() {
         setDisplayValue(formatPhoneNumber(digitsOnly));
     };
 
+    const [personCount, setPersonCount] = useState(1);
+
     const handleRegister = async (overrideValue?: string) => {
         const valToSubmit = overrideValue || inputValue;
 
@@ -124,7 +126,8 @@ export function QuickRegister() {
             const payload = {
                 input_value: valToSubmit.trim(),
                 class_id: currentClassId,
-                person_count: 1 // Default
+                person_count: personCount,
+                total_party_size: personCount // Link them for consistency
             };
 
             const response = await api.post('/members/quick-register', payload);
@@ -179,6 +182,17 @@ export function QuickRegister() {
                             disabled={isLoading}
                             className="bg-white text-2xl font-bold tracking-wider"
                         />
+                        <div className="flex items-center bg-white border rounded-md px-2 shrink-0">
+                            <span className="text-xs text-muted-foreground mr-2">인원</span>
+                            <Input
+                                type="number"
+                                min={1}
+                                max={50}
+                                value={personCount}
+                                onChange={(e) => setPersonCount(parseInt(e.target.value) || 1)}
+                                className="w-16 h-8 border-none text-center font-bold text-lg p-0 focus-visible:ring-0"
+                            />
+                        </div>
                         <Button onClick={() => handleRegister()} disabled={isLoading}>
                             {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "대기 등록"}
                         </Button>

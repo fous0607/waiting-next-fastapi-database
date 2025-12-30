@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import useSWR from 'swr';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '@/lib/api';
+import { useVoiceAlert } from '@/hooks/useVoiceAlert';
 import { BoardCard } from '@/components/board/board-card';
 import { GlobalLoader } from "@/components/ui/GlobalLoader";
 
@@ -110,37 +111,7 @@ export default function BoardPage() {
         loadStoreSettings();
     }, []);
 
-    const speak = useCallback((text: string) => {
-        // if (!storeSettings?.enable_waiting_voice_alert) return; // Caller handles policy
-        if (typeof window === 'undefined' || !window.speechSynthesis) return;
-
-        // window.speechSynthesis.cancel();
-
-        const parts = text.split(/(\s{2,})/);
-        let currentTime = 0;
-
-        parts.forEach((part) => {
-            if (/^\s{2,}$/.test(part)) {
-                const delayCount = Math.floor(part.length / 2);
-                currentTime += delayCount * 500;
-            } else if (part.trim()) {
-                setTimeout(() => {
-                    const utterance = new SpeechSynthesisUtterance(part.trim());
-                    utterance.lang = 'ko-KR';
-                    utterance.rate = storeSettings?.waiting_voice_rate || 1.0;
-                    utterance.pitch = storeSettings?.waiting_voice_pitch || 1.0;
-
-                    if (storeSettings?.waiting_voice_name) {
-                        const voices = window.speechSynthesis.getVoices();
-                        const voice = voices.find(v => v.name === storeSettings.waiting_voice_name);
-                        if (voice) utterance.voice = voice;
-                    }
-                    window.speechSynthesis.speak(utterance);
-                }, currentTime);
-                currentTime += part.length * 100;
-            }
-        });
-    }, [storeSettings]);
+    const { speakCall } = useVoiceAlert(storeSettings);
 
     // Initial load only - SSE will handle all subsequent updates
     useEffect(() => {
@@ -173,35 +144,17 @@ export default function BoardPage() {
             const key = `${item.id}:${item.call_count}`;
             // If item is called (count > 0) and we haven't processed this specific count yet
             if (item.call_count > 0 && !processedCallsRef.current.has(key)) {
-
-                // Trigger Voice
-                if (storeSettings?.enable_calling_voice_alert) {
-                    const template = storeSettings?.waiting_call_voice_message || "{순번}번 {회원명}님, 데스크로 오시기 바랍니다.";
-                    const message = template
-                        .replace(/{순번}/g, item.class_order.toString())
-                        .replace(/{회원명}/g, item.display_name)
-                        .replace(/{클래스명}/g, item.class_name);
-
-                    console.log("Speaking Call:", message);
-
-                    // Repeat Logic
-                    const repeatCount = storeSettings?.waiting_call_voice_repeat_count || 1;
-                    for (let i = 0; i < repeatCount; i++) {
-                        // Add some delay between repeats if it's not the first one
-                        if (i === 0) {
-                            speak(message);
-                        } else {
-                            // Calculate delay: message duration approx (message.length * 200ms) + 1s pause
-                            const delay = i * (message.length * 300 + 1000);
-                            setTimeout(() => speak(message), delay);
-                        }
-                    }
-                }
+                // Trigger Voice through hook
+                speakCall({
+                    class_order: item.class_order,
+                    display_name: item.display_name,
+                    class_name: item.class_name
+                });
 
                 processedCallsRef.current.add(key);
             }
         });
-    }, [data, storeSettings, speak]);
+    }, [data, storeSettings, speakCall]);
 
     // SWR Polling Implementation
     // Replaces SSE for Vercel Serverless environment
@@ -335,11 +288,11 @@ export default function BoardPage() {
 
             {/* Adjust grid columns based on both rows_per_class (internal card columns) AND actual class count */}
             <div className={`flex-1 grid gap-4 ${(data.rows_per_class || 1) >= 2
-                    ? `grid-cols-1 ${data.classes.length >= 2 ? 'lg:grid-cols-2' : ''}`
-                    : `grid-cols-1 ${data.classes.length === 2 ? 'md:grid-cols-2' :
-                        data.classes.length === 3 ? 'md:grid-cols-2 lg:grid-cols-3' :
-                            data.classes.length >= 4 ? 'md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : ''
-                    }`
+                ? `grid-cols-1 ${data.classes.length >= 2 ? 'lg:grid-cols-2' : ''}`
+                : `grid-cols-1 ${data.classes.length === 2 ? 'md:grid-cols-2' :
+                    data.classes.length === 3 ? 'md:grid-cols-2 lg:grid-cols-3' :
+                        data.classes.length >= 4 ? 'md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : ''
+                }`
                 }`}>
                 {data.classes.map((cls) => {
                     const items = classGroups[cls.id] || [];

@@ -26,6 +26,8 @@ export interface WaitingItem {
     is_empty_seat?: boolean;
     member_id?: number;
     revisit_count?: number;
+    total_party_size?: number;
+    party_size_details?: string;
 }
 
 export interface StoreSettings {
@@ -37,6 +39,9 @@ export interface StoreSettings {
     break_start_time: string;
     break_end_time: string;
     operation_type: 'general' | 'dining';
+    party_size_config?: string;
+    enable_party_size?: boolean;
+    enable_menu_ordering?: boolean;
     // Add other settings as needed
     [key: string]: any;
 }

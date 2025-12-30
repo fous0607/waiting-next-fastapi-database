@@ -126,6 +126,35 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
         phone: item.phone,
     } : null;
 
+    const renderPartySize = () => {
+        if (!item.party_size_details) {
+            return item.total_party_size ? `${item.total_party_size}명` : '';
+        }
+
+        try {
+            const details = JSON.parse(item.party_size_details);
+            const detailLabels: string[] = [];
+            let configMap: Record<string, string> = {};
+            try {
+                const configs = JSON.parse(useWaitingStore.getState().storeSettings?.party_size_config || '[]');
+                configs.forEach((c: any) => { configMap[c.id] = c.label; });
+            } catch (e) { }
+
+            Object.entries(details).forEach(([id, count]) => {
+                const numCount = Number(count);
+                if (numCount > 0) {
+                    const label = configMap[id] || id;
+                    detailLabels.push(`${label} ${numCount}`);
+                }
+            });
+
+            if (detailLabels.length === 0) return `${item.total_party_size}명`;
+            return `${detailLabels.join(', ')} (총 ${item.total_party_size}명)`;
+        } catch (e) {
+            return `${item.total_party_size}명`;
+        }
+    };
+
     if (item.is_empty_seat) {
         return (
             <div ref={setNodeRef} style={style} {...attributes}>
@@ -208,9 +237,16 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                         <div className="flex items-center justify-between gap-2">
                             {/* Phone & Status Badge */}
                             <div className="flex flex-col gap-0.5">
-                                <div className="flex items-center text-xs font-medium text-slate-500">
-                                    <Phone className="w-3 h-3 mr-1" strokeWidth={2.5} />
-                                    <span className="tracking-tight">{item.phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3')}</span>
+                                <div className="flex items-center text-xs font-medium text-slate-500 gap-2">
+                                    <div className="flex items-center">
+                                        <Phone className="w-3 h-3 mr-1" strokeWidth={2.5} />
+                                        <span className="tracking-tight">{item.phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3')}</span>
+                                    </div>
+                                    {item.total_party_size > 0 && (
+                                        <div className="flex items-center border-l pl-2 border-slate-200">
+                                            <span className="text-blue-600 font-bold">{renderPartySize()}</span>
+                                        </div>
+                                    )}
                                 </div>
                                 {item.status === 'called' && (
                                     <Badge className="w-fit bg-yellow-500 text-white hover:bg-yellow-600 px-1.5 py-0 text-[10px] h-4 leading-none">호출중</Badge>

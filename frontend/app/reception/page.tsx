@@ -10,6 +10,7 @@ import { useWaitingStore } from '@/lib/store/useWaitingStore';
 import { Delete, Check, AlertCircle, UserRound, Loader2 } from 'lucide-react';
 import { GlobalLoader } from "@/components/ui/GlobalLoader";
 import { useOperationLabels, type OperationType } from '@/hooks/useOperationLabels';
+import { useVoiceAlert } from '@/hooks/useVoiceAlert';
 
 interface Member {
     id: number;
@@ -52,6 +53,10 @@ export default function ReceptionPage() {
 
     // Registration Modal State (New Member)
     const [registrationDialog, setRegistrationDialog] = useState<{ open: boolean, phone: string }>({ open: false, phone: '' });
+
+    // Party Size Modal State (Phase 3)
+    const [partySizeDialog, setPartySizeDialog] = useState<{ open: boolean, phone: string, name?: string }>({ open: false, phone: '', name: '' });
+    const [partySizeSelections, setPartySizeSelections] = useState<Record<string, number>>({});
 
     const loadStatus = useCallback(async () => {
         try {
@@ -358,63 +363,7 @@ export default function ReceptionPage() {
         }
     }, [storeSettings]);
 
-    const speak = useCallback((text: string) => {
-
-        if (typeof window === 'undefined' || !window.speechSynthesis) {
-            console.error('[Voice] SpeechSynthesis API not available');
-            return;
-        }
-
-        console.log('[Voice] Attempting to speak:', text);
-
-        // 1. Cancel previous speech to reset state
-        window.speechSynthesis.cancel();
-
-        // 2. Prepare voices (handling async loading)
-        let voices = window.speechSynthesis.getVoices();
-        const speakWithVoice = () => {
-            // Retry fetching voices if empty
-            if (voices.length === 0) voices = window.speechSynthesis.getVoices();
-
-            const selectedVoiceName = storeSettings?.waiting_voice_name;
-            const targetVoice = voices.find(v => v.name === selectedVoiceName) || voices.find(v => v.lang === 'ko-KR') || null;
-
-            console.log('[Voice] Selected voice:', targetVoice?.name || 'Default');
-
-            // 3. Simple Queuing Strategy (Native)
-            // Split by double spaces for natural pauses, but queue them natively
-            const parts = text.split(/(\s{2,})/);
-
-            parts.forEach((part) => {
-                if (!part.trim()) return; // Skip empty/whitespace-only parts
-
-                const utterance = new SpeechSynthesisUtterance(part.trim());
-                utterance.lang = 'ko-KR';
-                utterance.rate = storeSettings?.waiting_voice_rate || 1.0;
-                utterance.pitch = storeSettings?.waiting_voice_pitch || 1.0;
-                if (targetVoice) utterance.voice = targetVoice;
-
-                utterance.onstart = () => console.log('[Voice] Started:', part.substring(0, 10) + '...');
-                utterance.onerror = (e) => console.error('[Voice] Error:', e);
-
-                window.speechSynthesis.speak(utterance);
-            });
-        };
-
-        if (voices.length === 0) {
-            console.log('[Voice] Voices not loaded yet, waiting for onvoiceschanged...');
-            window.speechSynthesis.onvoiceschanged = () => {
-                voices = window.speechSynthesis.getVoices();
-                speakWithVoice();
-                // Remove listener to prevent memory leaks/multiple calls
-                window.speechSynthesis.onvoiceschanged = null;
-            };
-            // Fallback: try anyway after small delay if event doesn't fire
-            setTimeout(speakWithVoice, 500);
-        } else {
-            speakWithVoice();
-        }
-    }, [storeSettings]);
+    const { speakRegistration, speakDuplicate } = useVoiceAlert(storeSettings);
 
     const handleNumberClick = (num: string) => {
         if (phoneNumber.length >= 11) return;
@@ -458,7 +407,7 @@ export default function ReceptionPage() {
     // Timeout reference to clear existing timers
     const modalTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    const processRegistration = async (targetPhone: string, name?: string) => {
+    const processRegistration = async (targetPhone: string, name?: string, partySizeTotals: number = 0, partySizeDetails: any = {}) => {
         setIsSubmitting(true);
         // Clear any existing modal close timers to prevent premature closing
         if (modalTimeoutRef.current) {
@@ -470,29 +419,28 @@ export default function ReceptionPage() {
             const payload: any = { phone: targetPhone };
             if (name) payload.name = name;
 
+            // Phase 3: Add Party Size
+            if (partySizeTotals > 0) {
+                payload.total_party_size = partySizeTotals;
+                payload.party_size_details = JSON.stringify(partySizeDetails);
+            }
+
             const { data } = await api.post('/waiting/register', payload);
             setResultDialog({ open: true, data });
             setPhoneNumber('');
             setMemberName(''); // Clear member name
             setSelectionDialog({ open: false, members: [] }); // Close selection if open
             setRegistrationDialog({ open: false, phone: '' }); // Close registration if open
+            setPartySizeDialog({ open: false, phone: '', name: '' }); // Close party size if open
             loadStatus();
 
             // Speak success (Non-blocking)
-            if (storeSettings?.enable_waiting_voice_alert) {
-                setTimeout(() => {
-                    const customMsg = storeSettings?.waiting_voice_message;
-                    // Use data.name directly from response
-                    const memberName = data.name || '';
-                    const message = customMsg
-                        ? customMsg
-                            .replace('{클래스명}', data.class_name)
-                            .replace('{순번}', data.class_order)
-                            .replace('{회원명}', memberName)
-                        : `${data.class_name} ${memberName ? memberName + '님 ' : ''}${data.class_order}번째 대기 접수 되었습니다.`;
-                    speak(message);
-                }, 0);
-            }
+            // Speak success
+            speakRegistration({
+                class_name: data.class_name,
+                display_name: data.name || '',
+                class_order: data.class_order
+            });
 
             // Custom timeout from settings - Ensure it's a number
             // Force re-fetch from latest state or use passed settings
@@ -516,10 +464,7 @@ export default function ReceptionPage() {
                 setErrorDialog({ open: true, message: errorMessage });
 
                 // Duplicate/Business Login Error Voice Feedback
-                if (storeSettings?.enable_duplicate_registration_voice) {
-                    const duplicateMessage = storeSettings.duplicate_registration_voice_message || "이미 대기 중인 번호입니다.";
-                    speak(duplicateMessage);
-                }
+                speakDuplicate();
 
                 // Auto-close error dialog too
                 const timeout = (storeSettings?.waiting_modal_timeout || 5) * 1000;
@@ -553,10 +498,14 @@ export default function ReceptionPage() {
                 }
 
                 if (data.length === 1) {
-                    // Single match - Auto register
                     const member = data[0];
-                    toast.info(`${member.name}님으로 접수합니다.`);
-                    await processRegistration(member.phone);
+                    if (storeSettings?.enable_party_size) {
+                        setPartySizeDialog({ open: true, phone: member.phone, name: member.name });
+                        setIsSubmitting(false);
+                    } else {
+                        toast.info(`${member.name}님으로 접수합니다.`);
+                        await processRegistration(member.phone, member.name);
+                    }
                 } else {
                     // Multiple matches - Show selection
                     setSelectionDialog({ open: true, members: data });
@@ -588,9 +537,14 @@ export default function ReceptionPage() {
         if (storeSettings?.require_member_registration) {
             try {
                 // Check if member already exists
-                await api.get(`/members/phone/${targetPhone}`);
-                // If exists (no error), proceed normally
-                await processRegistration(targetPhone);
+                const memberRes = await api.get(`/members/phone/${targetPhone}`);
+                const member = memberRes.data;
+
+                if (storeSettings?.enable_party_size) {
+                    setPartySizeDialog({ open: true, phone: targetPhone, name: member.name });
+                } else {
+                    await processRegistration(targetPhone, member.name);
+                }
             } catch (error: any) {
                 if (error.response?.status === 404) {
                     // Not found -> Show registration screen
@@ -600,7 +554,11 @@ export default function ReceptionPage() {
                 }
             }
         } else {
-            await processRegistration(targetPhone);
+            if (storeSettings?.enable_party_size) {
+                setPartySizeDialog({ open: true, phone: targetPhone });
+            } else {
+                await processRegistration(targetPhone);
+            }
         }
     };
 
@@ -931,7 +889,14 @@ export default function ReceptionPage() {
                                 key={member.id}
                                 variant="outline"
                                 className="justify-between h-auto py-6 px-8 hover:bg-slate-50"
-                                onClick={() => processRegistration(member.phone)}
+                                onClick={() => {
+                                    setSelectionDialog(prev => ({ ...prev, open: false }));
+                                    if (storeSettings?.enable_party_size) {
+                                        setPartySizeDialog({ open: true, phone: member.phone, name: member.name });
+                                    } else {
+                                        processRegistration(member.phone, member.name);
+                                    }
+                                }}
                             >
                                 <div className="flex items-center gap-6 w-full">
                                     <div className="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0 border border-blue-100">
@@ -1037,7 +1002,12 @@ export default function ReceptionPage() {
                             autoFocus
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' && memberName.trim()) {
-                                    processRegistration(registrationDialog.phone, memberName);
+                                    setRegistrationDialog(prev => ({ ...prev, open: false }));
+                                    if (storeSettings?.enable_party_size) {
+                                        setPartySizeDialog({ open: true, phone: registrationDialog.phone, name: memberName });
+                                    } else {
+                                        processRegistration(registrationDialog.phone, memberName);
+                                    }
                                 }
                             }}
                         />
@@ -1056,9 +1026,125 @@ export default function ReceptionPage() {
                             className="flex-[2] h-20 text-3xl rounded-2xl bg-blue-600 hover:bg-blue-700"
                             size="lg"
                             disabled={!memberName.trim() || isSubmitting}
-                            onClick={() => processRegistration(registrationDialog.phone, memberName)}
+                            onClick={() => {
+                                setRegistrationDialog(prev => ({ ...prev, open: false }));
+                                if (storeSettings?.enable_party_size) {
+                                    setPartySizeDialog({ open: true, phone: registrationDialog.phone, name: memberName });
+                                } else {
+                                    processRegistration(registrationDialog.phone, memberName);
+                                }
+                            }}
                         >
                             {isSubmitting ? '저장 중...' : '등록 완료'}
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Party Size Dialog (Phase 3) */}
+            <Dialog open={partySizeDialog.open} onOpenChange={(open) => {
+                if (!open) {
+                    setPartySizeDialog(prev => ({ ...prev, open: false }));
+                    setPartySizeSelections({});
+                }
+            }}>
+                <DialogContent className="sm:max-w-2xl text-center py-10">
+                    <DialogHeader>
+                        <div className="mx-auto w-16 h-16 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center mb-4">
+                            <UserRound className="w-10 h-10" />
+                        </div>
+                        <DialogTitle className="text-center text-4xl font-bold mb-2">방문 인원 선택</DialogTitle>
+                        <DialogDescription className="text-center text-xl text-slate-500 mb-6 font-normal">
+                            {partySizeDialog.name ? <span className="text-slate-900 font-bold">{partySizeDialog.name}님, </span> : ''}
+                            총 몇 분인가요?
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="grid gap-4 py-4 px-4 bg-slate-50 rounded-[2.5rem] border border-slate-100 mb-8">
+                        {(() => {
+                            try {
+                                const configs = JSON.parse(storeSettings?.party_size_config || '[]');
+                                if (configs.length === 0) return <p className="py-4 text-slate-400">설정된 인원 분류가 없습니다.</p>;
+
+                                return configs.map((cat: any) => {
+                                    const currentCount = partySizeSelections[cat.id] || 0;
+                                    return (
+                                        <div key={cat.id} className="flex items-center justify-between bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                                            <div className="text-left">
+                                                <div className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                                                    {cat.label}
+                                                    {cat.required && <span className="text-[10px] bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Required</span>}
+                                                </div>
+                                                <div className="text-sm text-slate-400">최대 {cat.max}명 선택 가능</div>
+                                            </div>
+                                            <div className="flex items-center gap-6">
+                                                <Button
+                                                    variant="outline"
+                                                    className="w-14 h-14 rounded-full text-3xl font-bold border-2 border-slate-200 text-slate-400 hover:text-slate-600 active:scale-95"
+                                                    disabled={currentCount <= (cat.min || 0)}
+                                                    onClick={() => {
+                                                        setPartySizeSelections(prev => ({
+                                                            ...prev,
+                                                            [cat.id]: Math.max((cat.min || 0), currentCount - 1)
+                                                        }));
+                                                    }}
+                                                >
+                                                    -
+                                                </Button>
+                                                <div className="w-16 flex flex-col items-center">
+                                                    <span className="text-5xl font-black text-blue-600 font-mono leading-none">
+                                                        {currentCount}
+                                                    </span>
+                                                    <span className="text-xs text-slate-300 font-bold mt-1">명</span>
+                                                </div>
+                                                <Button
+                                                    variant="outline"
+                                                    className="w-14 h-14 rounded-full text-3xl font-bold border-2 border-blue-200 text-blue-600 hover:bg-blue-50 active:scale-95"
+                                                    disabled={currentCount >= (cat.max || 20)}
+                                                    onClick={() => {
+                                                        setPartySizeSelections(prev => ({
+                                                            ...prev,
+                                                            [cat.id]: Math.min((cat.max || 20), currentCount + 1)
+                                                        }));
+                                                    }}
+                                                >
+                                                    +
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    );
+                                });
+                            } catch (e) {
+                                return <p className="text-rose-500 py-4">인원 설정 데이터 형식이 올바르지 않습니다.</p>;
+                            }
+                        })()}
+                    </div>
+
+                    <div className="flex gap-4">
+                        <Button
+                            variant="ghost"
+                            className="flex-1 h-20 text-2xl rounded-2xl text-slate-400 hover:bg-slate-50"
+                            onClick={() => {
+                                setPartySizeDialog({ open: false, phone: '', name: '' });
+                                setPartySizeSelections({});
+                            }}
+                        >
+                            취소
+                        </Button>
+                        <Button
+                            className="flex-[2] h-20 text-3xl rounded-2xl bg-slate-900 hover:bg-slate-800 text-white shadow-xl active:scale-[0.98]"
+                            disabled={(() => {
+                                const configs = JSON.parse(storeSettings?.party_size_config || '[]');
+                                const total = Object.values(partySizeSelections).reduce((a, b) => a + b, 0);
+                                const requiredMet = configs.filter((c: any) => c.required).every((c: any) => (partySizeSelections[c.id] || 0) > 0);
+                                return total === 0 || !requiredMet || isSubmitting;
+                            })()}
+                            onClick={async () => {
+                                const totalVal = Object.values(partySizeSelections).reduce((a, b) => a + b, 0);
+                                await processRegistration(partySizeDialog.phone, partySizeDialog.name, totalVal, partySizeSelections);
+                            }}
+                        >
+                            {isSubmitting ? <Loader2 className="w-8 h-8 animate-spin mx-auto" /> : '접수 완료하기'}
                         </Button>
                     </div>
                 </DialogContent>

@@ -810,6 +810,8 @@ async def quick_register(
         name=name_to_register,
         class_id=req.class_id,
         person_count=req.person_count,
+        total_party_size=req.total_party_size,
+        party_size_details=req.party_size_details,
         is_admin_registration=True
     )
     

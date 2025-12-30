@@ -186,6 +186,7 @@ class StoreSettings(Base):
     operation_type = Column(String, default="general") # general: 일반 매장, dining: 외식 매장
     enable_party_size = Column(Boolean, default=False)
     enable_menu_ordering = Column(Boolean, default=False)
+    party_size_config = Column(String, nullable=True) # JSON string for party size categories
 
     # 순차적 마감 설정
     sequential_closing = Column(Boolean, default=False)  # 순차적 마감 사용 여부
@@ -277,6 +278,8 @@ class WaitingList(Base):
     waiting_number = Column(Integer, nullable=False)  # 대기번호
     phone = Column(String, nullable=False)  # 핸드폰번호
     name = Column(String)  # 대기자명 (회원인 경우 자동 입력)
+    total_party_size = Column(Integer, default=0) # 총 인원수
+    party_size_details = Column(String, nullable=True) # JSON string for detailed party size (e.g. {"adult": 2, "child": 1})
 
     class_id = Column(Integer, ForeignKey("class_info.id"), nullable=False)
     class_order = Column(Integer, nullable=False)  # 해당 클래스 내 순서

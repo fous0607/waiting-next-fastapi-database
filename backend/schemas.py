@@ -104,6 +104,7 @@ class StoreSettingsBase(BaseModel):
     operation_type: str = "general"
     enable_party_size: bool = False
     enable_menu_ordering: bool = False
+    party_size_config: Optional[str] = None  # JSON string for categories
 
 class StoreSettingsCreate(StoreSettingsBase):
     pass
@@ -211,6 +212,7 @@ class StoreSettingsUpdate(BaseModel):
     operation_type: Optional[str] = None
     enable_party_size: Optional[bool] = None
     enable_menu_ordering: Optional[bool] = None
+    party_size_config: Optional[str] = None
 
 class StoreSettings(StoreSettingsBase):
     id: int
@@ -321,6 +323,8 @@ class MemberBulkCreate(BaseModel):
 class WaitingListBase(BaseModel):
     phone: str = Field(..., pattern=r'^010\d{8}$')
     name: Optional[str] = None
+    total_party_size: Optional[int] = 0
+    party_size_details: Optional[str] = None
 
 class WaitingListCreate(WaitingListBase):
     class_id: Optional[int] = None
@@ -331,6 +335,8 @@ class QuickRegisterRequest(BaseModel):
     input_value: str
     class_id: int
     person_count: int = 1
+    total_party_size: Optional[int] = 0
+    party_size_details: Optional[str] = None
 
 
 
@@ -350,6 +356,8 @@ class WaitingListResponse(BaseModel):
     last_month_attendance_count: int = 0
     is_new_member: bool = False
     revisit_count: int = 0 # 재방문 횟수 (0이면 배지 미표시)
+    total_party_size: int = 0
+    party_size_details: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -367,6 +375,8 @@ class WaitingList(BaseModel):
     waiting_number: int
     phone: str
     name: Optional[str]
+    total_party_size: int = 0
+    party_size_details: Optional[str] = None
     class_id: int
     class_order: int
     member_id: Optional[int]
@@ -398,6 +408,8 @@ class WaitingBoardItem(BaseModel):
     status: str
     call_count: int = 0
     last_called_at: Optional[datetime] = None
+    total_party_size: int = 0
+    party_size_details: Optional[str] = None
 
 class VoiceSettings(BaseModel):
     enable_waiting_voice_alert: bool = True
