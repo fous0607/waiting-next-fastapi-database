@@ -89,31 +89,45 @@ export default function BoardPage() {
     const [isConnected, setIsConnected] = useState(false);
     const [storeSettings, setStoreSettings] = useState<any>(null);
     const [isAudioEnabled, setIsAudioEnabled] = useState(false);
+    const [showOverlay, setShowOverlay] = useState(true);
 
     // Audio Unlocker
     const enableAudio = useCallback(() => {
         if (typeof window !== 'undefined' && window.speechSynthesis) {
-            // Create a dummy utterance to unlock the audio context
             const utterance = new SpeechSynthesisUtterance('대기현황판 음성 안내가 시작됩니다.');
-            utterance.volume = 0.1; // Low volume just to confirm
+            utterance.volume = 0.1;
             utterance.rate = 1.0;
             utterance.lang = 'ko-KR';
+
+            // Only confirm enabled if it actually plays
+            utterance.onstart = () => {
+                console.log('[Board] Audio started successfully.');
+            };
+            utterance.onend = () => {
+                setIsAudioEnabled(true);
+                setShowOverlay(false); // Close overlay on success
+            };
+            utterance.onerror = (e) => {
+                console.warn('[Board] Audio autoplay blocked or failed:', e);
+                // Do NOT set isAudioEnabled(true) here
+            };
+
             window.speechSynthesis.speak(utterance);
-            setIsAudioEnabled(true);
-            console.log('[Board] Audio context unlocked by user interaction.');
         }
     }, []);
 
-    // Auto-dismiss/enable for TV/Non-touch screens (3 seconds)
+    // Auto-dismiss for TV/Non-touch screens (3 seconds)
+    // Tries to enable audio, but closes the big overlay regardless of success so the board is visible
     useEffect(() => {
-        if (!isAudioEnabled) {
+        if (!isAudioEnabled && showOverlay) {
             const timer = setTimeout(() => {
-                console.log('[Board] Auto-enabling audio (timeout)...');
+                console.log('[Board] Auto-dismissing overlay and attempting audio...');
                 enableAudio();
+                setShowOverlay(false);
             }, 3000);
             return () => clearTimeout(timer);
         }
-    }, [isAudioEnabled, enableAudio]);
+    }, [isAudioEnabled, showOverlay, enableAudio]);
 
     // Load store settings for font customization
     useEffect(() => {
@@ -420,8 +434,9 @@ export default function BoardPage() {
                     );
                 })}
             </div>
-            {/* Audio Enable Overlay (If not enabled) - Optional: Can utilize a full screen overlay if the button is not enough */}
-            {!isAudioEnabled && (
+            {/* Audio Enable Overlay */}
+            {/* Case 1: Big Overlay (Initial 3 seconds or until clicked) */}
+            {!isAudioEnabled && showOverlay && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={enableAudio}>
                     <div className="bg-white p-8 rounded-2xl shadow-2xl text-center max-w-md cursor-pointer transform transition-transform hover:scale-105">
                         <div className="text-6xl mb-4">🔊</div>
@@ -435,6 +450,18 @@ export default function BoardPage() {
                         </button>
                     </div>
                 </div>
+            )}
+
+            {/* Case 2: Persistent Mini-Button (If auto-enable failed and overlay closed) */}
+            {!isAudioEnabled && !showOverlay && (
+                <button
+                    onClick={enableAudio}
+                    className="fixed bottom-6 right-6 z-50 bg-red-600 text-white p-4 rounded-full shadow-lg hover:bg-red-700 hover:scale-110 transition-all animate-bounce flex items-center gap-2"
+                    title="음성 안내 켜기"
+                >
+                    <span className="text-2xl">🔇</span>
+                    <span className="font-bold text-sm whitespace-nowrap">소리 켜기</span>
+                </button>
             )}
         </div>
     );
