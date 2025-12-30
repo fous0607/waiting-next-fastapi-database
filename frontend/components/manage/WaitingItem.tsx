@@ -210,15 +210,15 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                         </div>
                     )}
 
-                    <CardContent className="flex flex-col px-3 py-1 gap-1">
+                    <CardContent className="flex flex-col p-3 gap-2">
                         {/* Top: Info Row */}
-                        <div className="flex items-start justify-between w-full">
-                            <div className="flex items-center gap-2 overflow-hidden flex-1 mr-12"> {/* mr-12 for badge space */}
+                        <div className="flex items-center justify-between gap-2 w-full">
+                            <div className="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
                                 {/* Drag Handle & Number */}
                                 <div
                                     {...listeners}
                                     className={cn(
-                                        "flex items-center cursor-grab select-none rounded active:bg-slate-100 transition-colors py-1 px-0.5",
+                                        "flex items-center cursor-grab select-none rounded active:bg-slate-100 transition-colors py-1 px-1 shrink-0",
                                         isDragging ? "cursor-grabbing" : "cursor-grab"
                                     )}
                                 >
@@ -226,17 +226,20 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                                     <span className="text-xl font-black text-primary leading-none">#{item.waiting_number}</span>
                                 </div>
 
-                                {/* Name */}
-                                <h3 className="text-lg font-bold truncate leading-tight flex-1 min-w-0">
-                                    {item.name || item.phone.slice(-4)}
-                                    <span className="ml-2 text-sm font-normal text-slate-500">
+                                {/* Name & Phone */}
+                                <div className="flex items-baseline gap-2 overflow-hidden truncate">
+                                    <h3 className="text-lg font-bold truncate leading-tight shrink-1">
+                                        {item.name || "비회원"}
+                                    </h3>
+                                    <span className="text-sm text-slate-500 font-mono truncate shrink-0">
                                         {item.phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3')}
                                     </span>
-                                </h3>
+                                </div>
+
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="h-6 w-6 text-slate-400 hover:text-slate-600"
+                                    className="h-6 w-6 text-slate-400 hover:text-slate-600 shrink-0"
                                     onClick={() => setIsNameDialogOpen(true)}
                                 >
                                     <ClipboardList className="w-3.5 h-3.5" />
@@ -244,50 +247,49 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                             </div>
                         </div>
 
-                        {/* Bottom: Sub-info & Actions Row */}
+                        {/* Middle: Party Size & Status (If needed separate/dense) */}
                         <div className="flex items-center justify-between gap-2">
-                            {/* Phone & Status Badge */}
-                            <div className="flex flex-col gap-0.5">
-                                <div className="flex items-center text-xs font-medium text-slate-500 gap-2">
-                                    {(item.total_party_size ?? 0) > 0 && (
-                                        <div className="flex items-center">
-                                            <span className="text-blue-600 font-bold">{renderPartySize()}</span>
-                                        </div>
-                                    )}
-                                </div>
+                            <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
+                                {(item.total_party_size ?? 0) > 0 && (
+                                    <span className="text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded-md">
+                                        {renderPartySize()}
+                                    </span>
+                                )}
                                 {item.status === 'called' && (
-                                    <Badge className="w-fit bg-yellow-500 text-white hover:bg-yellow-600 px-1.5 py-0 text-[10px] h-4 leading-none">호출중</Badge>
+                                    <Badge className="bg-yellow-500 text-white hover:bg-yellow-600 px-1.5 py-0 h-5">호출중</Badge>
                                 )}
                             </div>
+                        </div>
 
-                            {/* Actions */}
+                        {/* Bottom: Actions Row */}
+                        <div className="flex items-center justify-between gap-1 mt-1 pt-1 border-t border-slate-100 dark:border-slate-800">
                             <div className="flex items-center gap-1">
-                                <div className="flex flex-col gap-0.5 mr-1">
-                                    <Button
-                                        variant="outline"
-                                        size="icon"
-                                        className="h-6 w-6 touch-manipulation"
-                                        onClick={() => handleOrderChange('up')}
-                                    >
-                                        <ArrowUp className="w-3 h-3" />
-                                    </Button>
-                                    <Button
-                                        variant="outline"
-                                        size="icon"
-                                        className="h-6 w-6 touch-manipulation"
-                                        onClick={() => handleOrderChange('down')}
-                                    >
-                                        <ArrowDown className="w-3 h-3" />
-                                    </Button>
-                                </div>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 hover:bg-slate-100 text-slate-400"
+                                    onClick={() => handleOrderChange('up')}
+                                >
+                                    <ArrowUp className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 hover:bg-slate-100 text-slate-400"
+                                    onClick={() => handleOrderChange('down')}
+                                >
+                                    <ArrowDown className="w-4 h-4" />
+                                </Button>
+                            </div>
 
+                            <div className="flex items-center gap-2">
                                 <Button
                                     variant="outline"
                                     size="sm"
                                     onClick={handleCall}
-                                    className="h-8 px-3 text-xs font-bold gap-1 bg-white hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 transition-colors"
+                                    className="h-9 px-4 text-sm font-bold gap-1.5 bg-white hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 transition-colors shadow-sm"
                                 >
-                                    <BellRing className="w-3 h-3" />
+                                    <BellRing className="w-3.5 h-3.5" />
                                     {useWaitingStore.getState().storeSettings?.detail_mode === 'pickup' ? "준비 완료" : "호출"}
                                 </Button>
                                 <Button
@@ -295,7 +297,7 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                                     size="sm"
                                     onClick={() => handleStatusUpdate('attended')}
                                     className={cn(
-                                        "h-8 px-3 text-xs font-bold gap-1 bg-white transition-colors",
+                                        "h-9 px-4 text-sm font-bold gap-1.5 bg-white transition-colors shadow-sm",
                                         useWaitingStore.getState().storeSettings?.detail_mode === 'pickup'
                                             ? "hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200"
                                             : "hover:bg-green-50 hover:text-green-600 hover:border-green-200"
@@ -303,20 +305,19 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                                 >
                                     {useWaitingStore.getState().storeSettings?.detail_mode === 'pickup' ? (
                                         <>
-                                            <CheckCircle className="w-3 h-3" /> 수령 완료
+                                            <CheckCircle className="w-3.5 h-3.5" /> 수령 완료
                                         </>
                                     ) : (
                                         <>
-                                            <CheckCircle className="w-3 h-3" /> 입장
+                                            <CheckCircle className="w-3.5 h-3.5" /> 입장
                                         </>
                                     )}
                                 </Button>
 
-
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="sm" className="h-8 w-6 p-0">
-                                            <MoreHorizontal className="w-4 h-4" />
+                                        <Button variant="ghost" size="sm" className="h-9 w-8 p-0 hover:bg-slate-100">
+                                            <MoreHorizontal className="w-4 h-4 text-slate-500" />
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
