@@ -153,8 +153,8 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
             });
 
             if (detailLabels.length === 0) return `${item.total_party_size ?? 0}명`;
-            // Return abbreviated format without total
-            return detailLabels.join(' ');
+            // Return abbreviated format with total
+            return `${detailLabels.join(' ')} 총${item.total_party_size ?? 0}`;
         } catch (e) {
             return `${item.total_party_size ?? 0}명`;
         }
@@ -194,17 +194,18 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                         <div className="absolute -top-0.5 right-0.5 z-20">
                             {(() => {
                                 const style = revisitBadgeStyle || 'indigo_solid';
-                                let badgeClass = "bg-indigo-600 text-white hover:bg-indigo-700 px-1 py-0 text-[8px] font-bold shadow-sm whitespace-nowrap rounded-full";
+                                let badgeClass = "bg-indigo-600 text-white hover:bg-indigo-700 px-1.5 py-0.5 text-[10px] font-bold shadow-sm whitespace-nowrap rounded-full";
 
                                 if (style === 'amber_outline') {
-                                    badgeClass = "bg-amber-50 text-amber-600 border border-amber-400 px-1 py-0 text-[8px] font-bold shadow-sm whitespace-nowrap rounded-lg";
+                                    badgeClass = "bg-amber-50 text-amber-600 border border-amber-400 px-1.5 py-0.5 text-[10px] font-bold shadow-sm whitespace-nowrap rounded-lg";
                                 } else if (style === 'emerald_pill') {
-                                    badgeClass = "bg-emerald-100 text-emerald-700 border border-emerald-200 px-1 py-0 text-[8px] font-black shadow-sm whitespace-nowrap rounded-full";
+                                    badgeClass = "bg-emerald-100 text-emerald-700 border border-emerald-200 px-1.5 py-0.5 text-[10px] font-black shadow-sm whitespace-nowrap rounded-full";
                                 } else if (style === 'rose_gradient') {
-                                    badgeClass = "bg-gradient-to-r from-rose-400 to-pink-500 text-white px-1 py-0 text-[8px] font-bold shadow-md whitespace-nowrap rounded-md";
+                                    badgeClass = "bg-gradient-to-r from-rose-400 to-pink-500 text-white px-1.5 py-0.5 text-[10px] font-bold shadow-md whitespace-nowrap rounded-md";
                                 } else if (style === 'sky_glass') {
-                                    badgeClass = "bg-sky-400/30 text-sky-800 backdrop-blur-md border border-sky-300 px-1 py-0 text-[8px] font-bold shadow-sm whitespace-nowrap rounded-full";
+                                    badgeClass = "bg-sky-400/30 text-sky-800 backdrop-blur-md border border-sky-300 px-1.5 py-0.5 text-[10px] font-bold shadow-sm whitespace-nowrap rounded-full";
                                 }
+
 
                                 return (
                                     <div className={cn("inline-flex items-center justify-center transition-all", badgeClass)}>
@@ -269,8 +270,8 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                                 )}
                             </div>
 
-                            {/* Actions - Compacted */}
-                            <div className="flex items-center gap-1 ml-auto">
+                            {/* Actions - Aligned Left */}
+                            <div className="flex items-center gap-1">
                                 {/* Reverted to Side-by-Side Arrows (User Request) */}
                                 <div className="flex items-center gap-0.5 mr-1">
                                     <Button

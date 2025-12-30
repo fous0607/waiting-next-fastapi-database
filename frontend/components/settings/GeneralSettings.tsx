@@ -601,7 +601,7 @@ export function GeneralSettings() {
                                                                 )}
                                                                 onClick={() => field.onChange(style.id)}
                                                             >
-                                                                <div className={cn("px-1 py-0 text-[8px] whitespace-nowrap", style.class)}>
+                                                                <div className={cn("px-1.5 py-0.5 text-[10px] whitespace-nowrap", style.class)}>
                                                                     재2
                                                                 </div>
                                                                 <span className="text-[11px] font-medium text-slate-600">{style.name}</span>
