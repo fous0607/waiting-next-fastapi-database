@@ -28,6 +28,7 @@ export interface WaitingItem {
     revisit_count?: number;
     total_party_size?: number;
     party_size_details?: string;
+    call_count?: number;
 }
 
 export interface StoreSettings {

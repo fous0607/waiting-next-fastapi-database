@@ -295,9 +295,15 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                                     variant="outline"
                                     size="sm"
                                     onClick={handleCall}
-                                    className="h-8 px-2 text-xs font-bold gap-1 bg-white hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 transition-colors shadow-sm whitespace-nowrap"
+                                    className={cn(
+                                        "h-8 px-2 text-xs font-bold gap-1 transition-colors shadow-sm whitespace-nowrap",
+                                        (item.call_count || 0) === 0 && "bg-white hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 text-slate-700",
+                                        (item.call_count || 0) === 1 && "bg-yellow-400 text-white hover:bg-yellow-500 border-yellow-500",
+                                        (item.call_count || 0) === 2 && "bg-orange-500 text-white hover:bg-orange-600 border-orange-600",
+                                        (item.call_count || 0) >= 3 && "bg-red-500 text-white hover:bg-red-600 border-red-600"
+                                    )}
                                 >
-                                    <BellRing className="w-3 h-3" />
+                                    <BellRing className={cn("w-3 h-3", (item.call_count || 0) > 0 && "text-white")} />
                                     {useWaitingStore.getState().storeSettings?.detail_mode === 'pickup' ? "준비" : "호출"}
                                 </Button>
                                 <Button
