@@ -244,7 +244,7 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
 
                                     {/* Party Size Details (Prominent - Replaces Phone) */}
                                     {(item.total_party_size ?? 0) > 0 && (
-                                        <span className="text-sm font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100 break-keep">
+                                        <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100 break-keep">
                                             {renderPartySize()}
                                         </span>
                                     )}
