@@ -82,7 +82,16 @@ export function useVoiceAlert(settings: VoiceSettings | null) {
                     utterance.lang = 'ko-KR';
                     utterance.rate = rate;
                     utterance.pitch = pitch;
-                    if (targetVoice) utterance.voice = targetVoice;
+                    if (targetVoice) {
+                        utterance.voice = targetVoice;
+                        console.log('[Voice] Using voice:', targetVoice.name, targetVoice.lang);
+                    } else {
+                        console.warn('[Voice] No suitable voice found, using default.');
+                    }
+
+                    utterance.onstart = () => console.log('[Voice] Utterance started:', part.trim());
+                    utterance.onend = () => console.log('[Voice] Utterance ended');
+                    utterance.onerror = (e) => console.error('[Voice] Utterance error:', e.error, e);
 
                     window.speechSynthesis.speak(utterance);
                 }
