@@ -7,7 +7,7 @@ import { usePolling } from '@/hooks/usePolling';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Loader2, RefreshCw, Phone, User as UserIcon, Users, CheckCircle, XCircle, Bell, ArrowLeft } from 'lucide-react';
+import { Loader2, RefreshCw, Phone, User as UserIcon, Users, CheckCircle, XCircle, Bell, ArrowLeft, DoorClosed } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '@/lib/api';
 import { useRouter } from 'next/navigation';
@@ -34,11 +34,13 @@ function MobileManagerContent() {
         isLoading,
         classes,
         setStoreId,
-        selectClass
+        selectClass,
+        closeClass
     } = useWaitingStore();
 
     const [processingId, setProcessingId] = useState<number | null>(null);
     const [cancelTarget, setCancelTarget] = useState<WaitingItem | null>(null);
+    const [closeTargetId, setCloseTargetId] = useState<number | null>(null);
 
     useEffect(() => {
         const storeId = searchParams.get('store') || localStorage.getItem('selected_store_id');
@@ -97,9 +99,25 @@ function MobileManagerContent() {
         }
     };
 
+    const handleCloseClass = async () => {
+        if (!closeTargetId) return;
+        try {
+            await closeClass(closeTargetId);
+            toast.success('교시가 마감되었습니다.');
+            setCloseTargetId(null);
+            fetchClasses();
+        } catch (error) {
+            toast.error('교시 마감 실패');
+        }
+    };
+
     if (isLoading) {
         return <div className="flex justify-center items-center h-screen"><Loader2 className="w-8 h-8 animate-spin" /></div>;
     }
+
+    // Stats Calculation
+    const totalWaiting = classes.reduce((acc, c) => acc + c.current_count, 0);
+    const totalAttended = classes.reduce((acc, c) => acc + (c.total_count - c.current_count), 0);
 
     return (
         <div className="min-h-screen bg-slate-50 pb-20"> {/* pb-20 for safe bottom area */}
@@ -111,16 +129,28 @@ function MobileManagerContent() {
                     </Button>
                     <h1 className="text-lg font-bold truncate max-w-[200px]">{storeName}</h1>
                 </div>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => {
-                        fetchClasses();
-                        if (currentClassId) fetchWaitingList(currentClassId);
-                    }}
-                >
-                    <RefreshCw className="h-5 w-5" />
-                </Button>
+                <div className="flex gap-1">
+                    {currentClassId && (
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setCloseTargetId(currentClassId)}
+                            title="교시 마감"
+                        >
+                            <DoorClosed className="h-5 w-5 text-slate-600" />
+                        </Button>
+                    )}
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                            fetchClasses();
+                            if (currentClassId) fetchWaitingList(currentClassId);
+                        }}
+                    >
+                        <RefreshCw className="h-5 w-5 text-slate-600" />
+                    </Button>
+                </div>
             </div>
 
             {/* Class Selector */}
@@ -141,18 +171,18 @@ function MobileManagerContent() {
             </div>
 
             {/* Content */}
-            <div className="p-2 space-y-2">
+            <div className="p-1 space-y-1.5">
                 {currentClassId ? (
                     sortedList.length > 0 ? (
                         sortedList.map((item) => (
                             <Card key={item.id} className={`relative overflow-hidden transition-all shadow-sm ${item.status === 'called' ? 'border-orange-400 bg-orange-50' : 'border-slate-200'}`}>
-                                <CardContent className="flex flex-col p-2.5 gap-2">
-                                    {/* Info Row: Simple & Compact */}
+                                <CardContent className="flex flex-col p-2 gap-1.5">
+                                    {/* Info Row: Type & Compact */}
                                     <div className="flex items-center justify-between w-full">
                                         <div className="flex items-center gap-2 flex-1 min-w-0">
                                             {/* Number */}
-                                            <div className={`flex items-center justify-center rounded-md px-2 py-1 min-w-[2.5rem] ${item.status === 'called' ? 'bg-orange-100' : 'bg-slate-100'}`}>
-                                                <span className={`text-2xl font-black leading-none ${item.status === 'called' ? 'text-orange-600' : 'text-slate-800'}`}>
+                                            <div className={`flex items-center justify-center rounded-md px-1.5 py-0.5 min-w-[2.2rem] ${item.status === 'called' ? 'bg-orange-100' : 'bg-slate-100'}`}>
+                                                <span className={`text-xl font-black leading-none ${item.status === 'called' ? 'text-orange-600' : 'text-slate-800'}`}>
                                                     #{item.waiting_number}
                                                 </span>
                                             </div>
@@ -160,18 +190,18 @@ function MobileManagerContent() {
                                             {/* Name & People Count */}
                                             <div className="flex flex-col leading-tight min-w-0">
                                                 <div className="flex items-baseline gap-1.5">
-                                                    <h3 className="text-xl font-bold truncate text-slate-900">
+                                                    <h3 className="text-lg font-bold truncate text-slate-900">
                                                         {item.name || item.phone.slice(-4)}
                                                     </h3>
 
                                                     {/* Revisit Badge (Inline) */}
                                                     {item.revisit_count && item.revisit_count > 0 && (
-                                                        <span className="bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded text-[10px] font-bold whitespace-nowrap">
+                                                        <span className="bg-indigo-100 text-indigo-700 px-1 py-0.5 rounded text-[10px] font-bold whitespace-nowrap">
                                                             재방문 {item.revisit_count}
                                                         </span>
                                                     )}
                                                 </div>
-                                                <div className="text-xs text-slate-400 font-medium">
+                                                <div className="text-[10px] text-slate-400 font-medium">
                                                     {new Date(item.registered_at).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} 접수
                                                 </div>
                                             </div>
@@ -179,42 +209,42 @@ function MobileManagerContent() {
 
                                         {/* Status Badge */}
                                         {item.status === 'called' && (
-                                            <div className="bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full animate-pulse whitespace-nowrap ml-2">
+                                            <div className="bg-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse whitespace-nowrap ml-2">
                                                 호출중
                                             </div>
                                         )}
                                     </div>
 
                                     {/* Action Buttons: Full Width Row */}
-                                    <div className="grid grid-cols-10 gap-1.5 w-full">
+                                    <div className="grid grid-cols-10 gap-1 w-full">
                                         <Button
                                             onClick={() => handleAction(item, 'call')}
                                             variant={item.status === 'called' ? "outline" : "default"}
                                             size="sm"
-                                            className={`col-span-3 h-10 text-sm font-bold shadow-sm ${item.status === 'called' ? "border-orange-200 text-orange-700 hover:bg-orange-50" : "bg-green-600 hover:bg-green-700 text-white"}`}
+                                            className={`col-span-3 h-9 text-xs font-bold shadow-sm ${item.status === 'called' ? "border-orange-200 text-orange-700 hover:bg-orange-50" : "bg-green-600 hover:bg-green-700 text-white"}`}
                                             disabled={!!processingId}
                                         >
-                                            <Bell className="w-4 h-4 mr-1" />
+                                            <Bell className="w-3.5 h-3.5 mr-1" />
                                             {item.status === 'called' ? '재호출' : '호출'}
                                         </Button>
                                         <Button
                                             onClick={() => handleAction(item, 'attend')}
                                             variant="secondary"
                                             size="sm"
-                                            className="col-span-5 h-10 text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
+                                            className="col-span-5 h-9 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
                                             disabled={!!processingId}
                                         >
-                                            <CheckCircle className="w-4 h-4 mr-1" />
+                                            <CheckCircle className="w-3.5 h-3.5 mr-1" />
                                             입장
                                         </Button>
                                         <Button
                                             onClick={() => setCancelTarget(item)}
                                             variant="outline"
                                             size="sm"
-                                            className="col-span-2 h-10 text-sm font-bold border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
+                                            className="col-span-2 h-9 text-xs font-bold border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
                                             disabled={!!processingId}
                                         >
-                                            <XCircle className="w-4 h-4" />
+                                            <XCircle className="w-3.5 h-3.5" />
                                         </Button>
                                     </div>
                                 </CardContent>
@@ -257,16 +287,39 @@ function MobileManagerContent() {
                 </DialogContent>
             </Dialog>
 
+            {/* Class Close Confirmation Dialog */}
+            <Dialog open={!!closeTargetId} onOpenChange={(open) => !open && setCloseTargetId(null)}>
+                <DialogContent className="w-[90%] rounded-2xl p-6">
+                    <DialogHeader>
+                        <DialogTitle className="text-xl font-bold">교시 마감</DialogTitle>
+                        <DialogDescription className="text-base text-slate-600">
+                            현재 교시의 접수를 마감하시겠습니까?
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="flex gap-2 mt-4">
+                        <Button variant="outline" onClick={() => setCloseTargetId(null)} className="flex-1 h-12 text-lg rounded-xl">
+                            취소
+                        </Button>
+                        <Button
+                            variant="default"
+                            onClick={handleCloseClass}
+                            className="flex-1 h-12 text-lg rounded-xl"
+                        >
+                            확인
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
             {/* Quick Stats Footer */}
-            <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-3 flex justify-around text-center text-xs shadow-md">
-                <div className="flex-1 border-r">
-                    <div className="font-bold text-slate-800 text-lg">{classes.reduce((acc, c) => acc + c.current_count, 0)}</div>
+            <div className="fixed bottom-0 left-0 right-0 bg-white border-t py-2 flex justify-around text-center text-xs shadow-md">
+                <div className="flex-1 border-r flex flex-col items-center justify-center">
+                    <div className="font-bold text-slate-800 text-lg">{totalWaiting}</div>
                     <div className="text-muted-foreground">총 대기</div>
                 </div>
-                <div className="flex-1">
-                    {/* Placeholder for future features */}
-                    <div className="font-bold text-slate-800 text-lg">-</div>
-                    <div className="text-muted-foreground">완료</div>
+                <div className="flex-1 flex flex-col items-center justify-center">
+                    <div className="font-bold text-slate-800 text-lg">{totalAttended}</div>
+                    <div className="text-muted-foreground">출석</div>
                 </div>
             </div>
         </div>
