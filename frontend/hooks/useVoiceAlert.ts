@@ -126,7 +126,7 @@ export function useVoiceAlert(settings: VoiceSettings | null) {
 
         speak(message, {
             repeat: settings?.waiting_call_voice_repeat_count || 1,
-            cancelPrevious: true
+            cancelPrevious: false
         });
     }, [settings, speak]);
 

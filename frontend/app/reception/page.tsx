@@ -369,7 +369,7 @@ export default function ReceptionPage() {
     const { speakRegistration, speakDuplicate } = useVoiceAlert(storeSettings);
 
     const handleNumberClick = (num: string) => {
-        if (phoneNumber.length >= 11) return;
+        if (phoneNumber.length >= 8) return;
         playKeypadSound(num, 'number');
         setPhoneNumber(prev => {
             const newVal = prev + num;
@@ -391,23 +391,11 @@ export default function ReceptionPage() {
         if (!num) return '010-____-____';
 
         let formatted = num;
-        if (num.length === 4) {
-            return num; // Show just 4 digits if length is 4
+        // Always format as 8 digits logic
+        if (num.length > 4) {
+            formatted = num.replace(/(\d{4})(\d{1,4})/, '$1-$2');
         }
-        if (num.startsWith('010')) {
-            if (num.length > 7) {
-                formatted = num.replace(/(\d{3})(\d{4})(\d{1,4})/, '$1-$2-$3');
-            } else if (num.length > 3) {
-                formatted = num.replace(/(\d{3})(\d{1,4})/, '$1-$2');
-            }
-        } else {
-            // General 4+ digit formatting (e.g. 12345 -> 1234-5)
-            // This covers the 8-digit shortcut and any intermediate state
-            if (num.length > 4) {
-                formatted = num.replace(/(\d{4})(\d{1,4})/, '$1-$2');
-            }
-        }
-        return formatted;
+        return `010-${formatted}`;
     };
 
     // Timeout reference to clear existing timers
