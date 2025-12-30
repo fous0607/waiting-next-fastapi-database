@@ -127,8 +127,7 @@ export function GeneralSettings() {
     const [isLoading, setIsLoading] = useState(true);
     const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
 
-    const operationType = form.watch('operation_type') as 'general' | 'dining';
-    const labels = useOperationLabels(operationType);
+
 
     const form = useForm<SettingsFormValues>({
         /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
@@ -191,6 +190,9 @@ export function GeneralSettings() {
             enable_menu_ordering: false,
         },
     });
+
+    const operationType = form.watch('operation_type') as 'general' | 'dining';
+    const labels = useOperationLabels(operationType);
 
     const [storeCode, setStoreCode] = useState<string | null>(null);
     const [isCopied, setIsCopied] = useState(false);
