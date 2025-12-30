@@ -188,7 +188,7 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                 )}>
                     {/* Revisit Badge - Top Right Absolute inside Card */}
                     {item.revisit_count != null && item.revisit_count > 0 && (
-                        <div className="absolute top-1 right-1 z-20">
+                        <div className="absolute top-0.5 right-1 z-20">
                             {(() => {
                                 const style = revisitBadgeStyle || 'indigo_solid';
                                 let badgeClass = "bg-indigo-600 text-white hover:bg-indigo-700 px-2 py-0.5 text-[10px] font-bold shadow-sm whitespace-nowrap rounded-full";
