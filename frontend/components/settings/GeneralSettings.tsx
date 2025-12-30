@@ -20,6 +20,7 @@ import api from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useOperationLabels } from '@/hooks/useOperationLabels';
+import { useVoiceAlert } from '@/hooks/useVoiceAlert';
 
 // Comprehensive Schema matching Backend StoreSettings
 const settingsSchema = z.object({
