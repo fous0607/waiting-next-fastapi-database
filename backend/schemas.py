@@ -331,6 +331,7 @@ class WaitingListBase(BaseModel):
 class WaitingListCreate(WaitingListBase):
     class_id: Optional[int] = None
     person_count: Optional[int] = 1
+    party_size_details: Optional[str] = None
     is_admin_registration: bool = False
 
 class QuickRegisterRequest(BaseModel):

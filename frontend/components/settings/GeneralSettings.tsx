@@ -710,20 +710,22 @@ export function GeneralSettings() {
                                                                     }}
                                                                 />
                                                             </div>
-                                                            <div className="w-16 space-y-2 text-center">
-                                                                <Label className="text-[10px] text-orange-400">분류</Label>
+                                                            <div className="w-24 space-y-2 text-center">
+                                                                <Label className="text-[10px] text-orange-400">유형 (Type)</Label>
                                                                 <Select
-                                                                    value={cat.required ? 'req' : 'opt'}
+                                                                    value={cat.type === 'opt' || cat.required === false ? 'opt' : 'std'}
                                                                     onValueChange={(v) => {
                                                                         const newCats = [...categories];
-                                                                        newCats[index].required = v === 'req';
+                                                                        newCats[index].type = v;
+                                                                        // Clean up old required field if exists, or sync it for safety
+                                                                        newCats[index].required = v === 'std';
                                                                         form.setValue('party_size_config', JSON.stringify(newCats));
                                                                     }}
                                                                 >
                                                                     <SelectTrigger className="h-9 text-[11px]"><SelectValue /></SelectTrigger>
                                                                     <SelectContent>
-                                                                        <SelectItem value="req">필수</SelectItem>
-                                                                        <SelectItem value="opt">선택</SelectItem>
+                                                                        <SelectItem value="std">인원수 포함</SelectItem>
+                                                                        <SelectItem value="opt">옵션/비포함</SelectItem>
                                                                     </SelectContent>
                                                                 </Select>
                                                             </div>

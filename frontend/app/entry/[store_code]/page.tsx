@@ -25,6 +25,9 @@ export default function EntryPage({ params }: { params: Promise<{ store_code: st
     const [loading, setLoading] = useState(true);
     const [registering, setRegistering] = useState(false);
 
+    // Add separate state for party inputs
+    const [partyInputs, setPartyInputs] = useState<Record<string, number>>({});
+
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -39,6 +42,21 @@ export default function EntryPage({ params }: { params: Promise<{ store_code: st
             try {
                 const { data } = await api.get(`/public/store/${store_code}`);
                 setStore(data);
+
+                // Initialize party inputs if config exists
+                const settings = data.settings;
+                if (settings?.enable_party_size && settings?.party_size_config) {
+                    try {
+                        const config = JSON.parse(settings.party_size_config);
+                        const initialInputs: Record<string, number> = {};
+                        config.forEach((item: any) => {
+                            initialInputs[item.id] = 0;
+                        });
+                        setPartyInputs(initialInputs);
+                    } catch (e) {
+                        console.error("Failed to parse party config", e);
+                    }
+                }
             } catch (error) {
                 toast.error('매장 정보를 불러올 수 없습니다.');
             } finally {
@@ -47,6 +65,16 @@ export default function EntryPage({ params }: { params: Promise<{ store_code: st
         };
         fetchStore();
     }, [store_code]);
+
+    const handlePartyChange = (id: string, delta: number, max: number) => {
+        setPartyInputs(prev => {
+            const current = prev[id] || 0;
+            const next = current + delta;
+            if (next < 0) return prev;
+            if (max > 0 && next > max) return prev;
+            return { ...prev, [id]: next };
+        });
+    };
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         setRegistering(true);
@@ -62,9 +90,46 @@ export default function EntryPage({ params }: { params: Promise<{ store_code: st
                 ? values.name
                 : processedPhone.slice(-4);
 
+            // Calculate party size info
+            let personCount = 1;
+            let partyDetails = null;
+
+            if (store?.settings?.enable_party_size && store?.settings?.party_size_config) {
+                try {
+                    const config = JSON.parse(store.settings.party_size_config);
+                    let stdCount = 0;
+
+                    const details: Record<string, number> = {};
+
+                    config.forEach((item: any) => {
+                        const count = partyInputs[item.id] || 0;
+                        if (count > 0) {
+                            details[item.label] = count;
+                            // Count as person if type is 'std' (default) or 'req' (legacy) or undefined (legacy default)
+                            if (item.type === 'std' || item.type === undefined || item.required === true) {
+                                stdCount += count;
+                            }
+                        }
+                    });
+
+                    if (stdCount === 0) {
+                        toast.error("인원수를 선택해주세요 (최소 1명 이상)");
+                        setRegistering(false);
+                        return;
+                    }
+
+                    personCount = stdCount;
+                    partyDetails = JSON.stringify(details);
+                } catch (e) {
+                    console.error("Error processing party size", e);
+                }
+            }
+
             await api.post(`/public/waiting/${store_code}/register`, {
                 phone: processedPhone,
-                name: processedName
+                name: processedName,
+                person_count: personCount,
+                party_size_details: partyDetails
             });
 
             toast.success('대기가 접수되었습니다.');
@@ -169,6 +234,61 @@ export default function EntryPage({ params }: { params: Promise<{ store_code: st
                                     </FormItem>
                                 )}
                             />
+
+                            {/* Party Size Inputs */}
+                            {store?.settings?.enable_party_size && store?.settings?.party_size_config && (() => {
+                                try {
+                                    const config = JSON.parse(store.settings.party_size_config);
+                                    if (config.length === 0) return null;
+
+                                    return (
+                                        <div className="space-y-4 pt-2">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-1 h-4 bg-orange-500 rounded-full" />
+                                                <h3 className="text-base font-bold text-slate-800">인원수 선택</h3>
+                                            </div>
+                                            <div className="grid grid-cols-1 gap-3">
+                                                {config.map((item: any) => (
+                                                    <div key={item.id} className="flex items-center justify-between p-3 bg-white border rounded-xl shadow-sm">
+                                                        <div className="flex flex-col">
+                                                            <span className="font-bold text-slate-700">{item.label}</span>
+                                                            <span className="text-xs text-slate-400">
+                                                                {item.type === 'opt' || item.required === false ? '(추가옵션)' : '(인원포함)'}
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex items-center gap-3">
+                                                            <Button
+                                                                type="button"
+                                                                variant="outline"
+                                                                size="icon"
+                                                                className="h-9 w-9 rounded-full"
+                                                                onClick={() => handlePartyChange(item.id, -1, item.max)}
+                                                                disabled={!partyInputs[item.id]}
+                                                            >
+                                                                -
+                                                            </Button>
+                                                            <span className="w-6 text-center font-bold text-lg">{partyInputs[item.id] || 0}</span>
+                                                            <Button
+                                                                type="button"
+                                                                variant="outline"
+                                                                size="icon"
+                                                                className="h-9 w-9 rounded-full"
+                                                                onClick={() => handlePartyChange(item.id, 1, item.max)}
+                                                                disabled={item.max > 0 && (partyInputs[item.id] || 0) >= item.max}
+                                                            >
+                                                                +
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    );
+                                } catch (e) {
+                                    return null;
+                                }
+                            })()}
+
                             <FormField
                                 control={form.control}
                                 name="name"

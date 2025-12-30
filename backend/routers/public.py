@@ -78,7 +78,11 @@ def get_public_store_info(store_code: str, db: Session = Depends(get_db)):
         "settings": {
             "require_member_registration": settings.require_member_registration if settings else False,
             "registration_message": settings.registration_message if settings else "",
-            "theme": settings.theme if settings else "zinc"
+            "theme": settings.theme if settings else "zinc",
+            "detail_mode": settings.detail_mode if settings else "standard",
+            "enable_party_size": settings.enable_party_size if settings else False,
+            "party_size_config": settings.party_size_config if settings else None,
+            "enable_menu_ordering": settings.enable_menu_ordering if settings else False
         }
     }
 
@@ -238,6 +242,8 @@ async def public_register_waiting(
         class_order=class_order,
         member_id=member_id,
         status="waiting",
+        total_party_size=waiting.person_count,
+        party_size_details=waiting.party_size_details,
         registered_at=datetime.now(),
         store_id=current_store_id
     )
