@@ -231,13 +231,42 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                                     <h3 className="text-lg font-bold truncate leading-tight text-slate-900 dark:text-slate-100">
                                         {item.name || "비회원"}
                                     </h3>
-                                    {/* Phone: Shortened (No 010-), distinct style */}
-                                    <span className="text-base font-bold text-slate-500 dark:text-slate-400 tracking-tight font-mono whitespace-nowrap shrink-0">
-                                        {item.phone.startsWith('010')
-                                            ? item.phone.substring(3).replace(/(\d{4})(\d{4})/, '$1-$2')
-                                            : item.phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3')
-                                        }
-                                    </span>
+                                    {/* Phone & Party Size Details */}
+                                    <div className="flex items-center gap-2 shrink-0">
+                                        <span className="text-base font-bold text-slate-500 dark:text-slate-400 tracking-tight font-mono whitespace-nowrap">
+                                            {item.phone.startsWith('010')
+                                                ? item.phone.substring(3).replace(/(\d{4})(\d{4})/, '$1-$2')
+                                                : item.phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3')
+                                            }
+                                        </span>
+                                        {/* Party Size Details (Concise) */}
+                                        {(() => {
+                                            if (!item.party_size_details) return null;
+                                            try {
+                                                const details = JSON.parse(item.party_size_details);
+                                                const segments: string[] = [];
+                                                let configMap: Record<string, string> = {};
+                                                try {
+                                                    const configs = JSON.parse(useWaitingStore.getState().storeSettings?.party_size_config || '[]');
+                                                    configs.forEach((c: any) => { configMap[c.id] = c.label; });
+                                                } catch (e) { }
+
+                                                Object.entries(details).forEach(([id, count]) => {
+                                                    const numCount = Number(count);
+                                                    if (numCount > 0) {
+                                                        const label = configMap[id] || id;
+                                                        segments.push(`${label} ${numCount}`);
+                                                    }
+                                                });
+                                                if (segments.length === 0) return null;
+                                                return (
+                                                    <span className="text-xs font-medium text-slate-400 dark:text-slate-500 whitespace-nowrap bg-slate-50 dark:bg-slate-800/50 px-1.5 py-0.5 rounded border border-slate-100 dark:border-slate-800">
+                                                        {segments.join(', ')}
+                                                    </span>
+                                                );
+                                            } catch (e) { return null; }
+                                        })()}
+                                    </div>
                                 </div>
                             </div>
                         </div>
