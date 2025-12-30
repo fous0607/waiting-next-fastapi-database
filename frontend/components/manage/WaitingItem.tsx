@@ -185,13 +185,13 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
         <>
             <div ref={setNodeRef} style={style} {...attributes}>
                 <Card className={cn(
-                    "hover:shadow-md transition-all relative overflow-hidden py-1", // changed overflow-visible to hidden for cleaner borders, remove py-3
+                    "hover:shadow-md transition-all relative overflow-visible py-1",
                     item.status === 'called' && "border-yellow-400 bg-yellow-50/50 dark:bg-yellow-900/20",
                     isDragging && "shadow-2xl border-primary border-2 bg-primary/5"
                 )}>
                     {/* Revisit Badge - Top Right Absolute inside Card */}
                     {item.revisit_count != null && item.revisit_count > 0 && (
-                        <div className="absolute -top-0.5 right-0.5 z-20">
+                        <div className="absolute -top-2 right-2 z-20">
                             {(() => {
                                 const style = revisitBadgeStyle || 'indigo_solid';
                                 let badgeClass = "bg-indigo-600 text-white hover:bg-indigo-700 px-1.5 py-0.5 text-[10px] font-bold shadow-sm whitespace-nowrap rounded-full";
@@ -220,8 +220,7 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                         {/* Top: Info Row */}
                         <div className="flex items-center justify-between gap-2 w-full">
                             <div className={cn(
-                                "flex items-center gap-2 overflow-hidden flex-1 min-w-0",
-                                (item.revisit_count ?? 0) > 0 && "pr-16" // Prevent overlap with badge
+                                "flex items-center gap-2 overflow-hidden flex-1 min-w-0"
                             )}>
                                 {/* Drag Handle & Number */}
                                 <div
