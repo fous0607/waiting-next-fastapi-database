@@ -59,6 +59,9 @@ function MobileManagerContent() {
     // Derived state for the current waiting list
     const currentList = currentClassId ? (waitingList[currentClassId] || []) : [];
 
+    const totalWaiting = classes.reduce((sum, cls) => sum + (cls.current_count || 0), 0);
+    const totalAttended = classes.reduce((sum, cls) => sum + ((cls.total_count || 0) - (cls.current_count || 0)), 0);
+
     // Sort by status (waiting first, then called)
     const sortedList = [...currentList].sort((a, b) => {
         // Pinned (called) items first
