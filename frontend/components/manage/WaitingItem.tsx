@@ -187,7 +187,7 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                 )}>
                     {/* Revisit Badge - Top Right Absolute inside Card */}
                     {item.revisit_count != null && item.revisit_count > 0 && (
-                        <div className="absolute top-1.5 right-1.5 z-20">
+                        <div className="absolute top-1 right-1 z-20">
                             {(() => {
                                 const style = revisitBadgeStyle || 'indigo_solid';
                                 let badgeClass = "bg-indigo-600 text-white hover:bg-indigo-700 px-2 py-0.5 text-[10px] font-bold shadow-sm whitespace-nowrap rounded-full";
@@ -214,7 +214,10 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                     <CardContent className="flex flex-col p-3 gap-2">
                         {/* Top: Info Row */}
                         <div className="flex items-center justify-between gap-2 w-full">
-                            <div className="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
+                            <div className={cn(
+                                "flex items-center gap-2 overflow-hidden flex-1 min-w-0",
+                                (item.revisit_count ?? 0) > 0 && "pr-16" // Prevent overlap with badge
+                            )}>
                                 {/* Drag Handle & Number */}
                                 <div
                                     {...listeners}
@@ -228,10 +231,10 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                                 </div>
 
                                 {/* Name (Clickable for Phone Lookup) & Party Size */}
-                                <div className="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
+                                <div className="flex items-center gap-2 overflow-hidden flex-1 min-w-0 flex-wrap">
                                     <div
                                         onClick={() => setIsPhoneDialogOpen(true)}
-                                        className="cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 rounded px-1 -ml-1 transition-colors"
+                                        className="cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 rounded px-1 -ml-1 transition-colors shrink-0"
                                         title="클릭하여 연락처 확인"
                                     >
                                         <h3 className="text-xl font-black truncate leading-tight text-slate-900 dark:text-slate-100 tracking-tight">
@@ -241,7 +244,7 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
 
                                     {/* Party Size Details (Prominent - Replaces Phone) */}
                                     {(item.total_party_size ?? 0) > 0 && (
-                                        <span className="text-sm font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100 whitespace-nowrap">
+                                        <span className="text-sm font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100 break-keep">
                                             {renderPartySize()}
                                         </span>
                                     )}
