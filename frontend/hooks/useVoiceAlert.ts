@@ -57,29 +57,33 @@ export function useVoiceAlert(settings: VoiceSettings | null) {
 
         const playAudio = async () => {
             try {
+                // Request binary data (blob)
                 const response = await api.post('/tts/speak', {
                     text: textToSpeech,
                     voice_name: voiceName,
                     rate: rate,
                     pitch: pitch
+                }, {
+                    responseType: 'blob'
                 });
 
-                if (response.data && response.data.audio_url) {
-                    const audioUrl = response.data.audio_url;
+                if (response.data) {
+                    // Create a blob URL from the binary response
+                    const audioUrl = URL.createObjectURL(response.data);
+                    console.log('[Cloud TTS] Playing Blob URL:', audioUrl);
 
-                    // Simple heuristic: attach backend origin
-                    const backendOrigin = api.defaults.baseURL ? new URL(api.defaults.baseURL).origin : '';
-                    const fullUrl = `${backendOrigin}${audioUrl}`;
-
-                    console.log('[Cloud TTS] Playing URL:', fullUrl);
-
-                    const audio = new Audio(fullUrl);
+                    const audio = new Audio(audioUrl);
                     await audio.play();
 
                     return new Promise((resolve) => {
-                        audio.onended = resolve;
+                        audio.onended = () => {
+                            // Clean up blob URL to avoid memory leaks
+                            URL.revokeObjectURL(audioUrl);
+                            resolve(null);
+                        };
                         audio.onerror = (e) => {
                             console.error('[Cloud TTS] Audio playback error:', e);
+                            URL.revokeObjectURL(audioUrl);
                             resolve(null);
                         }
                     });

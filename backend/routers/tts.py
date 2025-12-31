@@ -12,15 +12,17 @@ class TtsRequest(BaseModel):
     rate: Optional[float] = 1.0
     pitch: Optional[float] = 0.0
 
+from fastapi import Response
+
 @router.post("/speak")
 async def generate_speech(request: TtsRequest):
     try:
-        audio_url = await tts_service.synthesize_speech(
+        audio_content = await tts_service.synthesize_speech(
             text=request.text,
             voice_name=request.voice_name,
             rate=request.rate,
             pitch=request.pitch
         )
-        return {"audio_url": audio_url}
+        return Response(content=audio_content, media_type="audio/mpeg")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

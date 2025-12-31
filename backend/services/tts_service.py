@@ -35,31 +35,14 @@ class TtsService:
                 pass
         return self._client
 
-    def ensure_cache_dir(self):
-        if not os.path.exists(TTS_CACHE_DIR):
-            os.makedirs(TTS_CACHE_DIR)
-
-    async def synthesize_speech(self, text: str, voice_name: str = "ko-KR-Wavenet-A", rate: float = 1.0, pitch: float = 0.0) -> str:
+    async def synthesize_speech(self, text: str, voice_name: str = "ko-KR-Wavenet-A", rate: float = 1.0, pitch: float = 0.0) -> bytes:
         """
-        Synthesizes speech from text using Google Cloud TTS or returns cached file.
-        Returns the relative path to the audio file (e.g., /static/audio/tts_cache/...).
+        Synthesizes speech from text using Google Cloud TTS.
+        Returns the audio content as bytes directly.
+        Caching is disabled for serverless compatibility.
         """
-        self.ensure_cache_dir()
-
-        # Generate unique filename based on parameters
-        # We include voice params in hash so different settings create different files
-        params_str = f"{text}|{voice_name}|{rate}|{pitch}"
-        file_hash = hashlib.md5(params_str.encode('utf-8')).hexdigest()
-        filename = f"{file_hash}.mp3"
-        file_path = os.path.join(TTS_CACHE_DIR, filename)
-        
-        # Check cache
-        if os.path.exists(file_path):
-            logger.info(f"TTS Cache Hit: {filename}")
-            return f"/static/audio/tts_cache/{filename}"
-
         if not self.client:
-            logger.warning("TTS Client not available, returning empty or fallback")
+            logger.warning("TTS Client not available")
             raise Exception("Google Cloud TTS client not initialized. Check credentials.")
 
         # API Call
@@ -83,13 +66,8 @@ class TtsService:
             response = self.client.synthesize_speech(
                 input=input_text, voice=voice, audio_config=audio_config
             )
-
-            # Save the valid response to file
-            with open(file_path, "wb") as out:
-                out.write(response.audio_content)
-                logger.info(f"TTS Cache Miss - Created: {filename}")
-            
-            return f"/static/audio/tts_cache/{filename}"
+            # Return binary content directly
+            return response.audio_content
 
         except Exception as e:
             logger.error(f"Error calling Google Cloud TTS API: {e}")
