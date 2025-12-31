@@ -1391,7 +1391,7 @@ export function GeneralSettings() {
                                                         <SelectContent>
                                                             <SelectItem value="0.7">느리게 (0.7x)</SelectItem>
                                                             <SelectItem value="0.8">조금 느리게 (0.8x)</SelectItem>
-                                                            <SelectItem value="1.0">보통 (1.0x)</SelectItem>
+                                                            <SelectItem value="1">보통 (1.0x)</SelectItem>
                                                             <SelectItem value="1.2">조금 빠르게 (1.2x)</SelectItem>
                                                             <SelectItem value="1.5">빠르게 (1.5x)</SelectItem>
                                                         </SelectContent>
