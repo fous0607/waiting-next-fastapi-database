@@ -91,8 +91,19 @@ export function useVoiceAlert(settings: VoiceSettings | null) {
             } catch (error: any) {
                 console.error('[Cloud TTS] Failed to fetch or play speech:', error);
                 if (error.response) {
-                    console.error('[Cloud TTS] Server Error Details:', error.response.data);
-                    console.error('[Cloud TTS] Status:', error.response.status);
+                    if (error.response.data instanceof Blob) {
+                        // Convert Blob to text to see the JSON error message
+                        error.response.data.text().then((text: string) => {
+                            console.error('[Cloud TTS] Server Error Blob content:', text);
+                            try {
+                                const json = JSON.parse(text);
+                                console.error('[Cloud TTS] Parsed Error:', json);
+                            } catch (e) { /* ignore */ }
+                        });
+                    } else {
+                        console.error('[Cloud TTS] Server Error Details:', error.response.data);
+                        console.error('[Cloud TTS] Status:', error.response.status);
+                    }
                 }
             }
         };
