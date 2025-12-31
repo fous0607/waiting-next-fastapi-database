@@ -70,7 +70,9 @@ class StoreSettingsBase(BaseModel):
     calling_status_display_second: int = 60
     enable_calling_voice_alert: bool = True
     enable_manager_calling_voice_alert: bool = False
+    manager_calling_voice_message: str = "{순번}번 {회원명}님, 호출되었습니다."
     enable_manager_entry_voice_alert: bool = False
+    manager_entry_voice_message: str = "{순번}번 {회원명}님, 입장해주세요."
 
     # 대기관리자 화면 레이아웃 설정
     manager_button_size: str = "medium"  # xsmall, small, medium, large
