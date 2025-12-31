@@ -442,7 +442,7 @@ export default function ReceptionPage() {
             // Printer Integration
             if (storeSettings?.enable_printer && storeSettings?.auto_print_registration) {
                 printWaitingTicket(
-                    data.waiting_order,
+                    data.waiting_number,
                     new Date().toLocaleString(),
                     undefined,
                     { settings: storeSettings, storeName }

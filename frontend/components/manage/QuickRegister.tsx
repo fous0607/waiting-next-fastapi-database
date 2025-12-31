@@ -152,7 +152,7 @@ export function QuickRegister() {
             // Print Ticket (if enabled)
             if (storeSettings?.enable_printer && storeSettings?.auto_print_registration) {
                 printWaitingTicket(
-                    response.data.waiting_order,
+                    response.data.waiting_number,
                     new Date().toLocaleString(),
                     undefined,
                     { settings: storeSettings, storeName }
