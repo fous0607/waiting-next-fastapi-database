@@ -1,4 +1,5 @@
 import { EscPosEncoder } from './EscPosEncoder';
+import api from '../api';
 
 export type ConnectionType = 'lan' | 'bluetooth';
 
@@ -101,9 +102,9 @@ export class PrinterService {
     }
 
     /**
-     * Print via LAN Proxy
-     * Browsers cannot connect to raw TCP ports (like 9100) directly.
-     * We use a local proxy running on localhost:8000 to bridge this.
+     * Print via Cloud Queue (Polling)
+     * Tablet sends job to Backend -> Backend Queues it -> PC Proxy Polls and Prints.
+     * This avoids Mixed Content and Network Addressing issues.
      */
     async printLan(ip: string, port: number, data: Uint8Array): Promise<void> {
         return new Promise(async (resolve, reject) => {
@@ -111,28 +112,22 @@ export class PrinterService {
                 // Convert Uint8Array to Array for JSON serialization
                 const dataArray = Array.from(data);
 
-                const response = await fetch('http://localhost:8000/print', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        ip: ip,
-                        port: port,
-                        data: dataArray
-                    })
+                // Send job to Backend Queue
+                // Use the standard 'api' instance which is configured with the backend URL
+                await api.post('/printer/job', {
+                    ip: ip,
+                    port: port,
+                    data: dataArray
                 });
 
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`Proxy Error: ${errorText}`);
-                }
-
+                console.log('[PrinterService] Job sent to Cloud Queue successfully.');
                 resolve();
             } catch (error) {
-                console.error('[PrinterService] Proxy Print Failed:', error);
+                console.error('[PrinterService] Cloud Queue Unavailable:', error);
+
+                // Fallback explanation if backend fails
                 reject(new Error(
-                    "프린터 연결 실패. 로컬 프린트 프로그램(print_proxy)이 실행 중인지 확인해주세요.\n" +
+                    "서버 프린트 대기열에 접속할 수 없습니다.\n" +
                     (error instanceof Error ? error.message : String(error))
                 ));
             }
