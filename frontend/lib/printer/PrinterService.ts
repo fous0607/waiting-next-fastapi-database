@@ -101,31 +101,41 @@ export class PrinterService {
     }
 
     /**
-     * Print via LAN (WebSocket or HTTP)
-     * Direct TCP is not possible from browser.
-     * We assume the printer supports WebSocket or we have an override.
-     * For pure LAN printing without an intermediate server, likely need an app wrapper or specific printer support.
+     * Print via LAN Proxy
+     * Browsers cannot connect to raw TCP ports (like 9100) directly.
+     * We use a local proxy running on localhost:8000 to bridge this.
      */
     async printLan(ip: string, port: number, data: Uint8Array): Promise<void> {
-        // Option 1: WebSocket (if printer supports ePos SDK or raw socket-to-ws bridge)
-        // Many Epson TM printers listen onws://<IP>/
+        return new Promise(async (resolve, reject) => {
+            try {
+                // Convert Uint8Array to Array for JSON serialization
+                const dataArray = Array.from(data);
 
-        return new Promise((resolve, reject) => {
-            // This is speculative. A generic raw TCP printer cannot be reached this way.
-            // We would need a "Print Agent" running locally or the printer needs WS support.
-            // Assuming Epson ePOS-like behavior or a custom agent.
+                const response = await fetch('http://localhost:8000/print', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        ip: ip,
+                        port: port,
+                        data: dataArray
+                    })
+                });
 
-            // For now, let's try a common path or just log.
-            console.log(`[PrinterService] Attempting to print to ${ip}:${port} via WebSocket...`);
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Proxy Error: ${errorText}`);
+                }
 
-            // NOTE: Raw TCP port 9100 cannot be reached via WebSocket directly.
-            // If the user uses a bridge (like 'websockify' on a Pi) it would work.
-            // For now, we will throw an error explaining this limitation or mock it if strictly browser-based.
-
-            // Check if we are in a secure context (https) and trying to access insecure ip (http/ws).
-            // Mixed content might be blocked.
-
-            reject(new Error("Direct LAN printing requires standard WebSockets supported by the printer or a local print server. Raw TCP 9100 is not supported in browsers directly."));
+                resolve();
+            } catch (error) {
+                console.error('[PrinterService] Proxy Print Failed:', error);
+                reject(new Error(
+                    "프린터 연결 실패. 로컬 프린트 프로그램(print_proxy)이 실행 중인지 확인해주세요.\n" +
+                    (error instanceof Error ? error.message : String(error))
+                ));
+            }
         });
     }
 
