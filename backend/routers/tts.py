@@ -25,4 +25,7 @@ async def generate_speech(request: TtsRequest):
         )
         return Response(content=audio_content, media_type="audio/mpeg")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        import traceback
+        traceback.print_exc() # Print full stack trace to server logs
+        print(f"TTS Error: {e}") 
+        raise HTTPException(status_code=500, detail=f"TTS Generation Failed: {str(e)}")

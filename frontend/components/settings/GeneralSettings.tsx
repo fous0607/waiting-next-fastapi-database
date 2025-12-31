@@ -129,7 +129,8 @@ type SettingsFormValues = z.infer<typeof settingsSchema>;
 export function GeneralSettings() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(true);
-    const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+    // Removed unused voices state
+    // const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
 
 
 
@@ -1349,26 +1350,31 @@ export function GeneralSettings() {
                                         <FormField
                                             control={form.control}
                                             name="waiting_voice_name"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel className="text-xs">목소리 선택 (성별/유형)</FormLabel>
-                                                    <Select onValueChange={field.onChange} value={field.value || ''}>
-                                                        <FormControl>
-                                                            <SelectTrigger className="h-9 text-xs">
-                                                                <SelectValue placeholder="목소리를 선택하세요" />
-                                                            </SelectTrigger>
-                                                        </FormControl>
-                                                        <SelectContent>
-                                                            {koVoices.length === 0 && <SelectItem value="default">시스템 기본값</SelectItem>}
-                                                            {koVoices.map((voice: any) => (
-                                                                <SelectItem key={voice.name} value={voice.name} className="text-xs">
-                                                                    {voice.displayName}
-                                                                </SelectItem>
-                                                            ))}
-                                                        </SelectContent>
-                                                    </Select>
-                                                </FormItem>
-                                            )}
+                                            render={({ field }) => {
+                                                console.log('Rendering Voice Select. current value:', field.value);
+                                                console.log('Available Voices (koVoices):', koVoices);
+
+                                                return (
+                                                    <FormItem>
+                                                        <FormLabel className="text-xs">목소리 선택 (성별/유형)</FormLabel>
+                                                        <Select onValueChange={field.onChange} value={field.value || ''}>
+                                                            <FormControl>
+                                                                <SelectTrigger className="h-9 text-xs">
+                                                                    <SelectValue placeholder="목소리를 선택하세요" />
+                                                                </SelectTrigger>
+                                                            </FormControl>
+                                                            <SelectContent>
+                                                                {(!koVoices || koVoices.length === 0) && <SelectItem value="default">시스템 기본값 (목록 없음)</SelectItem>}
+                                                                {koVoices && koVoices.map((voice: any) => (
+                                                                    <SelectItem key={voice.name} value={voice.name} className="text-xs">
+                                                                        {voice.displayName}
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </FormItem>
+                                                )
+                                            }}
                                         />
                                         <FormField
                                             control={form.control}

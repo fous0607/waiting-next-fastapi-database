@@ -88,8 +88,12 @@ export function useVoiceAlert(settings: VoiceSettings | null) {
                         }
                     });
                 }
-            } catch (error) {
+            } catch (error: any) {
                 console.error('[Cloud TTS] Failed to fetch or play speech:', error);
+                if (error.response) {
+                    console.error('[Cloud TTS] Server Error Details:', error.response.data);
+                    console.error('[Cloud TTS] Status:', error.response.status);
+                }
             }
         };
 
