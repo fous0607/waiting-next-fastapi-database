@@ -279,6 +279,7 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                                         size="icon"
                                         className="h-8 w-8 bg-white hover:bg-slate-100 text-slate-500 border-slate-200 shadow-sm"
                                         onClick={() => handleOrderChange('up')}
+                                        disabled={index === 0}
                                     >
                                         <ArrowUp className="w-4 h-4" />
                                     </Button>

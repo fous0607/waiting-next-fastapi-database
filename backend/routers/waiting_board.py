@@ -774,7 +774,7 @@ async def change_waiting_order(
             WaitingList.business_date == waiting.business_date,
             WaitingList.class_id == waiting.class_id,
             WaitingList.class_order < waiting.class_order,
-            WaitingList.status == "waiting",
+            WaitingList.status.in_(["waiting", "called"]), # called 상태도 포함
             WaitingList.store_id == current_store.id
         ).order_by(WaitingList.class_order.desc()).first()
 
@@ -790,7 +790,7 @@ async def change_waiting_order(
             WaitingList.business_date == waiting.business_date,
             WaitingList.class_id == waiting.class_id,
             WaitingList.class_order > waiting.class_order,
-            WaitingList.status == "waiting",
+            WaitingList.status.in_(["waiting", "called"]), # called 상태도 포함
             WaitingList.store_id == current_store.id
         ).order_by(WaitingList.class_order).first()
 
