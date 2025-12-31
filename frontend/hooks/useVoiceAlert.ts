@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useRef } from 'react';
+import { useCallback, useState } from 'react';
 import api from '@/lib/api';
 
 interface VoiceSettings {
@@ -14,12 +14,16 @@ interface VoiceSettings {
     duplicate_registration_voice_message?: string | null;
 }
 
-export function useVoiceAlert(settings: VoiceSettings | null) {
-    // Keep this for UI compatibility if needed, but we don't really select browser voices anymore
-    const [voices, setVoices] = useState<any[]>([]);
+const CLOUD_TTS_VOICES = [
+    { name: "ko-KR-Wavenet-A", displayName: "여성 1 (차분한 뉴스 앵커 톤)" },
+    { name: "ko-KR-Wavenet-B", displayName: "여성 2 (부드러운 상담원 톤)" },
+    { name: "ko-KR-Wavenet-C", displayName: "남성 1 (굵고 신뢰감 있는 톤)" },
+    { name: "ko-KR-Wavenet-D", displayName: "남성 2 (명쾌하고 젊은 톤)" },
+];
 
-    // We still preload "voices" mock to not break settings page logic if it relies on this hook
-    // But for playback we use Cloud TTS.
+export function useVoiceAlert(settings: VoiceSettings | null) {
+    // Return static list of Cloud TTS voices
+    const voices = CLOUD_TTS_VOICES;
 
     const speak = useCallback(async (text: string, options?: {
         rate?: number,
@@ -32,30 +36,20 @@ export function useVoiceAlert(settings: VoiceSettings | null) {
         if (!textToSpeech) return;
 
         // 1. Prepare Params
-        // Wavenet voices: ko-KR-Wavenet-A (Female), B (Female), C (Male), D (Male)
-        // Default to a professional WaveNet voice
         let voiceName = options?.voiceName ?? settings?.waiting_voice_name;
 
-        // Map Legacy/Browser Voice Names to Google Cloud TTS Voices
-        // Korean voices usually contain "Male", "Female", or specific names from browser engines (e.g. "Google 한국의", "Yuna", "Minsang")
-        if (!voiceName) {
-            voiceName = "ko-KR-Wavenet-C"; // Default Male
-        } else if (voiceName.includes('ko-KR-Wavenet') || voiceName.includes('ko-KR-Standard')) {
-            // Already a valid Google ID, keep it.
-        } else {
-            // Mapping Logic
-            if (voiceName.includes('Female') || voiceName.includes('Yuna') || voiceName.includes('Jiyoung') || voiceName.includes('Soyeon') || voiceName.includes('여성')) {
-                voiceName = "ko-KR-Wavenet-B"; // Female (Professional)
-            } else if (voiceName.includes('Male') || voiceName.includes('Minsang') || voiceName.includes('남성')) {
-                voiceName = "ko-KR-Wavenet-C"; // Male (Professional)
-            } else {
-                // Fallback for unknown names (like "Google 한국의" which is usually female-ish or just generic)
-                // If the user selected 'default' or something else.
+        // Ensure we have a valid Cloud TTS ID
+        const isValidVoice = CLOUD_TTS_VOICES.some(v => v.name === voiceName);
+        if (!isValidVoice) {
+            // Fallback logic for legacy settings
+            if (voiceName?.includes('Male') || voiceName?.includes('남성')) {
                 voiceName = "ko-KR-Wavenet-C";
+            } else {
+                voiceName = "ko-KR-Wavenet-B";
             }
         }
 
-        const rate = options?.rate ?? settings?.waiting_voice_rate ?? 1.2; // Slightly faster default
+        const rate = options?.rate ?? settings?.waiting_voice_rate ?? 1.1;
         const pitch = options?.pitch ?? settings?.waiting_voice_pitch ?? 0.0;
         const repeatCount = options?.repeat ?? 1;
 
@@ -72,13 +66,6 @@ export function useVoiceAlert(settings: VoiceSettings | null) {
 
                 if (response.data && response.data.audio_url) {
                     const audioUrl = response.data.audio_url;
-                    // Prepend API base URL if relative path
-                    // api.js usually handles base URL but returned URL is relative static path
-                    // We need full URL or relative to public. 
-                    // Since it's /static/..., browser can resolve it relative to domain root.
-                    // But we might be on a different port in dev (3000 vs 8000).
-                    // api.defaults.baseURL is usually 'http://localhost:8088/api/v1' or similar.
-                    // We need the root backend URL.
 
                     // Simple heuristic: attach backend origin
                     const backendOrigin = api.defaults.baseURL ? new URL(api.defaults.baseURL).origin : '';
@@ -105,7 +92,6 @@ export function useVoiceAlert(settings: VoiceSettings | null) {
         // Handle Repeat
         for (let i = 0; i < repeatCount; i++) {
             await playAudio();
-            // Small pause between repeats
             if (i < repeatCount - 1) {
                 await new Promise(r => setTimeout(r, 500));
             }
@@ -124,9 +110,6 @@ export function useVoiceAlert(settings: VoiceSettings | null) {
 
         speak(message, {
             repeat: settings?.waiting_call_voice_repeat_count || 1,
-            // Voice selection can be customized per type logic here if needed
-            // Use "ko-KR-Wavenet-B" (Female) for calls? or C (Male)? 
-            // Let's use what's passed or default in speak()
         });
     }, [settings, speak]);
 
@@ -153,6 +136,6 @@ export function useVoiceAlert(settings: VoiceSettings | null) {
         speakCall,
         speakRegistration,
         speakDuplicate,
-        voices: [] as { name: string; lang: string }[] // Return empty typed array to satisfy TS in Settings
+        voices: voices
     };
 }
