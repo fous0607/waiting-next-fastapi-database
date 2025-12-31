@@ -106,18 +106,17 @@ export class PrinterService {
      * Tablet sends job to Backend -> Backend Queues it -> PC Proxy Polls and Prints.
      * This avoids Mixed Content and Network Addressing issues.
      */
-    async printLan(ip: string, port: number, data: Uint8Array): Promise<void> {
+    async printLan(ip: string, port: number, job: PrintJob): Promise<void> {
         return new Promise(async (resolve, reject) => {
             try {
-                // Convert Uint8Array to Array for JSON serialization
-                const dataArray = Array.from(data);
-
                 // Send job to Backend Queue
                 // Use the standard 'api' instance which is configured with the backend URL
-                await api.post('/printer/job', {
+                await api.post('/printer/ticket', {
                     ip: ip,
                     port: port,
-                    data: dataArray
+                    store_name: job.storeName,
+                    waiting_number: job.waitingNumber.toString(),
+                    date: job.date
                 });
 
                 console.log('[PrinterService] Job sent to Cloud Queue successfully.');
@@ -141,7 +140,8 @@ export class PrinterService {
             return this.printBluetooth(data);
         } else if (config.type === 'lan') {
             if (!config.ip) throw new Error('IP Address is required for LAN printing');
-            return this.printLan(config.ip, config.port || 9100, data);
+            // Pass the entire job object to printLan for backend processing
+            return this.printLan(config.ip, config.port || 9100, job);
         }
     }
 }

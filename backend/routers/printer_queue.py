@@ -49,3 +49,98 @@ async def get_print_jobs():
     
     print(f"[PrinterQueue] Dispatching {len(jobs_to_process)} jobs to proxy")
     return jobs_to_process
+
+class TicketRequest(BaseModel):
+    ip: str
+    port: int = 9100
+    store_name: str
+    waiting_number: str # Can be int or str, keeping str for flexibility
+    date: str
+
+@router.post("/ticket")
+async def add_ticket_job(ticket: TicketRequest):
+    """
+    Generate ESC/POS commands for a waiting ticket (Korean EUC-KR)
+    and add to queue.
+    """
+    try:
+        # ESC/POS Commands
+        ESC = b'\x1b'
+        GS = b'\x1d'
+        LF = b'\x0a'
+        INIT = ESC + b'@'
+        ALIGN_CENTER = ESC + b'a' + b'\x01'
+        ALIGN_LEFT = ESC + b'a' + b'\x00'
+        BOLD_ON = ESC + b'E' + b'\x01'
+        BOLD_OFF = ESC + b'E' + b'\x00'
+        # Size: GS ! n. 0x00=Normal, 0x11=Double Height+Width, 0x22=Generic Large
+        SIZE_NORMAL = GS + b'!' + b'\x00'
+        SIZE_BIG = GS + b'!' + b'\x11' 
+        SIZE_HUGE = GS + b'!' + b'\x22'
+        CUT = GS + b'V' + b'\x00'
+
+        # Helper to encode text to EUC-KR
+        def text(s: str):
+            return s.encode('euc-kr')
+
+        commands = []
+        commands.append(INIT)
+        
+        # Store Name
+        commands.append(ALIGN_CENTER)
+        commands.append(BOLD_ON)
+        commands.append(SIZE_BIG)
+        commands.append(text(ticket.store_name))
+        commands.append(LF)
+        
+        # Separator
+        commands.append(SIZE_NORMAL)
+        commands.append(BOLD_OFF)
+        commands.append(text("--------------------------------"))
+        commands.append(LF)
+        
+        # Waiting Number Label
+        commands.append(ALIGN_CENTER)
+        commands.append(SIZE_NORMAL)
+        commands.append(text("대기번호"))
+        commands.append(LF)
+        
+        # Waiting Number Value
+        commands.append(SIZE_HUGE)
+        commands.append(BOLD_ON)
+        commands.append(text(str(ticket.waiting_number)))
+        commands.append(LF)
+        
+        # Footer
+        commands.append(SIZE_NORMAL)
+        commands.append(BOLD_OFF)
+        commands.append(LF)
+        commands.append(text("--------------------------------"))
+        commands.append(LF)
+        commands.append(text(ticket.date))
+        commands.append(LF)
+        commands.append(LF)
+        commands.append(LF)
+        commands.append(CUT)
+
+        # Flatten list of bytes
+        full_command = b''.join(commands)
+        
+        # Add to queue
+        job = PrintJob(
+            ip=ticket.ip,
+            port=ticket.port,
+            data=list(full_command) # Convert bytes to list of ints for JSON
+        )
+        print_job_queue.append(job)
+        
+        # Cleanup
+        if len(print_job_queue) > 100:
+            print_job_queue.pop(0)
+
+        print(f"[PrinterQueue] Generated ticket for {ticket.waiting_number} (EUC-KR)")
+        return {"status": "queued", "message": "Ticket generated and queued"}
+
+    except Exception as e:
+        print(f"Ticket Generation Error: {e}")
+        raise HTTPException(status_code=500, detail=f"Encoding error: {str(e)}")
