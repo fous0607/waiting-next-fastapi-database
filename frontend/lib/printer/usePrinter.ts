@@ -28,6 +28,9 @@ export const usePrinter = () => {
         let qrUrl = undefined;
         if (options?.storeCode && typeof window !== 'undefined') {
             qrUrl = `${window.location.origin}/entry/${options.storeCode}/status`;
+            console.log('[Printer] Generated QR URL:', qrUrl);
+        } else {
+            console.log('[Printer] QR URL not generated. storeCode:', options?.storeCode);
         }
 
         if (!settings?.enable_printer) {

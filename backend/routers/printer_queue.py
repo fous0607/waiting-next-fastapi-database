@@ -143,8 +143,8 @@ async def generate_ticket(ticket: TicketData):
             
             # 1. Set Model (Model 2)
             commands.append(b'\x1d(k\x04\x00\x31\x41\x32\x00')
-            # 2. Set Module Size (6)
-            commands.append(b'\x1d(k\x03\x00\x31\x43\x06')
+            # 2. Set Module Size (4) - Reduced from 6 for better fit/compatibility
+            commands.append(b'\x1d(k\x03\x00\x31\x43\x04')
             # 3. Set Error Correction (L=48)
             commands.append(b'\x1d(k\x03\x00\x31\x45\x30')
             # 4. Store Data
@@ -159,6 +159,9 @@ async def generate_ticket(ticket: TicketData):
 
         commands.append(LF)
         commands.append(LF)
+        commands.append(LF)
+        commands.append(LF)
+        commands.append(LF) # Extra feeds to prevent cut off
         commands.append(CUT)
 
         # Flatten list of bytes
