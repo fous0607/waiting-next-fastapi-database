@@ -198,6 +198,13 @@ class StoreSettings(Base):
 
     # 순차적 마감 설정
     sequential_closing = Column(Boolean, default=False)  # 순차적 마감 사용 여부
+    
+    # 영수증 프린터 설정
+    enable_printer = Column(Boolean, default=False)
+    printer_connection_type = Column(String, default="lan") # lan, bluetooth
+    printer_ip_address = Column(String, nullable=True)
+    printer_port = Column(Integer, default=9100)
+    auto_print_registration = Column(Boolean, default=True)
 
     # 클래스 시간 설정
     default_class_minute = Column(Integer, default=50)  # 기본 수업 시간 (분)

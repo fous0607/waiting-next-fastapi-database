@@ -109,7 +109,15 @@ class StoreSettingsBase(BaseModel):
     enable_party_size: bool = False
     enable_menu_ordering: bool = False
     party_size_config: Optional[str] = None  # JSON string for categories
+    party_size_config: Optional[str] = None  # JSON string for categories
     detail_mode: str = "standard" # standard (table), pickup (cafe)
+
+    # 영수증 프린터 설정
+    enable_printer: bool = False
+    printer_connection_type: str = "lan" # lan, bluetooth
+    printer_ip_address: Optional[str] = None
+    printer_port: int = 9100
+    auto_print_registration: bool = True
 
 class StoreSettingsCreate(StoreSettingsBase):
     pass
@@ -222,7 +230,15 @@ class StoreSettingsUpdate(BaseModel):
     enable_party_size: Optional[bool] = None
     enable_menu_ordering: Optional[bool] = None
     party_size_config: Optional[str] = None
+    party_size_config: Optional[str] = None
     detail_mode: Optional[str] = None
+
+    # 영수증 프린터 설정
+    enable_printer: Optional[bool] = None
+    printer_connection_type: Optional[str] = None
+    printer_ip_address: Optional[str] = None
+    printer_port: Optional[int] = None
+    auto_print_registration: Optional[bool] = None
 
 class StoreSettings(StoreSettingsBase):
     id: int

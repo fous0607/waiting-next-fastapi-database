@@ -45,6 +45,13 @@ export interface StoreSettings {
     enable_menu_ordering?: boolean;
     detail_mode?: 'standard' | 'pickup';
 
+    // Receipt Printer Settings
+    enable_printer?: boolean;
+    printer_connection_type?: 'lan' | 'bluetooth';
+    printer_ip_address?: string | null;
+    printer_port?: number;
+    auto_print_registration?: boolean;
+
     // Voice Settings
     enable_waiting_voice_alert?: boolean;
     enable_calling_voice_alert?: boolean;

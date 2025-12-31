@@ -11,6 +11,7 @@ import { Delete, Check, AlertCircle, UserRound, Loader2 } from 'lucide-react';
 import { GlobalLoader } from "@/components/ui/GlobalLoader";
 import { useOperationLabels, type OperationType } from '@/hooks/useOperationLabels';
 import { useVoiceAlert } from '@/hooks/useVoiceAlert';
+import { usePrinter } from '@/lib/printer/usePrinter';
 
 interface Member {
     id: number;
@@ -41,6 +42,7 @@ export default function ReceptionPage() {
     const [memberName, setMemberName] = useState('');
 
     const labels = useOperationLabels(storeSettings?.operation_type || 'general');
+    const { printWaitingTicket } = usePrinter();
 
     // Result Modal State
     const [resultDialog, setResultDialog] = useState<{ open: boolean, data: any }>({ open: false, data: null });
@@ -436,6 +438,16 @@ export default function ReceptionPage() {
                 display_name: data.name || '',
                 class_order: data.class_order
             });
+
+            // Printer Integration
+            if (storeSettings?.enable_printer && storeSettings?.auto_print_registration) {
+                printWaitingTicket(
+                    data.waiting_order,
+                    new Date().toLocaleString(),
+                    undefined,
+                    { settings: storeSettings, storeName }
+                );
+            }
 
             // Custom timeout from settings - Ensure it's a number
             // Force re-fetch from latest state or use passed settings

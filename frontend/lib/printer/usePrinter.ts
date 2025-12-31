@@ -1,0 +1,64 @@
+import { useState, useCallback } from 'react';
+import { useFormContext } from 'react-hook-form'; // Or use store
+// If settings are in store, use store. If in a form, use context.
+// Actually, global settings are in useWaitingStore.
+import { useWaitingStore } from '../store/useWaitingStore';
+import { PrinterService, PrintJob } from './PrinterService';
+import { toast } from 'sonner';
+
+export const usePrinter = () => {
+    const { storeSettings, storeName } = useWaitingStore();
+    const [isPrinting, setIsPrinting] = useState(false);
+
+    // Initialize service once or singleton? 
+    // Service is stateless mostly, but encoder is cheap.
+    const printerService = new PrinterService();
+
+    const printWaitingTicket = useCallback(async (waitingNumber: number, date: string, partySize?: string, options?: { settings?: any, storeName?: string }) => {
+        const settings = options?.settings || storeSettings;
+        const name = options?.storeName || storeName || '매장이름';
+
+        if (!settings?.enable_printer) {
+            console.log('[Printer] Printing disabled in settings.');
+            return;
+        }
+
+        setIsPrinting(true);
+        try {
+            const config = {
+                type: (settings.printer_connection_type as 'lan' | 'bluetooth') || 'lan',
+                ip: settings.printer_ip_address || '',
+                port: settings.printer_port || 9100,
+            };
+
+            const job: PrintJob = {
+                storeName: name,
+                waitingNumber,
+                date,
+            };
+
+            await printerService.print(config, job);
+            toast.success('대기표가 출력되었습니다.');
+
+        } catch (error) {
+            console.error('[Printer] Print failed:', error);
+            // Don't show toast for LAN "secure context" errors if explicit, but here we show general error
+            toast.error('프린터 출력 실패: ' + (error instanceof Error ? error.message : '알 수 없는 오류'));
+        } finally {
+            setIsPrinting(false);
+        }
+    }, [storeSettings, storeName]);
+
+    const testPrint = useCallback(async () => {
+        // For testing from Settings page, we might need to pass config explicitly if not saved yet.
+        // But assuming saved settings for now.
+
+        await printWaitingTicket(999, new Date().toLocaleString());
+    }, [printWaitingTicket]);
+
+    return {
+        printWaitingTicket,
+        testPrint,
+        isPrinting
+    };
+};

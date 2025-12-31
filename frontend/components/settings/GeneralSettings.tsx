@@ -3,6 +3,7 @@ import QRCode from 'react-qr-code';
 
 import { useEffect, useState } from 'react';
 import { QRPrintModal } from './QRPrintModal';
+import { TestPrintButton } from './TestPrintButton';
 import { Loader2, Copy, Check } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -126,6 +127,13 @@ const settingsSchema = z.object({
     enable_party_size: z.boolean().default(false),
     enable_menu_ordering: z.boolean().default(false),
     party_size_config: z.string().optional().nullable(),
+
+    // Receipt Printer Settings
+    enable_printer: z.boolean().default(false),
+    printer_connection_type: z.enum(['lan', 'bluetooth']).default('lan'),
+    printer_ip_address: z.string().optional().nullable(),
+    printer_port: z.coerce.number().default(9100),
+    auto_print_registration: z.boolean().default(true),
 });
 
 type SettingsFormValues = z.infer<typeof settingsSchema>;
@@ -206,6 +214,11 @@ export function GeneralSettings() {
             party_size_config: JSON.stringify([
                 { id: 'total', label: '총 인원', min: 1, max: 20, required: true }
             ]),
+            enable_printer: false,
+            printer_connection_type: 'lan',
+            printer_ip_address: '',
+            printer_port: 9100,
+            auto_print_registration: true,
         },
     });
 
@@ -289,6 +302,11 @@ export function GeneralSettings() {
                     enable_menu_ordering: data.enable_menu_ordering ?? false,
                     registration_message: data.registration_message || "처음 방문하셨네요!\n성함을 입력해 주세요.",
                     detail_mode: data.detail_mode || 'standard',
+                    enable_printer: data.enable_printer ?? false,
+                    printer_connection_type: data.printer_connection_type || 'lan',
+                    printer_ip_address: data.printer_ip_address || '',
+                    printer_port: data.printer_port || 9100,
+                    auto_print_registration: data.auto_print_registration ?? true,
                 });
 
                 // Set initial theme
@@ -856,6 +874,116 @@ export function GeneralSettings() {
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                        </AccordionContent>
+                    </AccordionItem>
+
+                    {/* Section: Receipt Printer Configuration */}
+                    <AccordionItem value="printer">
+                        <AccordionTrigger>영수증 프린터 설정 (Receipt Printer)</AccordionTrigger>
+                        <AccordionContent className="space-y-4 p-2">
+                            <div className="rounded-lg border bg-slate-50 p-4 space-y-4">
+                                <FormField
+                                    control={form.control}
+                                    name="enable_printer"
+                                    render={({ field }) => (
+                                        <FormItem className="flex flex-row items-center justify-between rounded-lg border bg-white p-4 shadow-sm">
+                                            <div className="space-y-0.5">
+                                                <FormLabel className="text-base">영수증 프린터 사용</FormLabel>
+                                                <FormDescription>
+                                                    대기 접수 시 번호표를 출력합니다.
+                                                </FormDescription>
+                                            </div>
+                                            <FormControl>
+                                                <Switch
+                                                    checked={field.value}
+                                                    onCheckedChange={field.onChange}
+                                                />
+                                            </FormControl>
+                                        </FormItem>
+                                    )}
+                                />
+
+                                {form.watch('enable_printer') && (
+                                    <div className="space-y-4 pt-2 border-t border-slate-200 animate-in fade-in slide-in-from-top-2">
+                                        <FormField
+                                            control={form.control}
+                                            name="printer_connection_type"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>연결 방식</FormLabel>
+                                                    <Select onValueChange={field.onChange} value={field.value}>
+                                                        <FormControl>
+                                                            <SelectTrigger>
+                                                                <SelectValue placeholder="연결 방식 선택" />
+                                                            </SelectTrigger>
+                                                        </FormControl>
+                                                        <SelectContent>
+                                                            <SelectItem value="lan">LAN / Wi-Fi (권장)</SelectItem>
+                                                            <SelectItem value="bluetooth">Bluetooth (웹 지원 모델)</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                    <FormDescription className="text-xs">
+                                                        * LAN 연결은 프린터 IP 설정이 필요하며, 가장 안정적입니다.<br />
+                                                        * Bluetooth는 브라우저 호환성을 확인해주세요.
+                                                    </FormDescription>
+                                                </FormItem>
+                                            )}
+                                        />
+
+                                        {form.watch('printer_connection_type') === 'lan' && (
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white p-3 rounded-md border border-slate-200">
+                                                <FormField
+                                                    control={form.control}
+                                                    name="printer_ip_address"
+                                                    render={({ field }) => (
+                                                        <FormItem>
+                                                            <FormLabel>프린터 IP 주소</FormLabel>
+                                                            <FormControl>
+                                                                <Input placeholder="예: 192.168.0.200" {...field} value={field.value || ''} />
+                                                            </FormControl>
+                                                        </FormItem>
+                                                    )}
+                                                />
+                                                <FormField
+                                                    control={form.control}
+                                                    name="printer_port"
+                                                    render={({ field }) => (
+                                                        <FormItem>
+                                                            <FormLabel>포트 번호</FormLabel>
+                                                            <FormControl>
+                                                                <Input type="number" {...field} />
+                                                            </FormControl>
+                                                            <FormDescription>기본값: 9100</FormDescription>
+                                                        </FormItem>
+                                                    )}
+                                                />
+                                            </div>
+                                        )}
+
+                                        <FormField
+                                            control={form.control}
+                                            name="auto_print_registration"
+                                            render={({ field }) => (
+                                                <FormItem className="flex flex-row items-center space-x-2 space-y-0 pt-2">
+                                                    <FormControl>
+                                                        <Checkbox
+                                                            checked={field.value}
+                                                            onCheckedChange={field.onChange}
+                                                        />
+                                                    </FormControl>
+                                                    <FormLabel className="font-normal text-sm">
+                                                        대기 접수 시 자동으로 번호표 출력
+                                                    </FormLabel>
+                                                </FormItem>
+                                            )}
+                                        />
+
+                                        <div className="flex justify-end pt-2">
+                                            <TestPrintButton />
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </AccordionContent>
                     </AccordionItem>

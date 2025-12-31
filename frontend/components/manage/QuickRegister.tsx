@@ -6,6 +6,7 @@ import api from "@/lib/api";
 import { useWaitingStore } from "@/lib/store/useWaitingStore";
 import { Loader2, UserRound } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { usePrinter } from "@/lib/printer/usePrinter";
 
 interface MemberCandidate {
     id: number;
@@ -17,7 +18,8 @@ export function QuickRegister() {
     const [inputValue, setInputValue] = useState("");
     const [displayValue, setDisplayValue] = useState("");
     const [isLoading, setIsLoading] = useState(false);
-    const { fetchWaitingList, currentClassId, fetchClasses, classes, waitingList, closedClasses, closeClass, sequentialClosing } = useWaitingStore();
+    const { fetchWaitingList, currentClassId, fetchClasses, classes, waitingList, closedClasses, closeClass, sequentialClosing, storeSettings, storeName } = useWaitingStore();
+    const { printWaitingTicket } = usePrinter();
 
     const currentClass = classes.find(c => c.id === currentClassId);
     const currentClassWaitingCount = currentClassId && waitingList[currentClassId] ? waitingList[currentClassId].length : 0;
@@ -146,6 +148,16 @@ export function QuickRegister() {
             // Refresh
             fetchClasses();
             fetchWaitingList(currentClassId);
+
+            // Print Ticket (if enabled)
+            if (storeSettings?.enable_printer && storeSettings?.auto_print_registration) {
+                printWaitingTicket(
+                    response.data.waiting_order,
+                    new Date().toLocaleString(),
+                    undefined,
+                    { settings: storeSettings, storeName }
+                );
+            }
 
         } catch (error: unknown) {
             const err = error as any;
