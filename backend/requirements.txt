@@ -11,3 +11,5 @@ python-jose[cryptography]
 openpyxl
 psycopg2-binary
 python-dotenv
+# For Google Cloud TTS
+google-cloud-texttospeech

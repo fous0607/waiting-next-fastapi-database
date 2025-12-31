@@ -131,7 +131,7 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
 
     const renderPartySize = () => {
         if (!item.party_size_details) {
-            return item.total_party_size ? `${item.total_party_size}명` : '';
+            return item.total_party_size ? `총 ${item.total_party_size}명` : '';
         }
 
         try {
@@ -149,15 +149,15 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                     const label = configMap[id] || id;
                     // Take only first character of label
                     const shortLabel = label.charAt(0);
-                    detailLabels.push(`${shortLabel}${numCount}`);
+                    detailLabels.push(`${shortLabel} ${numCount}`);
                 }
             });
 
-            if (detailLabels.length === 0) return `${item.total_party_size ?? 0}명`;
+            if (detailLabels.length === 0) return `총 ${item.total_party_size ?? 0}명`;
             // Return abbreviated format with total
-            return `${detailLabels.join(' ')} 총${item.total_party_size ?? 0}`;
+            return `${detailLabels.join(' ')}  총 ${item.total_party_size ?? 0}`;
         } catch (e) {
-            return `${item.total_party_size ?? 0}명`;
+            return `총 ${item.total_party_size ?? 0}명`;
         }
     };
 
@@ -250,7 +250,7 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                                     {/* Party Size Details (Prominent - Replaces Phone) */}
                                     {(item.total_party_size ?? 0) > 0 && (
                                         <div className="flex-1 min-w-0 max-w-[60%]">
-                                            <AutoResizingText className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">
+                                            <AutoResizingText className="text-xs font-bold text-blue-600 px-1">
                                                 {renderPartySize()}
                                             </AutoResizingText>
                                         </div>

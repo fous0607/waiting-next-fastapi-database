@@ -47,7 +47,8 @@ from routers import (
     file_upload, # File Upload Router
     system, # System/SSE Monitoring Router
     polling, # Polling Optimization Router
-    public # Public Router (QR/Mobile)
+    public, # Public Router (QR/Mobile)
+    tts # Google Cloud TTS Router
 )
 from core.logger import logger
 import time
@@ -103,6 +104,15 @@ async def startup_event():
         check_and_migrate_table(SettingsSnapshot)
         check_and_migrate_table(Notice)
         check_and_migrate_table(NoticeAttachment)
+        check_and_migrate_table(Notice)
+        check_and_migrate_table(NoticeAttachment)
+        
+        # Ensure TTS cache directory exists
+        from services.tts_service import TTS_CACHE_DIR
+        if not os.path.exists(TTS_CACHE_DIR):
+            os.makedirs(TTS_CACHE_DIR)
+            logger.info(f"Created TTS cache directory: {TTS_CACHE_DIR}")
+            
         # You can add other models here if needed in the future
     except Exception as e:
         logger.error(f"Auto-migration system failed: {e}")
@@ -155,6 +165,7 @@ app.include_router(file_upload.router, prefix="/api/files", tags=["File Upload"]
 app.include_router(system.router, prefix="/api/system", tags=["System Monitoring"])
 app.include_router(polling.router, prefix="/api/polling", tags=["Polling Optimization"])
 app.include_router(public.router, prefix="/api/public", tags=["Public Access"])
+app.include_router(tts.router, prefix="/api/tts", tags=["Text to Speech"])
 
 @app.get("/")
 async def main_page(request: Request):

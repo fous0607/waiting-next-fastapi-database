@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import useSWR from 'swr';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '@/lib/api';
+import { cn, playSilentAudio } from '@/lib/utils';
 import { useVoiceAlert } from '@/hooks/useVoiceAlert';
 import { BoardCard } from '@/components/board/board-card';
 import { GlobalLoader } from "@/components/ui/GlobalLoader";
@@ -92,7 +93,10 @@ export default function BoardPage() {
     const [showOverlay, setShowOverlay] = useState(true);
 
     // Audio Unlocker
-    const enableAudio = useCallback(() => {
+    const enableAudio = useCallback(async () => {
+        // Attempt silent unlock first (reliable for unlocking AudioContext)
+        await playSilentAudio();
+
         if (typeof window !== 'undefined' && window.speechSynthesis) {
             const utterance = new SpeechSynthesisUtterance('대기현황판 음성 안내가 시작됩니다.');
             utterance.volume = 0.1;
@@ -109,8 +113,15 @@ export default function BoardPage() {
             };
             utterance.onerror = (e) => {
                 console.warn('[Board] Audio autoplay blocked or failed:', e);
-                // Do NOT set isAudioEnabled(true) here
+                // Even if TTS fails, we might have unlocked via silent audio, so let's be optimistic if user clicked
+                if (e.error !== 'not-allowed') {
+                    // If it's not a permission error, maybe just TTS error?
+                }
             };
+
+            // If silent audio worked, we can force state to true
+            setIsAudioEnabled(true);
+            setShowOverlay(false);
 
             window.speechSynthesis.speak(utterance);
         }

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, useRef } from 'react';
+import api from '@/lib/api';
 
 interface VoiceSettings {
     enable_waiting_voice_alert?: boolean;
@@ -14,109 +15,86 @@ interface VoiceSettings {
 }
 
 export function useVoiceAlert(settings: VoiceSettings | null) {
-    const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
-    const isSpeakingRef = useRef(false);
+    // Keep this for UI compatibility if needed, but we don't really select browser voices anymore
+    const [voices, setVoices] = useState<any[]>([]);
 
-    // Load and listen for voices
-    useEffect(() => {
-        if (typeof window === 'undefined' || !window.speechSynthesis) return;
+    // We still preload "voices" mock to not break settings page logic if it relies on this hook
+    // But for playback we use Cloud TTS.
 
-        const loadVoices = () => {
-            const availableVoices = window.speechSynthesis.getVoices();
-            if (availableVoices.length > 0) {
-                setVoices(availableVoices);
-            }
-            console.log('[Voice] Voices loaded:', availableVoices.length);
-        };
-
-        loadVoices();
-        window.speechSynthesis.onvoiceschanged = loadVoices;
-    }, []);
-
-    const speak = useCallback((text: string, options?: {
+    const speak = useCallback(async (text: string, options?: {
         rate?: number,
         pitch?: number,
         voiceName?: string | null,
         repeat?: number,
         cancelPrevious?: boolean
     }) => {
-        if (typeof window === 'undefined' || !window.speechSynthesis) {
-            console.warn('[Voice] SpeechSynthesis not available');
-            return;
-        }
+        const textToSpeech = text.trim();
+        if (!textToSpeech) return;
 
-        if (options?.cancelPrevious) {
-            window.speechSynthesis.cancel();
-        }
-
-        console.log('[Voice] Speak called:', text, options);
-
-        const rate = options?.rate ?? settings?.waiting_voice_rate ?? 1.0;
-        const pitch = options?.pitch ?? settings?.waiting_voice_pitch ?? 1.0;
-        const voiceName = options?.voiceName ?? settings?.waiting_voice_name;
+        // 1. Prepare Params
+        // Wavenet voices: ko-KR-Wavenet-A (Female), B (Female), C (Male), D (Male)
+        // Default to a professional WaveNet voice
+        const voiceName = options?.voiceName ?? settings?.waiting_voice_name ?? "ko-KR-Wavenet-C";
+        const rate = options?.rate ?? settings?.waiting_voice_rate ?? 1.2; // Slightly faster default
+        const pitch = options?.pitch ?? settings?.waiting_voice_pitch ?? 0.0;
         const repeatCount = options?.repeat ?? 1;
 
-        // Find best voice
-        const availableVoices = window.speechSynthesis.getVoices();
-        const targetVoice =
-            (voiceName ? availableVoices.find(v => v.name === voiceName) : null) ||
-            availableVoices.find(v => v.lang.includes('ko-KR')) ||
-            availableVoices.find(v => v.lang.includes('ko')) ||
-            null;
+        console.log('[Cloud TTS] Requesting:', { text: textToSpeech, voiceName, rate, pitch });
 
-        // Message preparation (Handling pauses marked by double spaces)
-        const parts = text.split(/(\s{2,})/);
+        const playAudio = async () => {
+            try {
+                const response = await api.post('/tts/speak', {
+                    text: textToSpeech,
+                    voice_name: voiceName,
+                    rate: rate,
+                    pitch: pitch
+                });
 
-        const playMessage = () => {
-            let offset = 0;
-            parts.forEach((part) => {
-                if (/^\s{2,}$/.test(part)) {
-                    // Natural pause
-                    const pauseSeconds = Math.floor(part.length / 2) * 0.5;
-                    // We can't easily wait here in a non-async way without overlapping timers
-                    // SpeechSynthesisUtterance doesn't have a built-in pause part
-                    // So we use an empty utterance with duration if needed, or just let it be.
-                    // For now, let's stick to simple queuing.
-                } else if (part.trim()) {
-                    const utterance = new SpeechSynthesisUtterance(part.trim());
-                    utterance.lang = 'ko-KR';
-                    utterance.rate = rate;
-                    utterance.pitch = pitch;
-                    if (targetVoice) {
-                        utterance.voice = targetVoice;
-                        console.log('[Voice] Using voice:', targetVoice.name, targetVoice.lang);
-                    } else {
-                        console.warn('[Voice] No suitable voice found, using default.');
-                    }
+                if (response.data && response.data.audio_url) {
+                    const audioUrl = response.data.audio_url;
+                    // Prepend API base URL if relative path
+                    // api.js usually handles base URL but returned URL is relative static path
+                    // We need full URL or relative to public. 
+                    // Since it's /static/..., browser can resolve it relative to domain root.
+                    // But we might be on a different port in dev (3000 vs 8000).
+                    // api.defaults.baseURL is usually 'http://localhost:8088/api/v1' or similar.
+                    // We need the root backend URL.
 
-                    utterance.onstart = () => console.log('[Voice] Utterance started:', part.trim());
-                    utterance.onend = () => console.log('[Voice] Utterance ended');
-                    utterance.onerror = (e) => console.error('[Voice] Utterance error:', e.error, e);
+                    // Simple heuristic: attach backend origin
+                    const backendOrigin = api.defaults.baseURL ? new URL(api.defaults.baseURL).origin : '';
+                    const fullUrl = `${backendOrigin}${audioUrl}`;
 
-                    window.speechSynthesis.speak(utterance);
+                    console.log('[Cloud TTS] Playing URL:', fullUrl);
+
+                    const audio = new Audio(fullUrl);
+                    await audio.play();
+
+                    return new Promise((resolve) => {
+                        audio.onended = resolve;
+                        audio.onerror = (e) => {
+                            console.error('[Cloud TTS] Audio playback error:', e);
+                            resolve(null);
+                        }
+                    });
                 }
-            });
+            } catch (error) {
+                console.error('[Cloud TTS] Failed to fetch or play speech:', error);
+            }
         };
 
         // Handle Repeat
         for (let i = 0; i < repeatCount; i++) {
-            playMessage();
-
-            // Add a small pause between repeats if not the last one
+            await playAudio();
+            // Small pause between repeats
             if (i < repeatCount - 1) {
-                const pause = new SpeechSynthesisUtterance('  '); // Two spaces for a natural pause
-                pause.volume = 0;
-                pause.rate = 0.5; // Slower pause
-                window.speechSynthesis.speak(pause);
+                await new Promise(r => setTimeout(r, 500));
             }
         }
+
     }, [settings]);
 
     const speakCall = useCallback((item: { class_order: number, display_name: string, class_name: string }) => {
-        if (!settings?.enable_calling_voice_alert) {
-            console.log('[Voice] Calling alert disabled in settings:', settings);
-            return;
-        }
+        if (!settings?.enable_calling_voice_alert) return;
 
         const template = settings?.waiting_call_voice_message || "{순번}번 {회원명}님, 데스크로 오시기 바랍니다.";
         const message = template
@@ -126,7 +104,9 @@ export function useVoiceAlert(settings: VoiceSettings | null) {
 
         speak(message, {
             repeat: settings?.waiting_call_voice_repeat_count || 1,
-            cancelPrevious: false
+            // Voice selection can be customized per type logic here if needed
+            // Use "ko-KR-Wavenet-B" (Female) for calls? or C (Male)? 
+            // Let's use what's passed or default in speak()
         });
     }, [settings, speak]);
 
@@ -139,14 +119,13 @@ export function useVoiceAlert(settings: VoiceSettings | null) {
             .replace(/{회원명}/g, item.display_name)
             .replace(/{순번}/g, item.class_order.toString());
 
-        speak(message, { cancelPrevious: true });
+        speak(message);
     }, [settings, speak]);
 
     const speakDuplicate = useCallback(() => {
         if (!settings?.enable_duplicate_registration_voice) return;
-
         const message = settings?.duplicate_registration_voice_message || "이미 대기 중인 번호입니다.";
-        speak(message, { cancelPrevious: true });
+        speak(message);
     }, [settings, speak]);
 
     return {
@@ -154,6 +133,6 @@ export function useVoiceAlert(settings: VoiceSettings | null) {
         speakCall,
         speakRegistration,
         speakDuplicate,
-        voices: voices.filter(v => v.lang.includes('ko')) // Expose Korean voices for UI
+        voices: [] as { name: string; lang: string }[] // Return empty typed array to satisfy TS in Settings
     };
 }
