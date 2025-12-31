@@ -461,7 +461,8 @@ export default function ReceptionPage() {
                         settings: storeSettings,
                         storeName,
                         personCount: count,
-                        storeCode: storeSettings?.code // Assuming store object has 'code'
+                        storeCode: storeSettings?.code, // Assuming store object has 'code'
+                        phone: targetPhone // Correctly passing the phone number here
                     }
                 );
             }

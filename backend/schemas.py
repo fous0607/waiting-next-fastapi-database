@@ -243,6 +243,7 @@ class StoreSettingsUpdate(BaseModel):
     printer_proxy_ip: Optional[str] = None
     printer_port: Optional[int] = None
     auto_print_registration: Optional[bool] = None
+    printer_qr_size: Optional[int] = None
 
 class StoreSettings(StoreSettingsBase):
     id: int

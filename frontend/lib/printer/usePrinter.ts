@@ -18,16 +18,21 @@ export const usePrinter = () => {
         waitingNumber: number,
         date: string,
         partySize?: string,
-        options?: { settings?: any, storeName?: string, personCount?: number, storeCode?: string }
+        options?: { settings?: any, storeName?: string, personCount?: number, storeCode?: string, phone?: string }
     ) => {
         const settings = options?.settings || storeSettings;
         const name = options?.storeName || storeName || '매장이름';
 
         // QR URL Construction
-        // format: {origin}/entry/{store_code}/status
+        // format: {origin}/entry/{store_code}/status?phone={phone}
+        // If phone is provided, we append it for direct lookup
         let qrUrl = undefined;
         if (options?.storeCode && typeof window !== 'undefined') {
             qrUrl = `${window.location.origin}/entry/${options.storeCode}/status`;
+            if (options.phone) {
+                // Simple text append. Ideally encrypt or encode, but for now raw phone as per request.
+                qrUrl += `?phone=${options.phone}`;
+            }
             console.log('[Printer] Generated QR URL:', qrUrl);
         } else {
             console.log('[Printer] QR URL not generated. storeCode:', options?.storeCode);
@@ -53,7 +58,8 @@ export const usePrinter = () => {
                 waitingNumber,
                 date,
                 personCount: options?.personCount,
-                qrUrl
+                qrUrl,
+                printerQrSize: settings.printer_qr_size
             };
 
             await printerService.print(config, job);

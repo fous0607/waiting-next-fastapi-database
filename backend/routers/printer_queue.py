@@ -56,6 +56,7 @@ class TicketData(BaseModel):
     date: str
     person_count: Optional[int] = None
     qr_url: Optional[str] = None
+    printer_qr_size: Optional[int] = None
 
 @router.post("/generate-ticket")
 async def generate_ticket(ticket: TicketData):
@@ -143,8 +144,11 @@ async def generate_ticket(ticket: TicketData):
             
             # 1. Set Model (Model 2)
             commands.append(b'\x1d(k\x04\x00\x31\x41\x32\x00')
-            # 2. Set Module Size (4) - Reduced from 6 for better fit/compatibility
-            commands.append(b'\x1d(k\x03\x00\x31\x43\x04')
+            # 2. Set Module Size (Standard: 4-8, Default: 4)
+            size = ticket.printer_qr_size if ticket.printer_qr_size else 4
+            # Validate size range (1-16 per spec, practically 2-8)
+            size = max(1, min(16, size))
+            commands.append(b'\x1d(k\x03\x00\x31\x43' + bytes([size]))
             # 3. Set Error Correction (L=48)
             commands.append(b'\x1d(k\x03\x00\x31\x45\x30')
             # 4. Store Data

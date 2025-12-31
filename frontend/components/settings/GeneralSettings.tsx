@@ -136,6 +136,7 @@ const settingsSchema = z.object({
     printer_ip_address: z.string().optional().nullable(),
     printer_port: z.coerce.number().default(9100),
     auto_print_registration: z.boolean().default(true),
+    printer_qr_size: z.coerce.number().min(1).max(8).default(4),
 });
 
 type SettingsFormValues = z.infer<typeof settingsSchema>;
@@ -221,6 +222,7 @@ export function GeneralSettings() {
             printer_ip_address: '',
             printer_port: 9100,
             auto_print_registration: true,
+            printer_qr_size: 4,
         },
     });
 
@@ -538,6 +540,38 @@ export function GeneralSettings() {
                             </div>
                         </div>
                     )}
+
+                    {/* Printer QR Code Size */}
+                    <div className="space-y-4 pt-4 border-t">
+                        <div className="md:col-span-1">
+                            <Label>영수증 QR 코드 크기</Label>
+                            <div className="text-sm text-muted-foreground mb-4">
+                                영수증에 출력되는 QR 코드의 크기를 조절합니다. (1: 작음 ~ 8: 큼)
+                            </div>
+                            <div className="flex items-center space-x-4">
+                                <FormField
+                                    control={form.control}
+                                    name="printer_qr_size"
+                                    render={({ field }) => (
+                                        <>
+                                            <input
+                                                type="range"
+                                                min="1"
+                                                max="8"
+                                                step="1"
+                                                value={field.value || 4}
+                                                onChange={(e) => field.onChange(parseInt(e.target.value))}
+                                                className="w-[60%] h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 accent-primary"
+                                            />
+                                            <span className="w-12 text-center font-medium border rounded p-1">
+                                                {field.value || 4}
+                                            </span>
+                                        </>
+                                    )}
+                                />
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <Accordion type="single" collapsible className="w-full">

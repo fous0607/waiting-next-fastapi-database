@@ -21,6 +21,7 @@ export interface PrintJob {
     date: string;
     personCount?: number;
     qrUrl?: string;
+    printerQrSize?: number;
     // other fields...
 }
 
@@ -42,7 +43,8 @@ export class PrinterService {
                 waiting_number: job.waitingNumber.toString(),
                 date: job.date,
                 person_count: job.personCount,
-                qr_url: job.qrUrl
+                qr_url: job.qrUrl,
+                printer_qr_size: job.printerQrSize
             });
 
             // Response data should be an array of integers (bytes)
