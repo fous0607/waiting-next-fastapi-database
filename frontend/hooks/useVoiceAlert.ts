@@ -34,7 +34,27 @@ export function useVoiceAlert(settings: VoiceSettings | null) {
         // 1. Prepare Params
         // Wavenet voices: ko-KR-Wavenet-A (Female), B (Female), C (Male), D (Male)
         // Default to a professional WaveNet voice
-        const voiceName = options?.voiceName ?? settings?.waiting_voice_name ?? "ko-KR-Wavenet-C";
+        let voiceName = options?.voiceName ?? settings?.waiting_voice_name;
+
+        // Map Legacy/Browser Voice Names to Google Cloud TTS Voices
+        // Korean voices usually contain "Male", "Female", or specific names from browser engines (e.g. "Google 한국의", "Yuna", "Minsang")
+        if (!voiceName) {
+            voiceName = "ko-KR-Wavenet-C"; // Default Male
+        } else if (voiceName.includes('ko-KR-Wavenet') || voiceName.includes('ko-KR-Standard')) {
+            // Already a valid Google ID, keep it.
+        } else {
+            // Mapping Logic
+            if (voiceName.includes('Female') || voiceName.includes('Yuna') || voiceName.includes('Jiyoung') || voiceName.includes('Soyeon') || voiceName.includes('여성')) {
+                voiceName = "ko-KR-Wavenet-B"; // Female (Professional)
+            } else if (voiceName.includes('Male') || voiceName.includes('Minsang') || voiceName.includes('남성')) {
+                voiceName = "ko-KR-Wavenet-C"; // Male (Professional)
+            } else {
+                // Fallback for unknown names (like "Google 한국의" which is usually female-ish or just generic)
+                // If the user selected 'default' or something else.
+                voiceName = "ko-KR-Wavenet-C";
+            }
+        }
+
         const rate = options?.rate ?? settings?.waiting_voice_rate ?? 1.2; // Slightly faster default
         const pitch = options?.pitch ?? settings?.waiting_voice_pitch ?? 0.0;
         const repeatCount = options?.repeat ?? 1;

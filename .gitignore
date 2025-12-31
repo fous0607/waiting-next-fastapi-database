@@ -26,3 +26,19 @@ logs/
 # IDE
 .vscode/
 .idea/
+
+# Secrets
+*.json
+!package.json
+!tsconfig.json
+!vercel.json
+!next.config.js
+!tailwind.config.js
+!postcss.config.js
+!frontend/package.json
+!frontend/tsconfig.json
+!frontend/next.config.mjs
+!frontend/tailwind.config.ts
+!frontend/postcss.config.mjs
+!frontend/components.json
+!frontend/jsconfig.json
