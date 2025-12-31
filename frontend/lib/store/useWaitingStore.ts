@@ -44,6 +44,19 @@ export interface StoreSettings {
     enable_party_size?: boolean;
     enable_menu_ordering?: boolean;
     detail_mode?: 'standard' | 'pickup';
+
+    // Voice Settings
+    enable_waiting_voice_alert?: boolean;
+    enable_calling_voice_alert?: boolean;
+    waiting_voice_name?: string | null;
+    waiting_voice_rate?: number;
+    waiting_voice_pitch?: number;
+    waiting_call_voice_repeat_count?: number;
+    waiting_voice_message?: string | null;
+    waiting_call_voice_message?: string | null;
+    enable_duplicate_registration_voice?: boolean;
+    duplicate_registration_voice_message?: string | null;
+
     // Add other settings as needed
     [key: string]: any;
 }
