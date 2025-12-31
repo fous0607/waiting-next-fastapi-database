@@ -50,18 +50,16 @@ async def get_print_jobs():
     print(f"[PrinterQueue] Dispatching {len(jobs_to_process)} jobs to proxy")
     return jobs_to_process
 
-class TicketRequest(BaseModel):
-    ip: str
-    port: int = 9100
+class TicketData(BaseModel):
     store_name: str
-    waiting_number: str # Can be int or str, keeping str for flexibility
+    waiting_number: str
     date: str
 
-@router.post("/ticket")
-async def add_ticket_job(ticket: TicketRequest):
+@router.post("/generate-ticket")
+async def generate_ticket(ticket: TicketData):
     """
-    Generate ESC/POS commands for a waiting ticket (Korean EUC-KR)
-    and add to queue.
+    Generate ESC/POS commands for a waiting ticket (Korean EUC-KR).
+    Returns the byte sequence as a list of integers.
     """
     try:
         # ESC/POS Commands
@@ -81,7 +79,11 @@ async def add_ticket_job(ticket: TicketRequest):
 
         # Helper to encode text to EUC-KR
         def text(s: str):
-            return s.encode('euc-kr')
+            try:
+                return s.encode('euc-kr')
+            except UnicodeEncodeError:
+                # Fallback for characters not in EUC-KR (e.g. emojis), replace with ?
+                return s.encode('euc-kr', errors='replace')
 
         commands = []
         commands.append(INIT)
@@ -126,20 +128,8 @@ async def add_ticket_job(ticket: TicketRequest):
         # Flatten list of bytes
         full_command = b''.join(commands)
         
-        # Add to queue
-        job = PrintJob(
-            ip=ticket.ip,
-            port=ticket.port,
-            data=list(full_command) # Convert bytes to list of ints for JSON
-        )
-        print_job_queue.append(job)
-        
-        # Cleanup
-        if len(print_job_queue) > 100:
-            print_job_queue.pop(0)
-
-        print(f"[PrinterQueue] Generated ticket for {ticket.waiting_number} (EUC-KR)")
-        return {"status": "queued", "message": "Ticket generated and queued"}
+        print(f"[PrinterQueue] Generated ticket bytes for {ticket.waiting_number} (EUC-KR)")
+        return list(full_command)
 
     except Exception as e:
         print(f"Ticket Generation Error: {e}")
