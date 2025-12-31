@@ -1360,9 +1360,9 @@ export function GeneralSettings() {
                                                         </FormControl>
                                                         <SelectContent>
                                                             {koVoices.length === 0 && <SelectItem value="default">시스템 기본값</SelectItem>}
-                                                            {koVoices.map((voice) => (
+                                                            {koVoices.map((voice: any) => (
                                                                 <SelectItem key={voice.name} value={voice.name} className="text-xs">
-                                                                    {voice.name.includes('Female') || voice.name.includes('Yuna') || voice.name.includes('Jiyoung') || voice.name.includes('Soyeon') ? ' [여성] ' : (voice.name.includes('Male') || voice.name.includes('Minsang') ? ' [남성] ' : ' [공공/기타] ')} {voice.name}
+                                                                    {voice.displayName}
                                                                 </SelectItem>
                                                             ))}
                                                         </SelectContent>
