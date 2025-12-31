@@ -49,7 +49,6 @@ from routers import (
     polling, # Polling Optimization Router
     public, # Public Router (QR/Mobile)
     tts, # Google Cloud TTS Router
-    printer_queue # Printer Queue Router
 )
 from core.logger import logger
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -168,7 +167,7 @@ app.include_router(system.router, prefix="/api/system", tags=["System Monitoring
 app.include_router(polling.router, prefix="/api/polling", tags=["Polling Optimization"])
 app.include_router(public.router, prefix="/api/public", tags=["Public Access"])
 app.include_router(tts.router, prefix="/api/tts", tags=["Text to Speech"])
-app.include_router(printer_queue.router, prefix="/api/printer", tags=["Printer Queue"])
+
 
 @app.get("/")
 async def main_page(request: Request):

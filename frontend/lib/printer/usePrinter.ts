@@ -29,6 +29,8 @@ export const usePrinter = () => {
                 type: (settings.printer_connection_type as 'lan' | 'bluetooth') || 'lan',
                 ip: settings.printer_ip_address || '',
                 port: settings.printer_port || 9100,
+                connectionMode: settings.printer_connection_mode || 'local_proxy',
+                proxyIp: settings.printer_proxy_ip || 'localhost',
             };
 
             const job: PrintJob = {
@@ -49,11 +51,9 @@ export const usePrinter = () => {
         }
     }, [storeSettings, storeName]);
 
-    const testPrint = useCallback(async () => {
+    const testPrint = useCallback(async (settings?: any) => {
         // For testing from Settings page, we might need to pass config explicitly if not saved yet.
-        // But assuming saved settings for now.
-
-        await printWaitingTicket(999, new Date().toLocaleString());
+        await printWaitingTicket(999, new Date().toLocaleString(), undefined, { settings });
     }, [printWaitingTicket]);
 
     return {

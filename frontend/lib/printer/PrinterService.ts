@@ -7,6 +7,8 @@ export interface PrinterConfig {
     type: ConnectionType;
     ip?: string;
     port?: number;
+    connectionMode?: 'local_proxy' | 'cloud_queue';
+    proxyIp?: string;
     // Bluetooth specific
     deviceId?: string;
     serviceId?: string;
@@ -102,31 +104,43 @@ export class PrinterService {
     }
 
     /**
-     * Print via Cloud Queue (Polling)
+     * Print via Cloud Queue (Polling) or Local Proxy
      * Tablet sends job to Backend -> Backend Queues it -> PC Proxy Polls and Prints.
      * This avoids Mixed Content and Network Addressing issues.
      */
-    async printLan(ip: string, port: number, job: PrintJob): Promise<void> {
+    async printLan(ip: string, port: number, data: Uint8Array, proxyIp: string = 'localhost'): Promise<void> {
         return new Promise(async (resolve, reject) => {
             try {
-                // Send job to Backend Queue
-                // Use the standard 'api' instance which is configured with the backend URL
-                await api.post('/printer/ticket', {
-                    ip: ip,
-                    port: port,
-                    store_name: job.storeName,
-                    waiting_number: job.waitingNumber.toString(),
-                    date: job.date
+                // Convert Uint8Array to Array for JSON serialization
+                const dataArray = Array.from(data);
+
+                // Use configured proxy IP (default to localhost)
+                // Note: Tablet must be able to reach this IP
+                const proxyUrl = `http://${proxyIp}:8000/print`;
+                console.log(`[PrinterService] Sending print job to proxy at: ${proxyUrl}`);
+
+                const response = await fetch(proxyUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        ip: ip,
+                        port: port,
+                        data: dataArray
+                    })
                 });
 
-                console.log('[PrinterService] Job sent to Cloud Queue successfully.');
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Proxy Error: ${errorText}`);
+                }
+
                 resolve();
             } catch (error) {
-                console.error('[PrinterService] Cloud Queue Unavailable:', error);
-
-                // Fallback explanation if backend fails
+                console.error('[PrinterService] Proxy Print Failed:', error);
                 reject(new Error(
-                    "서버 프린트 대기열에 접속할 수 없습니다.\n" +
+                    `프린터 연결 실패. 로컬 프린트 프로그램(print_proxy)이 ${proxyIp}에서 실행 중인지 확인해주세요.\n` +
                     (error instanceof Error ? error.message : String(error))
                 ));
             }
@@ -140,8 +154,9 @@ export class PrinterService {
             return this.printBluetooth(data);
         } else if (config.type === 'lan') {
             if (!config.ip) throw new Error('IP Address is required for LAN printing');
-            // Pass the entire job object to printLan for backend processing
-            return this.printLan(config.ip, config.port || 9100, job);
+            // Default to 'local_proxy' behavior for now if mode is not set
+            const proxyIp = config.proxyIp || 'localhost';
+            return this.printLan(config.ip, config.port || 9100, data, proxyIp);
         }
     }
 }

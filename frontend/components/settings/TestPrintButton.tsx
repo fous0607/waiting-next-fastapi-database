@@ -2,15 +2,19 @@ import { Button } from '@/components/ui/button';
 import { usePrinter } from '@/lib/printer/usePrinter';
 import { Loader2, Printer } from 'lucide-react';
 
-export function TestPrintButton() {
+export function TestPrintButton({ settings }: { settings?: any }) {
     const { testPrint, isPrinting } = usePrinter();
+
+    const handlePrint = () => {
+        testPrint(settings);
+    };
 
     return (
         <Button
             type="button"
             variant="outline"
             size="sm"
-            onClick={testPrint}
+            onClick={handlePrint}
             disabled={isPrinting}
             className="gap-2"
         >

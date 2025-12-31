@@ -1,70 +1,52 @@
-import requests
 import socket
+import uvicorn
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
 import time
-import sys
 
-# Configuration
-BACKEND_URL = "http://localhost:8088/api/printer/jobs" # Adjust this to your actual backend URL if different
-POLL_INTERVAL = 2 # Seconds
-PRINTER_TIMEOUT = 5 # Seconds
+app = FastAPI()
 
-def print_raw_data(ip, port, data_list):
+# Configure CORS to allow requests from the web app
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins for local proxy convenience
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.get("/")
+async def root():
+    return {"status": "running", "message": "Local Print Proxy is active. You can now use the printer from the web app."}
+
+class PrintRequest(BaseModel):
+    ip: str
+    port: int = 9100
+    data: list[int]  # Receive as byte array (list of integers)
+
+@app.post("/print")
+async def print_data(request: PrintRequest):
+    print(f"Received print request for {request.ip}:{request.port}")
+    
     try:
-        print(f"Connecting to printer {ip}:{port}...")
+        # Create a socket object
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.settimeout(PRINTER_TIMEOUT)
-            s.connect((ip, port))
+            s.settimeout(5) # 5 second timeout
+            s.connect((request.ip, request.port))
             
             # Convert list of ints back to bytes
-            byte_data = bytes(data_list)
+            byte_data = bytes(request.data)
             s.sendall(byte_data)
             
-        print("Data sent to printer successfully.")
-        return True
+        print("Print data sent successfully.")
+        return {"status": "success", "message": "Print data sent to printer"}
+        
     except Exception as e:
         print(f"Print failed: {e}")
-        return False
-
-def poll_for_jobs():
-    print(f"Starting Print Proxy (Polling Mode)...")
-    print(f"Target Backend: {BACKEND_URL}")
-    print("Press Ctrl+C to stop.")
-    
-    while True:
-        try:
-            # Poll the backend
-            try:
-                response = requests.get(BACKEND_URL, timeout=5)
-            except requests.exceptions.ConnectionError:
-                print(f"Cannot connect to backend at {BACKEND_URL}. Retrying in {POLL_INTERVAL}s...")
-                time.sleep(POLL_INTERVAL)
-                continue
-
-            if response.status_code == 200:
-                jobs = response.json()
-                if jobs:
-                    print(f"Received {len(jobs)} print jobs.")
-                    for job in jobs:
-                        # Job structure matches Pydantic model: ip, port, data
-                        print_raw_data(job['ip'], job['port'], job['data'])
-                else:
-                    # No jobs, just wait
-                    pass
-            else:
-                print(f"Backend returned error: {response.status_code} {response.text}")
-
-        except Exception as e:
-            print(f"Unexpected error in polling loop: {e}")
-            
-        time.sleep(POLL_INTERVAL)
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
-    # Ensure requests library is installed
-    try:
-        import requests
-    except ImportError:
-        print("Error: 'requests' library is missing.")
-        print("Please run: pip install requests")
-        sys.exit(1)
-
-    poll_for_jobs()
+    print("Starting Local Print Proxy on http://localhost:8000")
+    print("Keep this window open to allow printing.")
+    uvicorn.run(app, host="0.0.0.0", port=8000)

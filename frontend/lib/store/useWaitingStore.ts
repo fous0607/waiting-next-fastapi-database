@@ -48,6 +48,8 @@ export interface StoreSettings {
     // Receipt Printer Settings
     enable_printer?: boolean;
     printer_connection_type?: 'lan' | 'bluetooth';
+    printer_connection_mode?: 'local_proxy' | 'cloud_queue';
+    printer_proxy_ip?: string;
     printer_ip_address?: string | null;
     printer_port?: number;
     auto_print_registration?: boolean;

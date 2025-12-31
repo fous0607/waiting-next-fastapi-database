@@ -202,7 +202,9 @@ class StoreSettings(Base):
     # 영수증 프린터 설정
     enable_printer = Column(Boolean, default=False)
     printer_connection_type = Column(String, default="lan") # lan, bluetooth
-    printer_ip_address = Column(String, nullable=True)
+    printer_connection_mode = Column(String, default="local_proxy") # local_proxy (Direct), cloud_queue (Server)
+    printer_ip_address = Column(String, nullable=True) # Target Printer IP
+    printer_proxy_ip = Column(String, default="localhost") # Local Proxy Server IP (for Tablet)
     printer_port = Column(Integer, default=9100)
     auto_print_registration = Column(Boolean, default=True)
 

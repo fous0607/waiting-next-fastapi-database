@@ -131,6 +131,8 @@ const settingsSchema = z.object({
     // Receipt Printer Settings
     enable_printer: z.boolean().default(false),
     printer_connection_type: z.enum(['lan', 'bluetooth']).default('lan'),
+    printer_connection_mode: z.enum(['local_proxy', 'cloud_queue']).default('local_proxy'),
+    printer_proxy_ip: z.string().default('localhost'),
     printer_ip_address: z.string().optional().nullable(),
     printer_port: z.coerce.number().default(9100),
     auto_print_registration: z.boolean().default(true),
@@ -304,6 +306,8 @@ export function GeneralSettings() {
                     detail_mode: data.detail_mode || 'standard',
                     enable_printer: data.enable_printer ?? false,
                     printer_connection_type: data.printer_connection_type || 'lan',
+                    printer_connection_mode: data.printer_connection_mode || 'local_proxy',
+                    printer_proxy_ip: data.printer_proxy_ip || 'localhost',
                     printer_ip_address: data.printer_ip_address || '',
                     printer_port: data.printer_port || 9100,
                     auto_print_registration: data.auto_print_registration ?? true,
@@ -923,13 +927,56 @@ export function GeneralSettings() {
                                                             <SelectItem value="bluetooth">Bluetooth (웹 지원 모델)</SelectItem>
                                                         </SelectContent>
                                                     </Select>
+                                                </FormItem>
+                                            )}
+                                        />
+
+                                        <FormField
+                                            control={form.control}
+                                            name="printer_connection_mode"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>연결 모드 (Connection Mode)</FormLabel>
+                                                    <Select onValueChange={field.onChange} value={field.value}>
+                                                        <FormControl>
+                                                            <SelectTrigger>
+                                                                <SelectValue placeholder="연결 모드 선택" />
+                                                            </SelectTrigger>
+                                                        </FormControl>
+                                                        <SelectContent>
+                                                            <SelectItem value="local_proxy">로컬 프록시 (PC 설치)</SelectItem>
+                                                            <SelectItem value="cloud_queue">클라우드 큐 (예정)</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
                                                     <FormDescription className="text-xs">
-                                                        * LAN 연결은 프린터 IP 설정이 필요하며, 가장 안정적입니다.<br />
-                                                        * Bluetooth는 브라우저 호환성을 확인해주세요.
+                                                        * 로컬 프록시: PC에서 실행 중인 중계 프로그램을 통해 출력합니다.<br />
+                                                        * 클라우드 큐: 서버를 통해 원격으로 출력합니다 (준비 중).
                                                     </FormDescription>
                                                 </FormItem>
                                             )}
                                         />
+
+                                        {form.watch('printer_connection_mode') === 'local_proxy' && (
+                                            <FormField
+                                                control={form.control}
+                                                name="printer_proxy_ip"
+                                                render={({ field }) => (
+                                                    <FormItem className="bg-slate-100 p-3 rounded-md border border-slate-200">
+                                                        <FormLabel className="flex items-center gap-2">
+                                                            프록시 서버 주소 (PC IP)
+                                                            <div className="px-1.5 py-0.5 bg-blue-100 text-blue-700 text-[10px] rounded font-bold">필수</div>
+                                                        </FormLabel>
+                                                        <FormControl>
+                                                            <Input placeholder="예: localhost 또는 192.168.0.x" {...field} />
+                                                        </FormControl>
+                                                        <FormDescription>
+                                                            프린터 프록시 프로그램이 실행 중인 PC의 주소입니다.<br />
+                                                            태블릿에서 PC로 연결하려면 PC의 IP를 입력하세요 (예: 192.168.0.5).
+                                                        </FormDescription>
+                                                    </FormItem>
+                                                )}
+                                            />
+                                        )}
 
                                         {form.watch('printer_connection_type') === 'lan' && (
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white p-3 rounded-md border border-slate-200">
@@ -980,7 +1027,7 @@ export function GeneralSettings() {
                                         />
 
                                         <div className="flex justify-end pt-2">
-                                            <TestPrintButton />
+                                            <TestPrintButton settings={form.watch()} />
                                         </div>
                                     </div>
                                 )}

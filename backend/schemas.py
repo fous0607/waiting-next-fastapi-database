@@ -115,7 +115,9 @@ class StoreSettingsBase(BaseModel):
     # 영수증 프린터 설정
     enable_printer: bool = False
     printer_connection_type: str = "lan" # lan, bluetooth
+    printer_connection_mode: str = "local_proxy" # local_proxy, cloud_queue
     printer_ip_address: Optional[str] = None
+    printer_proxy_ip: str = "localhost"
     printer_port: int = 9100
     auto_print_registration: bool = True
 
@@ -236,7 +238,9 @@ class StoreSettingsUpdate(BaseModel):
     # 영수증 프린터 설정
     enable_printer: Optional[bool] = None
     printer_connection_type: Optional[str] = None
+    printer_connection_mode: Optional[str] = None
     printer_ip_address: Optional[str] = None
+    printer_proxy_ip: Optional[str] = None
     printer_port: Optional[int] = None
     auto_print_registration: Optional[bool] = None
 
