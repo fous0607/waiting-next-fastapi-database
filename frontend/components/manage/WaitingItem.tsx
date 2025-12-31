@@ -18,6 +18,7 @@ import {
     ArrowUp,
     ArrowDown,
     GripVertical,
+    LogIn,
     ClipboardList,
     UserPlus
 } from "lucide-react";
