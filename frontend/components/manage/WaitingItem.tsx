@@ -40,6 +40,7 @@ import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { MemberDetailModal } from "../owner/MemberDetailModal";
+import { useVoiceAlert } from "@/hooks/useVoiceAlert";
 
 interface WaitingItemProps {
     item: WaitingItemType;
@@ -56,7 +57,9 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
         isDragging,
     } = useSortable({ id: item.id });
 
-    const { classes, fetchWaitingList, fetchClasses, revisitBadgeStyle } = useWaitingStore();
+    const { classes, fetchWaitingList, fetchClasses, revisitBadgeStyle, storeSettings } = useWaitingStore();
+    const { speakCall } = useVoiceAlert(storeSettings);
+
     const [isMoveDialogOpen, setIsMoveDialogOpen] = useState(false);
     const [isNameDialogOpen, setIsNameDialogOpen] = useState(false);
     const [isPhoneDialogOpen, setIsPhoneDialogOpen] = useState(false);
@@ -88,6 +91,16 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
             await api.post(`/board/${item.id}/call`);
             useWaitingStore.getState().incrementCallCount(item.class_id, item.id);
             toast.success("호출되었습니다.");
+
+            // Manager voice alert
+            if (storeSettings?.enable_calling_voice_alert) {
+                const className = classes.find(c => c.id === item.class_id)?.class_name || "";
+                speakCall({
+                    class_order: item.class_order,
+                    display_name: item.name || "고객",
+                    class_name: className
+                });
+            }
         } catch (e) {
             toast.error("호출 실패");
         }
@@ -313,10 +326,10 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                                     size="sm"
                                     onClick={() => handleStatusUpdate('attended')}
                                     className={cn(
-                                        "h-8 px-2 text-xs font-bold gap-1 bg-white transition-colors shadow-sm whitespace-nowrap",
+                                        "h-8 px-2 text-xs font-bold gap-1 transition-colors shadow-sm whitespace-nowrap",
                                         useWaitingStore.getState().storeSettings?.detail_mode === 'pickup'
-                                            ? "hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200"
-                                            : "hover:bg-green-50 hover:text-green-600 hover:border-green-200"
+                                            ? "hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 bg-white"
+                                            : "bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
                                     )}
                                 >
                                     {useWaitingStore.getState().storeSettings?.detail_mode === 'pickup' ? (
@@ -325,7 +338,7 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                                         </>
                                     ) : (
                                         <>
-                                            <CheckCircle className="w-3 h-3" /> 입장
+                                            <CheckCircle className="w-3 h-3 text-white" /> 입장
                                         </>
                                     )}
                                 </Button>
