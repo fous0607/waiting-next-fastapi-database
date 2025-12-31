@@ -65,6 +65,7 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
     const [isPhoneDialogOpen, setIsPhoneDialogOpen] = useState(false);
     const [isMemberDetailOpen, setIsMemberDetailOpen] = useState(false);
     const [newName, setNewName] = useState(item.name || "");
+    const [isEntryClicked, setIsEntryClicked] = useState(false);
 
     const style = {
         transform: CSS.Transform.toString(transform),
@@ -76,6 +77,12 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
     };
 
     const handleStatusUpdate = async (status: string) => {
+        // Visual feedback for Entry/Attended
+        if (status === 'attended') {
+            setIsEntryClicked(true);
+            setTimeout(() => setIsEntryClicked(false), 500); // Reset after 500ms
+        }
+
         try {
             await api.put(`/board/${item.id}/status`, { status });
             toast.success("상태가 변경되었습니다.");
@@ -340,18 +347,18 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                                     onClick={() => handleStatusUpdate('attended')}
                                     className={cn(
                                         "h-8 px-2 text-xs font-bold gap-1 transition-colors shadow-sm whitespace-nowrap",
-                                        useWaitingStore.getState().storeSettings?.detail_mode === 'pickup'
-                                            ? "hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 bg-white"
-                                            : "bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
+                                        isEntryClicked || useWaitingStore.getState().storeSettings?.detail_mode === 'pickup' // Pickup mode defaults to blue per user request? No, reverting to feedback logic.
+                                            ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700" // Clicked State or if forced
+                                            : "bg-white hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 text-slate-700" // Default State
                                     )}
                                 >
                                     {useWaitingStore.getState().storeSettings?.detail_mode === 'pickup' ? (
                                         <>
-                                            <CheckCircle className="w-3 h-3" /> 수령
+                                            <CheckCircle className={cn("w-3 h-3", isEntryClicked ? "text-white" : "")} /> 수령
                                         </>
                                     ) : (
                                         <>
-                                            <CheckCircle className="w-3 h-3 text-white" /> 입장
+                                            <LogIn className={cn("w-3 h-3", isEntryClicked ? "text-white" : "")} /> 입장
                                         </>
                                     )}
                                 </Button>
