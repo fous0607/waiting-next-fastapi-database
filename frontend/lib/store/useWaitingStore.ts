@@ -48,6 +48,8 @@ export interface StoreSettings {
     // Voice Settings
     enable_waiting_voice_alert?: boolean;
     enable_calling_voice_alert?: boolean;
+    enable_manager_calling_voice_alert?: boolean;
+    enable_manager_entry_voice_alert?: boolean;
     waiting_voice_name?: string | null;
     waiting_voice_rate?: number;
     waiting_voice_pitch?: number;

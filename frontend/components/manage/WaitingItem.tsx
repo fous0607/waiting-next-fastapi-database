@@ -81,6 +81,19 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
             toast.success("상태가 변경되었습니다.");
             if (item.class_id) fetchWaitingList(item.class_id);
             fetchClasses(); // Update counts
+
+            // Manager Entry Voice Alert
+            if (status === 'attended' && storeSettings?.enable_manager_entry_voice_alert) {
+                const className = classes.find(c => c.id === item.class_id)?.class_name || "";
+                speakCall({
+                    class_order: item.class_order,
+                    display_name: item.name || "고객",
+                    class_name: className
+                });
+                // Note: reusing speakCall for now as it provides a standard "Call" message which is suitable for "Entry Call".
+                // If a specific "Entry" message is needed, we can adjust the speakCall logic or add speakEntry.
+                // Given the context of "Emergency", playing the call voice to alert staff is appropriate.
+            }
         } catch (e) {
             toast.error("상태 변경 실패");
         }
@@ -92,8 +105,8 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
             useWaitingStore.getState().incrementCallCount(item.class_id, item.id);
             toast.success("호출되었습니다.");
 
-            // Manager voice alert
-            if (storeSettings?.enable_calling_voice_alert) {
+            // Manager voice alert (Emergency/Independent)
+            if (storeSettings?.enable_manager_calling_voice_alert) {
                 const className = classes.find(c => c.id === item.class_id)?.class_name || "";
                 speakCall({
                     class_order: item.class_order,

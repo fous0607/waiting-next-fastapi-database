@@ -111,6 +111,8 @@ const settingsSchema = z.object({
     dashboard_connection_policy: z.enum(['eject_old', 'block_new']).default('eject_old'),
     calling_status_display_second: z.coerce.number().min(10).default(60),
     enable_calling_voice_alert: z.boolean().default(true),
+    enable_manager_calling_voice_alert: z.boolean().default(false),
+    enable_manager_entry_voice_alert: z.boolean().default(false),
 
     sequential_closing: z.boolean().default(false),
 
@@ -1343,204 +1345,230 @@ export function GeneralSettings() {
                                             )}
                                         />
                                     )}
-                                </div>
 
-                                {(form.watch('enable_waiting_voice_alert') || form.watch('enable_calling_voice_alert')) && (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2 p-4 bg-slate-50 rounded-lg border border-slate-100">
-                                        <FormField
-                                            control={form.control}
-                                            name="waiting_voice_name"
-                                            render={({ field }) => {
-                                                console.log('Rendering Voice Select. current value:', field.value);
-                                                console.log('Available Voices (koVoices):', koVoices);
-
-                                                return (
-                                                    <FormItem>
-                                                        <FormLabel className="text-xs">목소리 선택 (성별/유형)</FormLabel>
-                                                        <Select onValueChange={field.onChange} value={field.value || ''}>
-                                                            <FormControl>
-                                                                <SelectTrigger className="h-9 text-xs">
-                                                                    <SelectValue placeholder="목소리를 선택하세요" />
-                                                                </SelectTrigger>
-                                                            </FormControl>
-                                                            <SelectContent>
-                                                                {(!koVoices || koVoices.length === 0) && <SelectItem value="default">시스템 기본값 (목록 없음)</SelectItem>}
-                                                                {koVoices && koVoices.map((voice: any) => (
-                                                                    <SelectItem key={voice.name} value={voice.name} className="text-xs">
-                                                                        {voice.displayName}
-                                                                    </SelectItem>
-                                                                ))}
-                                                            </SelectContent>
-                                                        </Select>
+                                    <div className="pt-2 border-t mt-4">
+                                        <FormLabel className="text-sm font-semibold mb-3 block">대기관리자 음성안내</FormLabel>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <FormField
+                                                control={form.control}
+                                                name="enable_manager_calling_voice_alert"
+                                                render={({ field }) => (
+                                                    <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                                                        <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
+                                                        <FormLabel className='font-normal'>호출 알림 (비상용)</FormLabel>
                                                     </FormItem>
-                                                )
-                                            }}
-                                        />
-                                        <FormField
-                                            control={form.control}
-                                            name="waiting_voice_rate"
-                                            render={({ field }) => (
+                                                )}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                name="enable_manager_entry_voice_alert"
+                                                render={({ field }) => (
+                                                    <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                                                        <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
+                                                        <FormLabel className='font-normal'>입장 알림 (비상용)</FormLabel>
+                                                    </FormItem>
+                                                )}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {(form.watch('enable_waiting_voice_alert') || form.watch('enable_calling_voice_alert')) && (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2 p-4 bg-slate-50 rounded-lg border border-slate-100">
+                                    <FormField
+                                        control={form.control}
+                                        name="waiting_voice_name"
+                                        render={({ field }) => {
+                                            console.log('Rendering Voice Select. current value:', field.value);
+                                            console.log('Available Voices (koVoices):', koVoices);
+
+                                            return (
                                                 <FormItem>
-                                                    <FormLabel className="text-xs">말하기 속도</FormLabel>
-                                                    <Select onValueChange={(val) => field.onChange(parseFloat(val))} value={field.value?.toString()}>
+                                                    <FormLabel className="text-xs">목소리 선택 (성별/유형)</FormLabel>
+                                                    <Select onValueChange={field.onChange} value={field.value || ''}>
                                                         <FormControl>
                                                             <SelectTrigger className="h-9 text-xs">
-                                                                <SelectValue />
+                                                                <SelectValue placeholder="목소리를 선택하세요" />
                                                             </SelectTrigger>
                                                         </FormControl>
                                                         <SelectContent>
-                                                            <SelectItem value="0.7">느리게 (0.7x)</SelectItem>
-                                                            <SelectItem value="0.8">조금 느리게 (0.8x)</SelectItem>
-                                                            <SelectItem value="1">보통 (1.0x)</SelectItem>
-                                                            <SelectItem value="1.2">조금 빠르게 (1.2x)</SelectItem>
-                                                            <SelectItem value="1.5">빠르게 (1.5x)</SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={form.control}
-                                            name="waiting_call_voice_repeat_count"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel className="text-xs">호출 방송 반복 횟수</FormLabel>
-                                                    <Select onValueChange={(val) => field.onChange(parseInt(val))} value={field.value?.toString() || "1"}>
-                                                        <FormControl>
-                                                            <SelectTrigger className="h-9 text-xs">
-                                                                <SelectValue />
-                                                            </SelectTrigger>
-                                                        </FormControl>
-                                                        <SelectContent>
-                                                            {[1, 2, 3, 4, 5].map(num => (
-                                                                <SelectItem key={num} value={num.toString()} className="text-xs">{num}회</SelectItem>
+                                                            {(!koVoices || koVoices.length === 0) && <SelectItem value="default">시스템 기본값 (목록 없음)</SelectItem>}
+                                                            {koVoices && koVoices.map((voice: any) => (
+                                                                <SelectItem key={voice.name} value={voice.name} className="text-xs">
+                                                                    {voice.displayName}
+                                                                </SelectItem>
                                                             ))}
                                                         </SelectContent>
                                                     </Select>
                                                 </FormItem>
-                                            )}
-                                        />
-                                        <div className="md:col-span-2 flex flex-col md:flex-row justify-end items-end gap-3 pt-2">
-                                            <div className="w-full md:w-48">
-                                                <FormLabel className="text-xs mb-1.5 block">미리듣기 항목 선택</FormLabel>
-                                                <Select
-                                                    value={previewType}
-                                                    onValueChange={(val: 'waiting' | 'duplicate' | 'calling') => setPreviewType(val)}
-                                                >
-                                                    <SelectTrigger className="h-8 text-xs">
-                                                        <SelectValue />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        <SelectItem value="waiting" className="text-xs">접수 완료 안내</SelectItem>
-                                                        <SelectItem value="duplicate" className="text-xs">중복 접수 경고</SelectItem>
-                                                        <SelectItem value="calling" className="text-xs">호출 안내 (호출 시)</SelectItem>
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                size="sm"
-                                                className="text-xs h-8 w-full md:w-auto"
-                                                onClick={handlePreviewVoice}
-                                            >
-                                                미리듣기 (Preview)
-                                            </Button>
-                                        </div>
-                                    </div>
-                                )}
-                                <FormField
-                                    control={form.control}
-                                    name="enable_waiting_board"
-                                    render={({ field }) => (
-                                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 shadow-sm">
-                                            <div className="space-y-0.5">
-                                                <FormLabel className="text-base">대기현황판 사용</FormLabel>
-                                                <FormDescription>
-                                                    대기현황판 화면(TV/모니터)을 사용합니다.
-                                                </FormDescription>
-                                            </div>
-                                            <FormControl>
-                                                <Switch
-                                                    checked={field.value}
-                                                    onCheckedChange={field.onChange}
-                                                />
-                                            </FormControl>
-                                        </FormItem>
-                                    )}
-                                />
-
-                                <FormField
-                                    control={form.control}
-                                    name="calling_status_display_second"
-                                    render={({ field }) => (
-                                        <FormItem className="flex flex-col gap-2 rounded-lg border p-4 shadow-sm bg-slate-50/50">
-                                            <div className="flex justify-between items-center">
-                                                <div className="space-y-0.5">
-                                                    <FormLabel className="text-base flex items-center gap-2">
-                                                        <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                                                        '호출중' 배지 표시 시간
-                                                    </FormLabel>
-                                                    <FormDescription>
-                                                        고객 호출 시 현황판에 배지가 표시되는 시간을 설정합니다.
-                                                    </FormDescription>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-sm font-bold text-primary">{field.value}초</span>
-                                                </div>
-                                            </div>
-                                            <FormControl>
-                                                <div className="flex gap-2 mt-2">
-                                                    {[10, 30, 60, 180].map((sec) => (
-                                                        <div
-                                                            key={sec}
-                                                            onClick={() => field.onChange(sec)}
-                                                            className={cn(
-                                                                "flex-1 py-2 text-center rounded-md cursor-pointer text-sm transition-all border",
-                                                                field.value === sec
-                                                                    ? "bg-primary text-white border-primary font-bold shadow-sm"
-                                                                    : "bg-white text-slate-600 border-slate-200 hover:border-primary/50"
-                                                            )}
-                                                        >
-                                                            {sec < 60 ? `${sec}초` : `${sec / 60}분`}
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </FormControl>
-                                        </FormItem>
-                                    )}
-                                />
-                                {form.watch('require_member_registration') && (
+                                            )
+                                        }}
+                                    />
                                     <FormField
                                         control={form.control}
-                                        name="registration_message"
+                                        name="waiting_voice_rate"
                                         render={({ field }) => (
-                                            <FormItem className="pl-4">
-                                                <FormLabel className="text-xs font-semibold text-blue-600">신규회원 등록 안내 문구</FormLabel>
-                                                <FormControl>
-                                                    <textarea
-                                                        className="flex min-h-[60px] w-full rounded-md border border-blue-100 bg-blue-50/10 px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-400 disabled:cursor-not-allowed disabled:opacity-50"
-                                                        placeholder="예: 처음 방문하셨네요!\n성함을 입력해 주세요."
-                                                        {...field}
-                                                        value={field.value || ''}
-                                                    />
-                                                </FormControl>
-                                                <FormDescription className="text-[10px]">이름 입력 화면에 표시될 커스텀 메시지입니다. (\n으로 줄바꿈 가능)</FormDescription>
+                                            <FormItem>
+                                                <FormLabel className="text-xs">말하기 속도</FormLabel>
+                                                <Select onValueChange={(val) => field.onChange(parseFloat(val))} value={field.value?.toString()}>
+                                                    <FormControl>
+                                                        <SelectTrigger className="h-9 text-xs">
+                                                            <SelectValue />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        <SelectItem value="0.7">느리게 (0.7x)</SelectItem>
+                                                        <SelectItem value="0.8">조금 느리게 (0.8x)</SelectItem>
+                                                        <SelectItem value="1">보통 (1.0x)</SelectItem>
+                                                        <SelectItem value="1.2">조금 빠르게 (1.2x)</SelectItem>
+                                                        <SelectItem value="1.5">빠르게 (1.5x)</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
                                             </FormItem>
                                         )}
                                     />
+                                    <FormField
+                                        control={form.control}
+                                        name="waiting_call_voice_repeat_count"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="text-xs">호출 방송 반복 횟수</FormLabel>
+                                                <Select onValueChange={(val) => field.onChange(parseInt(val))} value={field.value?.toString() || "1"}>
+                                                    <FormControl>
+                                                        <SelectTrigger className="h-9 text-xs">
+                                                            <SelectValue />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        {[1, 2, 3, 4, 5].map(num => (
+                                                            <SelectItem key={num} value={num.toString()} className="text-xs">{num}회</SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <div className="md:col-span-2 flex flex-col md:flex-row justify-end items-end gap-3 pt-2">
+                                        <div className="w-full md:w-48">
+                                            <FormLabel className="text-xs mb-1.5 block">미리듣기 항목 선택</FormLabel>
+                                            <Select
+                                                value={previewType}
+                                                onValueChange={(val: 'waiting' | 'duplicate' | 'calling') => setPreviewType(val)}
+                                            >
+                                                <SelectTrigger className="h-8 text-xs">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="waiting" className="text-xs">접수 완료 안내</SelectItem>
+                                                    <SelectItem value="duplicate" className="text-xs">중복 접수 경고</SelectItem>
+                                                    <SelectItem value="calling" className="text-xs">호출 안내 (호출 시)</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            className="text-xs h-8 w-full md:w-auto"
+                                            onClick={handlePreviewVoice}
+                                        >
+                                            미리듣기 (Preview)
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
+                            <FormField
+                                control={form.control}
+                                name="enable_waiting_board"
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 shadow-sm">
+                                        <div className="space-y-0.5">
+                                            <FormLabel className="text-base">대기현황판 사용</FormLabel>
+                                            <FormDescription>
+                                                대기현황판 화면(TV/모니터)을 사용합니다.
+                                            </FormDescription>
+                                        </div>
+                                        <FormControl>
+                                            <Switch
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                            />
+                                        </FormControl>
+                                    </FormItem>
                                 )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="calling_status_display_second"
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-col gap-2 rounded-lg border p-4 shadow-sm bg-slate-50/50">
+                                        <div className="flex justify-between items-center">
+                                            <div className="space-y-0.5">
+                                                <FormLabel className="text-base flex items-center gap-2">
+                                                    <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                                                    '호출중' 배지 표시 시간
+                                                </FormLabel>
+                                                <FormDescription>
+                                                    고객 호출 시 현황판에 배지가 표시되는 시간을 설정합니다.
+                                                </FormDescription>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-sm font-bold text-primary">{field.value}초</span>
+                                            </div>
+                                        </div>
+                                        <FormControl>
+                                            <div className="flex gap-2 mt-2">
+                                                {[10, 30, 60, 180].map((sec) => (
+                                                    <div
+                                                        key={sec}
+                                                        onClick={() => field.onChange(sec)}
+                                                        className={cn(
+                                                            "flex-1 py-2 text-center rounded-md cursor-pointer text-sm transition-all border",
+                                                            field.value === sec
+                                                                ? "bg-primary text-white border-primary font-bold shadow-sm"
+                                                                : "bg-white text-slate-600 border-slate-200 hover:border-primary/50"
+                                                        )}
+                                                    >
+                                                        {sec < 60 ? `${sec}초` : `${sec / 60}분`}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                            {form.watch('require_member_registration') && (
                                 <FormField
                                     control={form.control}
-                                    name="auto_register_member"
+                                    name="registration_message"
                                     render={({ field }) => (
-                                        <FormItem className="flex flex-row items-center space-x-2 space-y-0 opacity-60">
-                                            <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
-                                            <FormLabel className='font-normal text-xs text-slate-500'>[고급] 이름 입력 없이 번호만으로 자동 등록 (비활성 권장)</FormLabel>
+                                        <FormItem className="pl-4">
+                                            <FormLabel className="text-xs font-semibold text-blue-600">신규회원 등록 안내 문구</FormLabel>
+                                            <FormControl>
+                                                <textarea
+                                                    className="flex min-h-[60px] w-full rounded-md border border-blue-100 bg-blue-50/10 px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-400 disabled:cursor-not-allowed disabled:opacity-50"
+                                                    placeholder="예: 처음 방문하셨네요!\n성함을 입력해 주세요."
+                                                    {...field}
+                                                    value={field.value || ''}
+                                                />
+                                            </FormControl>
+                                            <FormDescription className="text-[10px]">이름 입력 화면에 표시될 커스텀 메시지입니다. (\n으로 줄바꿈 가능)</FormDescription>
                                         </FormItem>
                                     )}
                                 />
-                            </div>
+                            )}
+                            <FormField
+                                control={form.control}
+                                name="auto_register_member"
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-row items-center space-x-2 space-y-0 opacity-60">
+                                        <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
+                                        <FormLabel className='font-normal text-xs text-slate-500'>[고급] 이름 입력 없이 번호만으로 자동 등록 (비활성 권장)</FormLabel>
+                                    </FormItem>
+                                )}
+                            />
                         </AccordionContent>
                     </AccordionItem>
 
@@ -1635,6 +1663,6 @@ export function GeneralSettings() {
 
                 <Button type="submit" size="lg" className="w-full">설정 저장</Button>
             </form>
-        </Form>
+        </Form >
     );
 }
