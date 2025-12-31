@@ -54,6 +54,8 @@ class TicketData(BaseModel):
     store_name: str
     waiting_number: str
     date: str
+    person_count: Optional[int] = None
+    qr_url: Optional[str] = None
 
 @router.post("/generate-ticket")
 async def generate_ticket(ticket: TicketData):
@@ -82,7 +84,6 @@ async def generate_ticket(ticket: TicketData):
             try:
                 return s.encode('euc-kr')
             except UnicodeEncodeError:
-                # Fallback for characters not in EUC-KR (e.g. emojis), replace with ?
                 return s.encode('euc-kr', errors='replace')
 
         commands = []
@@ -113,6 +114,14 @@ async def generate_ticket(ticket: TicketData):
         commands.append(text(str(ticket.waiting_number)))
         commands.append(LF)
         
+        # Person Count (New)
+        if ticket.person_count:
+            commands.append(SIZE_NORMAL)
+            commands.append(BOLD_ON)
+            commands.append(LF)
+            commands.append(text(f"인원수: {ticket.person_count}명"))
+            commands.append(LF)
+
         # Footer
         commands.append(SIZE_NORMAL)
         commands.append(BOLD_OFF)
@@ -121,6 +130,33 @@ async def generate_ticket(ticket: TicketData):
         commands.append(LF)
         commands.append(text(ticket.date))
         commands.append(LF)
+        
+        # QR Code (New)
+        if ticket.qr_url:
+            qr_data = ticket.qr_url
+            qr_len = len(qr_data) + 3
+            pL = qr_len % 256
+            pH = qr_len // 256
+            
+            commands.append(LF)
+            commands.append(ALIGN_CENTER)
+            
+            # 1. Set Model (Model 2)
+            commands.append(b'\x1d(k\x04\x00\x31\x41\x32\x00')
+            # 2. Set Module Size (6)
+            commands.append(b'\x1d(k\x03\x00\x31\x43\x06')
+            # 3. Set Error Correction (L=48)
+            commands.append(b'\x1d(k\x03\x00\x31\x45\x30')
+            # 4. Store Data
+            # GS ( k pL pH 49 80 48 d1...dk
+            commands.append(b'\x1d(k' + bytes([pL, pH]) + b'\x31\x50\x30' + qr_data.encode('utf-8'))
+            # 5. Print QR
+            commands.append(b'\x1d(k\x03\x00\x31\x51\x30')
+            commands.append(LF)
+            
+            commands.append(text("** completed **")) # As per user image request
+            commands.append(LF)
+
         commands.append(LF)
         commands.append(LF)
         commands.append(CUT)
@@ -128,7 +164,7 @@ async def generate_ticket(ticket: TicketData):
         # Flatten list of bytes
         full_command = b''.join(commands)
         
-        print(f"[PrinterQueue] Generated ticket bytes for {ticket.waiting_number} (EUC-KR)")
+        print(f"[PrinterQueue] Generated ticket bytes for {ticket.waiting_number} (Person: {ticket.person_count}, QR: {bool(ticket.qr_url)})")
         return list(full_command)
 
     except Exception as e:

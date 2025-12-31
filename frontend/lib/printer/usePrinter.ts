@@ -14,9 +14,21 @@ export const usePrinter = () => {
     // Service is stateless mostly, but encoder is cheap.
     const printerService = new PrinterService();
 
-    const printWaitingTicket = useCallback(async (waitingNumber: number, date: string, partySize?: string, options?: { settings?: any, storeName?: string }) => {
+    const printWaitingTicket = useCallback(async (
+        waitingNumber: number,
+        date: string,
+        partySize?: string,
+        options?: { settings?: any, storeName?: string, personCount?: number, storeCode?: string }
+    ) => {
         const settings = options?.settings || storeSettings;
         const name = options?.storeName || storeName || '매장이름';
+
+        // QR URL Construction
+        // format: {origin}/entry/{store_code}/status
+        let qrUrl = undefined;
+        if (options?.storeCode && typeof window !== 'undefined') {
+            qrUrl = `${window.location.origin}/entry/${options.storeCode}/status`;
+        }
 
         if (!settings?.enable_printer) {
             console.log('[Printer] Printing disabled in settings.');
@@ -37,6 +49,8 @@ export const usePrinter = () => {
                 storeName: name,
                 waitingNumber,
                 date,
+                personCount: options?.personCount,
+                qrUrl
             };
 
             await printerService.print(config, job);

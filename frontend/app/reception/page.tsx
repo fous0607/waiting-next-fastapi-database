@@ -441,11 +441,28 @@ export default function ReceptionPage() {
 
             // Printer Integration
             if (storeSettings?.enable_printer && storeSettings?.auto_print_registration) {
+                // Determine person count
+                const count = partySizeTotals > 0 ? partySizeTotals : 1;
+                // Get store code from URL or use storeSettings.store_code if available
+                // In reception page, we usually have storeSettings. 
+                // However, storeSettings loaded from /store endpoint might not have store_code capable of public url if it's internal.
+                // But typically Reception URL is /reception?store={id}.
+                // We need the Store Code for the public URL: /entry/{store_code}/status
+                // Let's assume storeSettings has it, or we fetch it.
+                // Wait, storeSettings comes from /store endpoint (GET /store).
+                // Let's check what `storeSettings` has.
+                // The `printWaitingTicket` hook will construct the URL if `storeCode` is passed.
+
                 printWaitingTicket(
                     data.waiting_number,
                     new Date().toLocaleString(),
                     undefined,
-                    { settings: storeSettings, storeName }
+                    {
+                        settings: storeSettings,
+                        storeName,
+                        personCount: count,
+                        storeCode: storeSettings?.code // Assuming store object has 'code'
+                    }
                 );
             }
 

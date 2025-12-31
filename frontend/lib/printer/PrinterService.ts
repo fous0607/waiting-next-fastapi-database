@@ -19,6 +19,8 @@ export interface PrintJob {
     storeName: string;
     waitingNumber: number;
     date: string;
+    personCount?: number;
+    qrUrl?: string;
     // other fields...
 }
 
@@ -38,7 +40,9 @@ export class PrinterService {
             const response = await api.post('/printer/generate-ticket', {
                 store_name: job.storeName,
                 waiting_number: job.waitingNumber.toString(),
-                date: job.date
+                date: job.date,
+                person_count: job.personCount,
+                qr_url: job.qrUrl
             });
 
             // Response data should be an array of integers (bytes)
