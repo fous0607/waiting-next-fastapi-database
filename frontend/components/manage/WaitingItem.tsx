@@ -59,7 +59,7 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
     } = useSortable({ id: item.id });
 
     const { classes, fetchWaitingList, fetchClasses, revisitBadgeStyle, storeSettings } = useWaitingStore();
-    const { speakCall } = useVoiceAlert(storeSettings);
+    const { speakCall, speak } = useVoiceAlert(storeSettings);
 
     const [isMoveDialogOpen, setIsMoveDialogOpen] = useState(false);
     const [isNameDialogOpen, setIsNameDialogOpen] = useState(false);
@@ -91,16 +91,16 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
             fetchClasses(); // Update counts
 
             // Manager Entry Voice Alert
+            // Manager Entry Voice Alert
             if (status === 'attended' && storeSettings?.enable_manager_entry_voice_alert) {
                 const className = classes.find(c => c.id === item.class_id)?.class_name || "";
-                speakCall({
-                    class_order: item.class_order,
-                    display_name: item.name || "고객",
-                    class_name: className
-                });
-                // Note: reusing speakCall for now as it provides a standard "Call" message which is suitable for "Entry Call".
-                // If a specific "Entry" message is needed, we can adjust the speakCall logic or add speakEntry.
-                // Given the context of "Emergency", playing the call voice to alert staff is appropriate.
+                const template = storeSettings.manager_entry_voice_message || "{순번}번 {회원명}님, 입장해주세요.";
+                const message = template
+                    .replace(/{순번}/g, item.class_order.toString())
+                    .replace(/{회원명}/g, item.name || "고객")
+                    .replace(/{클래스명}/g, className);
+
+                speak(message);
             }
         } catch (e) {
             toast.error("상태 변경 실패");
@@ -114,13 +114,16 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
             toast.success("호출되었습니다.");
 
             // Manager voice alert (Emergency/Independent)
+            // Manager voice alert (Emergency/Independent)
             if (storeSettings?.enable_manager_calling_voice_alert) {
                 const className = classes.find(c => c.id === item.class_id)?.class_name || "";
-                speakCall({
-                    class_order: item.class_order,
-                    display_name: item.name || "고객",
-                    class_name: className
-                });
+                const template = storeSettings.manager_calling_voice_message || "{순번}번 {회원명}님, 호출되었습니다.";
+                const message = template
+                    .replace(/{순번}/g, item.class_order.toString())
+                    .replace(/{회원명}/g, item.name || "고객")
+                    .replace(/{클래스명}/g, className);
+
+                speak(message);
             }
         } catch (e) {
             toast.error("호출 실패");

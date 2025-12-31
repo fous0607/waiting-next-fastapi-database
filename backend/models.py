@@ -163,7 +163,9 @@ class StoreSettings(Base):
     
     # Manager Voice Settings (Emergency/Independent)
     enable_manager_calling_voice_alert = Column(Boolean, default=False)
+    manager_calling_voice_message = Column(String, default="{순번}번 {회원명}님, 호출되었습니다.")
     enable_manager_entry_voice_alert = Column(Boolean, default=False)
+    manager_entry_voice_message = Column(String, default="{순번}번 {회원명}님, 입장해주세요.")
     
     waiting_voice_name = Column(String, nullable=True)  # 대기접수 완료 음성 안내 선택된 목소리 이름
     waiting_voice_rate = Column(Float, default=1.0)  # 대기접수 완료 음성 안내 속도 (0.1 ~ 10, 기본 1.0)

@@ -112,7 +112,9 @@ const settingsSchema = z.object({
     calling_status_display_second: z.coerce.number().min(10).default(60),
     enable_calling_voice_alert: z.boolean().default(true),
     enable_manager_calling_voice_alert: z.boolean().default(false),
+    manager_calling_voice_message: z.string().optional().default("{순번}번 {회원명}님, 호출되었습니다."),
     enable_manager_entry_voice_alert: z.boolean().default(false),
+    manager_entry_voice_message: z.string().optional().default("{순번}번 {회원명}님, 입장해주세요."),
 
     sequential_closing: z.boolean().default(false),
 
@@ -1348,27 +1350,76 @@ export function GeneralSettings() {
 
                                     <div className="pt-2 border-t mt-4">
                                         <FormLabel className="text-sm font-semibold mb-3 block">대기관리자 음성안내</FormLabel>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <FormField
-                                                control={form.control}
-                                                name="enable_manager_calling_voice_alert"
-                                                render={({ field }) => (
-                                                    <FormItem className="flex flex-row items-center space-x-2 space-y-0">
-                                                        <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
-                                                        <FormLabel className='font-normal'>호출 알림 (비상용)</FormLabel>
-                                                    </FormItem>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            {/* Manager Calling Alert */}
+                                            <div className="space-y-2">
+                                                <FormField
+                                                    control={form.control}
+                                                    name="enable_manager_calling_voice_alert"
+                                                    render={({ field }) => (
+                                                        <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                                                            <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
+                                                            <FormLabel className='font-normal'>호출 알림 (비상용)</FormLabel>
+                                                        </FormItem>
+                                                    )}
+                                                />
+                                                {form.watch('enable_manager_calling_voice_alert') && (
+                                                    <FormField
+                                                        control={form.control}
+                                                        name="manager_calling_voice_message"
+                                                        render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormControl>
+                                                                    <Input
+                                                                        placeholder="예: {순번}번 {회원명}님, 호출되었습니다."
+                                                                        className="h-8 text-xs"
+                                                                        {...field}
+                                                                        value={field.value ?? ''}
+                                                                    />
+                                                                </FormControl>
+                                                                <FormDescription className="text-[10px]">
+                                                                    {`{순번}, {회원명} 사용 가능`}
+                                                                </FormDescription>
+                                                            </FormItem>
+                                                        )}
+                                                    />
                                                 )}
-                                            />
-                                            <FormField
-                                                control={form.control}
-                                                name="enable_manager_entry_voice_alert"
-                                                render={({ field }) => (
-                                                    <FormItem className="flex flex-row items-center space-x-2 space-y-0">
-                                                        <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
-                                                        <FormLabel className='font-normal'>입장 알림 (비상용)</FormLabel>
-                                                    </FormItem>
+                                            </div>
+
+                                            {/* Manager Entry Alert */}
+                                            <div className="space-y-2">
+                                                <FormField
+                                                    control={form.control}
+                                                    name="enable_manager_entry_voice_alert"
+                                                    render={({ field }) => (
+                                                        <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                                                            <FormControl><Checkbox checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
+                                                            <FormLabel className='font-normal'>입장 알림 (비상용)</FormLabel>
+                                                        </FormItem>
+                                                    )}
+                                                />
+                                                {form.watch('enable_manager_entry_voice_alert') && (
+                                                    <FormField
+                                                        control={form.control}
+                                                        name="manager_entry_voice_message"
+                                                        render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormControl>
+                                                                    <Input
+                                                                        placeholder="예: {순번}번 {회원명}님, 입장해주세요."
+                                                                        className="h-8 text-xs"
+                                                                        {...field}
+                                                                        value={field.value ?? ''}
+                                                                    />
+                                                                </FormControl>
+                                                                <FormDescription className="text-[10px]">
+                                                                    {`{순번}, {회원명} 사용 가능`}
+                                                                </FormDescription>
+                                                            </FormItem>
+                                                        )}
+                                                    />
                                                 )}
-                                            />
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

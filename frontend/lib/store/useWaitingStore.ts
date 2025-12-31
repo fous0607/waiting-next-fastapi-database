@@ -49,7 +49,9 @@ export interface StoreSettings {
     enable_waiting_voice_alert?: boolean;
     enable_calling_voice_alert?: boolean;
     enable_manager_calling_voice_alert?: boolean;
+    manager_calling_voice_message?: string;
     enable_manager_entry_voice_alert?: boolean;
+    manager_entry_voice_message?: string;
     waiting_voice_name?: string | null;
     waiting_voice_rate?: number;
     waiting_voice_pitch?: number;

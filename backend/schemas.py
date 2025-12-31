@@ -182,7 +182,9 @@ class StoreSettingsUpdate(BaseModel):
     calling_status_display_second: Optional[int] = None
     enable_calling_voice_alert: Optional[bool] = None
     enable_manager_calling_voice_alert: Optional[bool] = None
+    manager_calling_voice_message: Optional[str] = None
     enable_manager_entry_voice_alert: Optional[bool] = None
+    manager_entry_voice_message: Optional[str] = None
     
     # 대기관리자 화면 레이아웃 설정
     waiting_manager_max_width: Optional[int] = None
@@ -431,7 +433,9 @@ class VoiceSettings(BaseModel):
     duplicate_registration_voice_message: str = "이미 대기 중인 번호입니다."
     enable_calling_voice_alert: bool = True
     enable_manager_calling_voice_alert: bool = False
+    manager_calling_voice_message: str = "{순번}번 {회원명}님, 호출되었습니다."
     enable_manager_entry_voice_alert: bool = False
+    manager_entry_voice_message: str = "{순번}번 {회원명}님, 입장해주세요."
 
 class WaitingBoard(BaseModel):
     store_name: str
