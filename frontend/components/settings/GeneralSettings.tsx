@@ -4,7 +4,7 @@ import QRCode from 'react-qr-code';
 import { useEffect, useState } from 'react';
 import { QRPrintModal } from './QRPrintModal';
 import { TestPrintButton } from './TestPrintButton';
-import { Loader2, Copy, Check, ClipboardList, XCircle, UserPlus } from 'lucide-react';
+import { Loader2, Copy, Check, ClipboardList, XCircle, UserPlus, Pencil } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -153,6 +153,12 @@ export function GeneralSettings() {
     // Removed unused voices state
     // const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
     const [localSettings, setLocalSettings] = useState<LocalDeviceSettings>({ useLocalSettings: false });
+
+    // Profile Management State
+    const [profileName, setProfileName] = useState('');
+    const [profileProxy, setProfileProxy] = useState('');
+    const [profilePrinter, setProfilePrinter] = useState('');
+    const [editingProfileId, setEditingProfileId] = useState<string | null>(null);
 
     useEffect(() => {
         setLocalSettings(LocalSettingsManager.getSettings());
@@ -1162,9 +1168,15 @@ export function GeneralSettings() {
                                                         <div className="grid gap-3">
                                                             {/* Saved Profiles List */}
                                                             {localSettings.profiles?.map((profile) => (
-                                                                <div key={profile.id} className="flex items-center justify-between bg-white p-3 rounded-lg border shadow-sm hover:shadow-md transition-all">
+                                                                <div key={profile.id} className={cn(
+                                                                    "flex items-center justify-between bg-white p-3 rounded-lg border shadow-sm hover:shadow-md transition-all",
+                                                                    editingProfileId === profile.id && "border-blue-500 ring-2 ring-blue-100"
+                                                                )}>
                                                                     <div className="flex-1">
-                                                                        <div className="font-bold text-sm text-slate-800">{profile.name}</div>
+                                                                        <div className="font-bold text-sm text-slate-800 flex items-center gap-2">
+                                                                            {profile.name}
+                                                                            {editingProfileId === profile.id && <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 rounded-full">수정 중</span>}
+                                                                        </div>
                                                                         <div className="text-xs text-slate-500 font-mono mt-0.5">
                                                                             Proxy: {profile.proxyIp} / Printer: {profile.printerIp}
                                                                         </div>
@@ -1188,16 +1200,40 @@ export function GeneralSettings() {
                                                                                 toast.success(`'${profile.name}' 설정이 적용되었습니다.`);
                                                                             }}
                                                                             className="h-8 text-xs font-bold"
+                                                                            disabled={!!editingProfileId}
                                                                         >
                                                                             {localSettings.proxyIp === profile.proxyIp && localSettings.printerIp === profile.printerIp
                                                                                 ? "적용됨" : "적용하기"
                                                                             }
                                                                         </Button>
+                                                                        
+                                                                        {/* Edit Button */}
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="icon"
+                                                                            className="h-8 w-8 text-slate-400 hover:text-blue-600 hover:bg-blue-50"
+                                                                            onClick={() => {
+                                                                                setEditingProfileId(profile.id);
+                                                                                setProfileName(profile.name);
+                                                                                setProfileProxy(profile.proxyIp);
+                                                                                setProfilePrinter(profile.printerIp);
+                                                                                toast.info("아래 입력창에서 내용을 수정한 후 저장하세요.");
+                                                                            }}
+                                                                        >
+                                                                            <Pencil className="w-4 h-4" />
+                                                                        </Button>
+
                                                                         <Button
                                                                             variant="ghost"
                                                                             size="icon"
                                                                             className="h-8 w-8 text-red-400 hover:text-red-600 hover:bg-red-50"
                                                                             onClick={() => {
+                                                                                if (editingProfileId === profile.id) {
+                                                                                    setEditingProfileId(null);
+                                                                                    setProfileName('');
+                                                                                    setProfileProxy('');
+                                                                                    setProfilePrinter('');
+                                                                                }
                                                                                 const newProfiles = localSettings.profiles?.filter(p => p.id !== profile.id) || [];
                                                                                 handleLocalSettingChange('profiles', newProfiles);
                                                                             }}
@@ -1215,62 +1251,107 @@ export function GeneralSettings() {
                                                             )}
                                                         </div>
 
-                                                        {/* Add New Profile Form */}
-                                                        <div className="mt-4 pt-4 border-t">
+                                                        {/* Add / Edit Profile Form */}
+                                                        <div className={cn(
+                                                            "mt-4 pt-4 border-t transition-colors rounded-b-lg",
+                                                            editingProfileId ? "bg-blue-50/50 -mx-4 px-4 pb-0" : ""
+                                                        )}>
+                                                            {editingProfileId && (
+                                                                <div className="mb-2 text-xs font-bold text-blue-600 flex items-center gap-1">
+                                                                    <Pencil className="w-3 h-3" /> 설정 수정 모드
+                                                                </div>
+                                                            )}
                                                             <div className="grid gap-3 p-3 bg-white rounded-lg border">
                                                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                                                                     <Input
-                                                                        id="new_profile_name"
+                                                                        value={profileName}
+                                                                        onChange={(e) => setProfileName(e.target.value)}
                                                                         placeholder="예: 주방 프린터, 2층 카운터..."
                                                                         className="h-9 text-sm"
                                                                     />
                                                                     <Input
-                                                                        id="new_profile_proxy"
+                                                                        value={profileProxy}
+                                                                        onChange={(e) => setProfileProxy(e.target.value)}
                                                                         placeholder="프록시 IP (예: 192.168.0.x)"
                                                                         className="h-9 text-sm font-mono"
                                                                     />
                                                                     <Input
-                                                                        id="new_profile_printer"
+                                                                        value={profilePrinter}
+                                                                        onChange={(e) => setProfilePrinter(e.target.value)}
                                                                         placeholder="프린터 IP (예: 192.168.0.200)"
                                                                         className="h-9 text-sm font-mono"
                                                                     />
                                                                 </div>
-                                                                <Button
-                                                                    variant="secondary"
-                                                                    className="w-full"
-                                                                    onClick={() => {
-                                                                        const nameEl = document.getElementById('new_profile_name') as HTMLInputElement;
-                                                                        const proxyEl = document.getElementById('new_profile_proxy') as HTMLInputElement;
-                                                                        const printerEl = document.getElementById('new_profile_printer') as HTMLInputElement;
+                                                                <div className="flex gap-2">
+                                                                    {editingProfileId && (
+                                                                        <Button
+                                                                            type="button"
+                                                                            variant="outline"
+                                                                            className="flex-1"
+                                                                            onClick={() => {
+                                                                                setEditingProfileId(null);
+                                                                                setProfileName('');
+                                                                                setProfileProxy('');
+                                                                                setProfilePrinter('');
+                                                                            }}
+                                                                        >
+                                                                            취소
+                                                                        </Button>
+                                                                    )}
+                                                                    <Button
+                                                                        variant={editingProfileId ? "default" : "secondary"}
+                                                                        className={editingProfileId ? "flex-[2] bg-blue-600 hover:bg-blue-700" : "w-full"}
+                                                                        onClick={() => {
+                                                                            if (!profileName || !profileProxy || !profilePrinter) {
+                                                                                toast.error("모든 항목을 입력해주세요.");
+                                                                                return;
+                                                                            }
 
-                                                                        if (!nameEl.value || !proxyEl.value || !printerEl.value) {
-                                                                            toast.error("모든 항목을 입력해주세요.");
-                                                                            return;
-                                                                        }
+                                                                            const currentProfiles = localSettings.profiles || [];
+                                                                            let newProfiles;
 
-                                                                        const newProfile = {
-                                                                            id: Date.now().toString(),
-                                                                            name: nameEl.value,
-                                                                            proxyIp: proxyEl.value,
-                                                                            printerIp: printerEl.value
-                                                                        };
+                                                                            if (editingProfileId) {
+                                                                                // Update existing
+                                                                                newProfiles = currentProfiles.map(p => 
+                                                                                    p.id === editingProfileId 
+                                                                                    ? { ...p, name: profileName, proxyIp: profileProxy, printerIp: profilePrinter }
+                                                                                    : p
+                                                                                );
+                                                                                toast.success("설정이 수정되었습니다.");
+                                                                                setEditingProfileId(null);
+                                                                            } else {
+                                                                                // Add new
+                                                                                const newProfile = {
+                                                                                    id: Date.now().toString(),
+                                                                                    name: profileName,
+                                                                                    proxyIp: profileProxy,
+                                                                                    printerIp: profilePrinter
+                                                                                };
+                                                                                newProfiles = [...currentProfiles, newProfile];
+                                                                                toast.success("새 설정이 등록되었습니다.");
+                                                                            }
 
-                                                                        const currentProfiles = localSettings.profiles || [];
-                                                                        handleLocalSettingChange('profiles', [...currentProfiles, newProfile]);
-
-                                                                        // Clear inputs
-                                                                        nameEl.value = '';
-                                                                        proxyEl.value = '';
-                                                                        printerEl.value = '';
-
-                                                                        toast.success("새로운 설정이 등록되었습니다.");
-                                                                    }}
-                                                                >
-                                                                    <UserPlus className="w-4 h-4 mr-2" /> 새 설정 등록하기
-                                                                </Button>
+                                                                            handleLocalSettingChange('profiles', newProfiles);
+                                                                            
+                                                                            // Reset inputs
+                                                                            setProfileName('');
+                                                                            setProfileProxy('');
+                                                                            setProfilePrinter('');
+                                                                        }}
+                                                                    >
+                                                                        {editingProfileId ? (
+                                                                            <>
+                                                                                <Check className="w-4 h-4 mr-2" /> 수정 완료
+                                                                            </>
+                                                                        ) : (
+                                                                            <>
+                                                                                <UserPlus className="w-4 h-4 mr-2" /> 새 설정 등록하기
+                                                                            </>
+                                                                        )}
+                                                                    </Button>
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                    </div>
 
                                                 </div>
                                             )}
@@ -1281,7 +1362,7 @@ export function GeneralSettings() {
                                         </div>
                                     </div>
                                 )}
-                            </div>
+                                    </div>
                         </AccordionContent>
                     </AccordionItem>
 
