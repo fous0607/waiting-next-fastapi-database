@@ -1,11 +1,19 @@
 
 const LOCAL_SETTINGS_KEY = 'waiting_service_local_settings';
 
+export interface SavedPrinterProfile {
+    id: string;
+    name: string;
+    proxyIp: string;
+    printerIp: string;
+}
+
 export interface LocalDeviceSettings {
     useLocalSettings: boolean;
     proxyIp?: string;
     printerIp?: string;
     printerPort?: number;
+    profiles?: SavedPrinterProfile[];
 }
 
 export const LocalSettingsManager = {

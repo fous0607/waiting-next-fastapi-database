@@ -4,7 +4,7 @@ import QRCode from 'react-qr-code';
 import { useEffect, useState } from 'react';
 import { QRPrintModal } from './QRPrintModal';
 import { TestPrintButton } from './TestPrintButton';
-import { Loader2, Copy, Check } from 'lucide-react';
+import { Loader2, Copy, Check, ClipboardList, XCircle, UserPlus } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -1107,13 +1107,15 @@ export function GeneralSettings() {
                                             </div>
                                         </div>
 
-                                        <div className="mt-6 pt-4 border-t border-slate-200">
-                                            <div className="flex items-center justify-between">
-                                                <div className="space-y-0.5">
-                                                    <h4 className="text-sm font-medium text-purple-700">이 기기 전용 설정 (Advanced)</h4>
-                                                    <p className="text-xs text-muted-foreground">
-                                                        매장 공통 설정 대신, 이 태블릿(브라우저)에만 적용되는 프록시/프린터 설정입니다.<br />
-                                                        다중 프록시나 프린터를 사용할 때 유용합니다.
+                                        <div className="mt-8 pt-6 border-t border-slate-200">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <div>
+                                                    <h4 className="text-base font-bold text-slate-800 flex items-center gap-2">
+                                                        <span className="text-purple-600">★</span> 기기별 프린터/프록시 설정
+                                                    </h4>
+                                                    <p className="text-sm text-slate-500 mt-1">
+                                                        이 태블릿(브라우저)에서 사용할 독립적인 설정을 등록하고 선택하세요.<br />
+                                                        주방용, 카운터용 등 여러 설정을 미리 등록해두고 간편하게 전환할 수 있습니다.
                                                     </p>
                                                 </div>
                                                 <Switch
@@ -1123,30 +1125,144 @@ export function GeneralSettings() {
                                             </div>
 
                                             {localSettings.useLocalSettings && (
-                                                <div className="mt-4 p-4 bg-purple-50 rounded-lg border border-purple-100 space-y-4 animate-in fade-in slide-in-from-top-2">
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                        <div className="space-y-2">
-                                                            <Label className="text-xs font-semibold text-purple-900">로컬 프록시 IP (기기별 오버라이드)</Label>
-                                                            <Input
-                                                                className="bg-white h-8 text-xs"
-                                                                placeholder="예: 127.0.0.1 또는 192.168.0.x"
-                                                                value={localSettings.proxyIp || ''}
-                                                                onChange={(e) => handleLocalSettingChange('proxyIp', e.target.value)}
-                                                            />
+                                                <div className="space-y-6 animate-in fade-in slide-in-from-top-2">
+
+                                                    {/* Active Settings Display */}
+                                                    <div className="bg-purple-50 p-4 rounded-xl border border-purple-200">
+                                                        <div className="flex items-center gap-2 mb-3">
+                                                            <Check className="w-5 h-5 text-purple-600" />
+                                                            <span className="font-bold text-purple-900">현재 적용된 설정</span>
                                                         </div>
-                                                        <div className="space-y-2">
-                                                            <Label className="text-xs font-semibold text-purple-900">목표 프린터 IP (LAN 모드)</Label>
-                                                            <Input
-                                                                className="bg-white h-8 text-xs"
-                                                                placeholder="예: 192.168.0.200"
-                                                                value={localSettings.printerIp || ''}
-                                                                onChange={(e) => handleLocalSettingChange('printerIp', e.target.value)}
-                                                            />
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                            <div className="bg-white p-3 rounded-lg border border-purple-100 shadow-sm">
+                                                                <Label className="text-xs font-semibold text-slate-500 block mb-1">로컬 프록시 IP</Label>
+                                                                <div className="font-mono text-lg font-bold text-slate-800">
+                                                                    {localSettings.proxyIp || <span className="text-gray-300">미설정</span>}
+                                                                </div>
+                                                            </div>
+                                                            <div className="bg-white p-3 rounded-lg border border-purple-100 shadow-sm">
+                                                                <Label className="text-xs font-semibold text-slate-500 block mb-1">목표 프린터 IP</Label>
+                                                                <div className="font-mono text-lg font-bold text-slate-800">
+                                                                    {localSettings.printerIp || <span className="text-gray-300">미설정</span>}
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                    <p className="text-[10px] text-purple-700/70">
-                                                        * 이 값들은 서버에 저장되지 않고 현재 기기(브라우저)에만 저장됩니다. 입력된 값이 공통 설정보다 우선 적용됩니다.
-                                                    </p>
+
+                                                    {/* Profile Registry */}
+                                                    <div className="border rounded-xl p-4 bg-slate-50/50">
+                                                        <h5 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
+                                                            <ClipboardList className="w-4 h-4" /> 설정 목록 (등록됨)
+                                                        </h5>
+
+                                                        <div className="grid gap-3">
+                                                            {/* Saved Profiles List */}
+                                                            {localSettings.profiles?.map((profile) => (
+                                                                <div key={profile.id} className="flex items-center justify-between bg-white p-3 rounded-lg border shadow-sm hover:shadow-md transition-all">
+                                                                    <div className="flex-1">
+                                                                        <div className="font-bold text-sm text-slate-800">{profile.name}</div>
+                                                                        <div className="text-xs text-slate-500 font-mono mt-0.5">
+                                                                            Proxy: {profile.proxyIp} / Printer: {profile.printerIp}
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <Button
+                                                                            variant={
+                                                                                localSettings.proxyIp === profile.proxyIp && localSettings.printerIp === profile.printerIp
+                                                                                    ? "default"
+                                                                                    : "outline"
+                                                                            }
+                                                                            size="sm"
+                                                                            onClick={() => {
+                                                                                handleLocalSettingChange('proxyIp', profile.proxyIp);
+                                                                                handleLocalSettingChange('printerIp', profile.printerIp);
+                                                                                toast.success(`'${profile.name}' 설정이 적용되었습니다.`);
+                                                                            }}
+                                                                            className="h-8 text-xs font-bold"
+                                                                        >
+                                                                            {localSettings.proxyIp === profile.proxyIp && localSettings.printerIp === profile.printerIp
+                                                                                ? "적용됨" : "적용하기"
+                                                                            }
+                                                                        </Button>
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="icon"
+                                                                            className="h-8 w-8 text-red-400 hover:text-red-600 hover:bg-red-50"
+                                                                            onClick={() => {
+                                                                                const newProfiles = localSettings.profiles?.filter(p => p.id !== profile.id) || [];
+                                                                                handleLocalSettingChange('profiles', newProfiles);
+                                                                            }}
+                                                                        >
+                                                                            <XCircle className="w-4 h-4" />
+                                                                        </Button>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+
+                                                            {(!localSettings.profiles || localSettings.profiles.length === 0) && (
+                                                                <div className="text-center py-6 text-sm text-slate-400 border-dashed border-2 rounded-lg">
+                                                                    등록된 설정이 없습니다. 아래에서 추가해주세요.
+                                                                </div>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Add New Profile Form */}
+                                                        <div className="mt-4 pt-4 border-t">
+                                                            <div className="grid gap-3 p-3 bg-white rounded-lg border">
+                                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                                                    <Input
+                                                                        id="new_profile_name"
+                                                                        placeholder="예: 주방 프린터, 2층 카운터..."
+                                                                        className="h-9 text-sm"
+                                                                    />
+                                                                    <Input
+                                                                        id="new_profile_proxy"
+                                                                        placeholder="프록시 IP (예: 192.168.0.x)"
+                                                                        className="h-9 text-sm font-mono"
+                                                                    />
+                                                                    <Input
+                                                                        id="new_profile_printer"
+                                                                        placeholder="프린터 IP (예: 192.168.0.200)"
+                                                                        className="h-9 text-sm font-mono"
+                                                                    />
+                                                                </div>
+                                                                <Button
+                                                                    variant="secondary"
+                                                                    className="w-full"
+                                                                    onClick={() => {
+                                                                        const nameEl = document.getElementById('new_profile_name') as HTMLInputElement;
+                                                                        const proxyEl = document.getElementById('new_profile_proxy') as HTMLInputElement;
+                                                                        const printerEl = document.getElementById('new_profile_printer') as HTMLInputElement;
+
+                                                                        if (!nameEl.value || !proxyEl.value || !printerEl.value) {
+                                                                            toast.error("모든 항목을 입력해주세요.");
+                                                                            return;
+                                                                        }
+
+                                                                        const newProfile = {
+                                                                            id: Date.now().toString(),
+                                                                            name: nameEl.value,
+                                                                            proxyIp: proxyEl.value,
+                                                                            printerIp: printerEl.value
+                                                                        };
+
+                                                                        const currentProfiles = localSettings.profiles || [];
+                                                                        handleLocalSettingChange('profiles', [...currentProfiles, newProfile]);
+
+                                                                        // Clear inputs
+                                                                        nameEl.value = '';
+                                                                        proxyEl.value = '';
+                                                                        printerEl.value = '';
+
+                                                                        toast.success("새로운 설정이 등록되었습니다.");
+                                                                    }}
+                                                                >
+                                                                    <UserPlus className="w-4 h-4 mr-2" /> 새 설정 등록하기
+                                                                </Button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
                                                 </div>
                                             )}
                                         </div>
