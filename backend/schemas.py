@@ -156,6 +156,10 @@ class StoreSettingsUpdate(BaseModel):
     waiting_board_page_size: Optional[int] = None
     waiting_board_rotation_interval: Optional[int] = None
     waiting_board_transition_effect: Optional[str] = None
+    
+    # Board Display Customization
+    board_display_template: Optional[str] = None
+    enable_privacy_masking: Optional[bool] = None
 
     # 폰트 설정
     manager_font_family: Optional[str] = None
