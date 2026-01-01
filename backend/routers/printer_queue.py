@@ -58,6 +58,9 @@ class TicketData(BaseModel):
     qr_url: Optional[str] = None
     printer_qr_size: Optional[int] = None
     enable_printer_qr: Optional[bool] = True
+    party_size_details: Optional[str] = None  # JSON string e.g. '{"성인": 2, "아동": 1}'
+    teams_ahead: Optional[int] = None
+    waiting_order: Optional[int] = None
 
 @router.post("/generate-ticket")
 async def generate_ticket(ticket: TicketData):
@@ -116,12 +119,50 @@ async def generate_ticket(ticket: TicketData):
         commands.append(text(str(ticket.waiting_number)))
         commands.append(LF)
         
-        # Person Count (New)
-        if ticket.person_count:
-            commands.append(SIZE_NORMAL)
-            commands.append(BOLD_ON)
-            commands.append(LF)
+        # Person Count (Details)
+        commands.append(SIZE_NORMAL)
+        commands.append(BOLD_ON)
+        commands.append(LF)
+        
+        import json
+        details_text = ""
+        if ticket.party_size_details:
+            try:
+                details = json.loads(ticket.party_size_details)
+                # Format: "성인 2명, 아동 1명"
+                parts = []
+                for k, v in details.items():
+                    if v > 0:
+                        parts.append(f"{k} {v}명")
+                if parts:
+                    details_text = ", ".join(parts)
+            except:
+                pass
+        
+        if details_text:
+            commands.append(text(f"인원수: {details_text}"))
+        elif ticket.person_count:
             commands.append(text(f"인원수: {ticket.person_count}명"))
+        commands.append(LF)
+
+        # Waiting Stats (Teams Ahead & Order)
+        if ticket.teams_ahead is not None or ticket.waiting_order is not None:
+            commands.append(LF)
+            commands.append(text("--------------------------------"))
+            commands.append(LF)
+            
+            # 2 Columns Layout simulation with spaces
+            # Left: Teams Ahead, Right: Waiting Order
+            
+            if ticket.teams_ahead is not None:
+                commands.append(text(f"내 앞 대기: {ticket.teams_ahead}팀"))
+            
+            if ticket.waiting_order is not None:
+                # Add spacing if both exist
+                if ticket.teams_ahead is not None:
+                     commands.append(text("   "))
+                commands.append(text(f"대기순서: {ticket.waiting_order}번째"))
+            
             commands.append(LF)
 
         # Footer
@@ -172,7 +213,7 @@ async def generate_ticket(ticket: TicketData):
         # Flatten list of bytes
         full_command = b''.join(commands)
         
-        print(f"[PrinterQueue] Generated ticket bytes for {ticket.waiting_number} (Person: {ticket.person_count}, QR: {bool(ticket.qr_url)})")
+        print(f"[PrinterQueue] Generated ticket bytes for {ticket.waiting_number}")
         return list(full_command)
 
     except Exception as e:

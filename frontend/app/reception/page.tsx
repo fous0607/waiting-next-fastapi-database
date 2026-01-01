@@ -462,7 +462,10 @@ export default function ReceptionPage() {
                         storeName,
                         personCount: count,
                         storeCode: storeSettings?.code, // Assuming store object has 'code'
-                        phone: targetPhone // Correctly passing the phone number here
+                        phone: targetPhone, // Correctly passing the phone number here
+                        // Pass detailed stats
+                        partySizeDetails: JSON.stringify(partySizeDetails),
+                        classOrder: data.class_order
                     }
                 );
             }

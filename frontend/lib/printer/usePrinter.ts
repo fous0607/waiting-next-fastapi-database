@@ -18,7 +18,15 @@ export const usePrinter = () => {
         waitingNumber: number,
         date: string,
         partySize?: string,
-        options?: { settings?: any, storeName?: string, personCount?: number, storeCode?: string, phone?: string }
+        options?: {
+            settings?: any,
+            storeName?: string,
+            personCount?: number,
+            storeCode?: string,
+            phone?: string,
+            partySizeDetails?: string,
+            classOrder?: number
+        }
     ) => {
         const settings = options?.settings || storeSettings;
         const name = options?.storeName || storeName || '매장이름';
@@ -63,7 +71,10 @@ export const usePrinter = () => {
                 date,
                 personCount: options?.personCount,
                 qrUrl,
-                printerQrSize: settings.printer_qr_size
+                printerQrSize: settings.printer_qr_size,
+                partySizeDetails: options?.partySizeDetails,
+                teamsAhead: options?.classOrder ? Math.max(0, options.classOrder - 1) : undefined,
+                waitingOrder: options?.classOrder
             };
 
             await printerService.print(config, job);

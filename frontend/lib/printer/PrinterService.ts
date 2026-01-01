@@ -22,7 +22,9 @@ export interface PrintJob {
     personCount?: number;
     qrUrl?: string;
     printerQrSize?: number;
-    // other fields...
+    partySizeDetails?: string; // JSON string
+    teamsAhead?: number;
+    waitingOrder?: number;
 }
 
 export class PrinterService {
@@ -44,7 +46,10 @@ export class PrinterService {
                 date: job.date,
                 person_count: job.personCount,
                 qr_url: job.qrUrl,
-                printer_qr_size: job.printerQrSize
+                printer_qr_size: job.printerQrSize,
+                party_size_details: job.partySizeDetails,
+                teams_ahead: job.teamsAhead,
+                waiting_order: job.waitingOrder
             });
 
             // Response data should be an array of integers (bytes)
