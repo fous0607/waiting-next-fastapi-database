@@ -42,6 +42,7 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { MemberDetailModal } from "../owner/MemberDetailModal";
 import { useVoiceAlert } from "@/hooks/useVoiceAlert";
+import { usePrinter } from "@/lib/printer/usePrinter";
 
 interface WaitingItemProps {
     item: WaitingItemType;
@@ -60,6 +61,26 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
 
     const { classes, fetchWaitingList, fetchClasses, revisitBadgeStyle, storeSettings } = useWaitingStore();
     const { speakCall, speak } = useVoiceAlert(storeSettings);
+    const { printWaitingTicket } = usePrinter();
+
+    const handleReprint = async () => {
+        try {
+            printWaitingTicket(
+                item.waiting_number,
+                item.registered_at ? new Date(item.registered_at).toLocaleString() : new Date().toLocaleString(),
+                undefined,
+                {
+                    storeName: storeSettings?.store_name,
+                    personCount: item.total_party_size,
+                    phone: item.phone,
+                    partySizeDetails: item.party_size_details,
+                    classOrder: item.class_order
+                }
+            );
+        } catch (e) {
+            toast.error("재출력 실패");
+        }
+    };
 
     const [isMoveDialogOpen, setIsMoveDialogOpen] = useState(false);
     const [isNameDialogOpen, setIsNameDialogOpen] = useState(false);
@@ -91,14 +112,14 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
             fetchClasses(); // Update counts
 
             // Manager Entry Voice Alert
-            // Manager Entry Voice Alert
             if (status === 'attended' && storeSettings?.enable_manager_entry_voice_alert) {
                 const className = classes.find(c => c.id === item.class_id)?.class_name || "";
                 const template = storeSettings.manager_entry_voice_message || "{순번}번 {회원명}님, 입장해주세요.";
                 const message = template
                     .replace(/{순번}/g, item.class_order.toString())
                     .replace(/{회원명}/g, item.name || "고객")
-                    .replace(/{클래스명}/g, className);
+                    .replace(/{클래스명}/g, className)
+                    .replace(/{대기번호}/g, item.waiting_number.toString());
 
                 speak(message);
             }
@@ -114,14 +135,14 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
             toast.success("호출되었습니다.");
 
             // Manager voice alert (Emergency/Independent)
-            // Manager voice alert (Emergency/Independent)
             if (storeSettings?.enable_manager_calling_voice_alert) {
                 const className = classes.find(c => c.id === item.class_id)?.class_name || "";
                 const template = storeSettings.manager_calling_voice_message || "{순번}번 {회원명}님, 호출되었습니다.";
                 const message = template
                     .replace(/{순번}/g, item.class_order.toString())
                     .replace(/{회원명}/g, item.name || "고객")
-                    .replace(/{클래스명}/g, className);
+                    .replace(/{클래스명}/g, className)
+                    .replace(/{대기번호}/g, item.waiting_number.toString());
 
                 speak(message);
             }
@@ -184,15 +205,14 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                 const numCount = Number(count);
                 if (numCount > 0) {
                     const label = configMap[id] || id;
-                    // Take only first character of label
-                    const shortLabel = label.charAt(0);
-                    detailLabels.push(`${shortLabel} ${numCount}`);
+                    // Show full label as requested
+                    detailLabels.push(`${label} ${numCount}`);
                 }
             });
 
             if (detailLabels.length === 0) return `총 ${item.total_party_size ?? 0}명`;
-            // Return abbreviated format with total
-            return `${detailLabels.join(' ')}  총 ${item.total_party_size ?? 0}`;
+            // Return format: "성인 2, 아동 1"
+            return detailLabels.join(', ');
         } catch (e) {
             return `총 ${item.total_party_size ?? 0}명`;
         }
@@ -379,6 +399,9 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
+                                        <DropdownMenuItem onSelect={() => handleReprint()}>
+                                            <span className="font-bold text-slate-700">번호표 재출력</span>
+                                        </DropdownMenuItem>
                                         <DropdownMenuItem onSelect={() => setIsNameDialogOpen(true)}>이름 변경</DropdownMenuItem>
                                         <DropdownMenuItem onClick={() => handleStatusUpdate('cancelled')}>취소</DropdownMenuItem>
                                         <DropdownMenuItem onSelect={() => setIsMoveDialogOpen(true)}>교시 이동</DropdownMenuItem>

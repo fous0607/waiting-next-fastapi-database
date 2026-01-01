@@ -1,5 +1,6 @@
 import { EscPosEncoder } from './EscPosEncoder';
 import api from '../api';
+import { LocalSettingsManager } from './LocalSettingsManager';
 
 export type ConnectionType = 'lan' | 'bluetooth';
 
@@ -148,35 +149,32 @@ export class PrinterService {
      * This avoids Mixed Content and Network Addressing issues.
      */
     async printLan(ip: string, port: number, data: Uint8Array, proxyIp: string = 'localhost'): Promise<void> {
-        return new Promise(async (resolve, reject) => {
+        // Prepare Data
+        const dataArray = Array.from(data);
+
+        // Prepare Proxy URL
+        let cleanIp = proxyIp.replace(/^(https?:\/\/)/, '').replace(/\/$/, '').trim();
+        if (cleanIp.includes(':')) cleanIp = cleanIp.split(':')[0];
+        if (!cleanIp) throw new Error('프록시 IP 주소가 올바르지 않습니다.');
+
+        const proxyUrl = `http://${cleanIp}:8000/print`;
+
+        // Check Mixed Content for warning
+        if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
+            console.warn('[PrinterService] Mixed Content Warning: Attempting to call HTTP proxy from HTTPS origin.');
+        }
+
+        let lastError: any = null;
+        const MAX_RETRIES = 3;
+
+        for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
             try {
-                // Convert Uint8Array to Array for JSON serialization
-                const dataArray = Array.from(data);
-
-                // Use configured proxy IP (default to localhost)
-                // Note: Tablet must be able to reach this IP
-                // Clean up proxy IP path
-                // 1. Remove protocol if present
-                // 2. Remove trailing slashes
-                // 3. Trim whitespace
-                // 4. Remove port if user added it (we force 8000)
-                let cleanIp = proxyIp.replace(/^(https?:\/\/)/, '').replace(/\/$/, '').trim();
-
-                if (cleanIp.includes(':')) {
-                    cleanIp = cleanIp.split(':')[0];
+                if (attempt > 1) {
+                    console.log(`[PrinterService] Retry attempt ${attempt}/${MAX_RETRIES} in 1000ms...`);
+                    await new Promise(resolve => setTimeout(resolve, 1000));
                 }
 
-                if (!cleanIp) {
-                    throw new Error('프록시 IP 주소가 올바르지 않습니다.');
-                }
-
-                const proxyUrl = `http://${cleanIp}:8000/print`;
-                console.log(`[PrinterService] Sending print job to proxy at: ${proxyUrl}`);
-
-                // Check for Mixed Content issue
-                if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
-                    console.warn('[PrinterService] Mixed Content Warning: Attempting to call HTTP proxy from HTTPS origin.');
-                }
+                console.log(`[PrinterService] Sending print job to proxy at: ${proxyUrl} (Attempt ${attempt})`);
 
                 const response = await fetch(proxyUrl, {
                     method: 'POST',
@@ -195,41 +193,58 @@ export class PrinterService {
                     throw new Error(`Proxy Error: ${errorText}`);
                 }
 
-                resolve();
+                return; // Success!
+
             } catch (error) {
-                console.error('[PrinterService] Proxy Print Failed:', error);
-
-                let errorMsg = `프린터 출력 실패: 프린터 연결 실패.\n로컬 프린트 프로그램(print_proxy)이 ${proxyIp}에서 실행 중인지 확인해주세요.`;
-
-                if (error instanceof Error) {
-                    if (error.message.includes('Failed to fetch')) {
-                        errorMsg += '\n(원인: 네트워크 연결 불가 또는 보안 차단됨)';
-                        if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
-                            errorMsg += '\n※ HTTPS 환경에서 HTTP 프록시 호출이 차단되었을 수 있습니다.';
-                        }
-                    } else {
-                        errorMsg += `\n(${error.message})`;
-                    }
-                } else {
-                    errorMsg += `\n(${String(error)})`;
-                }
-
-                reject(new Error(errorMsg));
+                console.error(`[PrinterService] Proxy Print Attempt ${attempt} Failed:`, error);
+                lastError = error;
+                // Continuum to next attempt
             }
-        });
+        }
+
+        // If we get here, all retries failed. Format the error message.
+        let errorMsg = `프린터 출력 실패: 프린터 연결 실패.\n로컬 프린트 프로그램(print_proxy)이 ${proxyIp}에서 실행 중인지 확인해주세요. (3회 시도 실패)`;
+
+        if (lastError instanceof Error) {
+            if (lastError.message.includes('Failed to fetch')) {
+                errorMsg += '\n(원인: 네트워크 연결 불가 또는 보안 차단됨)';
+                if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
+                    errorMsg += '\n※ HTTPS 환경에서 HTTP 프록시 호출이 차단되었을 수 있습니다.';
+                }
+            } else {
+                errorMsg += `\n(${lastError.message})`;
+            }
+        } else {
+            errorMsg += `\n(${String(lastError)})`;
+        }
+
+        throw new Error(errorMsg);
     }
+
+
 
     async print(config: PrinterConfig, job: PrintJob) {
         // Fetch generated bytes from backend (EUC-KR)
         const data = await this.generateReceipt(job);
 
+        // Check Local Settings Overrides
+        const localSettings = LocalSettingsManager.getSettings();
+        let targetPrinterIp = config.ip;
+        let targetProxyIp = config.proxyIp || 'localhost';
+
+        if (localSettings.useLocalSettings) {
+            console.log('[PrinterService] Using Local Device Settings Override');
+            if (localSettings.printerIp) targetPrinterIp = localSettings.printerIp;
+            if (localSettings.proxyIp) targetProxyIp = localSettings.proxyIp;
+        }
+
         if (config.type === 'bluetooth') {
             return this.printBluetooth(data);
         } else if (config.type === 'lan') {
-            if (!config.ip) throw new Error('IP Address is required for LAN printing');
-            // Default to 'local_proxy' behavior for now if mode is not set
-            const proxyIp = config.proxyIp || 'localhost';
-            return this.printLan(config.ip, config.port || 9100, data, proxyIp);
+            if (!targetPrinterIp) throw new Error('IP Address is required for LAN printing');
+
+            // Pass effective IPs to printLan
+            return this.printLan(targetPrinterIp, config.port || 9100, data, targetProxyIp);
         }
     }
 }

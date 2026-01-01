@@ -23,6 +23,7 @@ import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useOperationLabels } from '@/hooks/useOperationLabels';
 import { useVoiceAlert } from '@/hooks/useVoiceAlert';
+import { LocalSettingsManager, LocalDeviceSettings } from '@/lib/printer/LocalSettingsManager';
 
 // Comprehensive Schema matching Backend StoreSettings
 const settingsSchema = z.object({
@@ -147,8 +148,17 @@ export function GeneralSettings() {
     const [isLoading, setIsLoading] = useState(true);
     // Removed unused voices state
     // const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+    const [localSettings, setLocalSettings] = useState<LocalDeviceSettings>({ useLocalSettings: false });
 
+    useEffect(() => {
+        setLocalSettings(LocalSettingsManager.getSettings());
+    }, []);
 
+    const handleLocalSettingChange = (key: keyof LocalDeviceSettings, value: any) => {
+        const newSettings = { ...localSettings, [key]: value };
+        setLocalSettings(newSettings);
+        LocalSettingsManager.saveSettings(newSettings);
+    };
 
     const form = useForm<SettingsFormValues>({
         /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
@@ -667,6 +677,127 @@ export function GeneralSettings() {
                         </AccordionContent>
                     </AccordionItem>
 
+                    {/* Section: Registration Input Settings (Moved from Dining) */}
+                    <AccordionItem value="registration-input">
+                        <AccordionTrigger>접수 입력 데이터 설정 (인원수 외)</AccordionTrigger>
+                        <AccordionContent className="space-y-6 p-4">
+                            <FormField
+                                control={form.control}
+                                name="enable_party_size"
+                                render={({ field }) => (
+                                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 bg-slate-50 shadow-sm">
+                                        <div className="space-y-0.5">
+                                            <FormLabel className="text-base font-bold">인원수 입력 사용</FormLabel>
+                                            <FormDescription className="text-xs text-slate-500">
+                                                접수 시 상세 인원수를 입력받습니다. (예: 성인, 유아 등 구분 입력)
+                                            </FormDescription>
+                                        </div>
+                                        <FormControl>
+                                            <Checkbox
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+
+                            {form.watch('enable_party_size') && (
+                                <div className="space-y-4 pt-4 border-t">
+                                    <div className="flex items-center justify-between">
+                                        <h4 className="text-sm font-bold">👥 인원수 카테고리 구성</h4>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            className="h-8 text-[11px] bg-white"
+                                            onClick={() => {
+                                                const current = JSON.parse(form.getValues('party_size_config') || '[]');
+                                                const newItem = { id: `cat_${Date.now()}`, label: '새 항목', min: 0, max: 20, required: false };
+                                                form.setValue('party_size_config', JSON.stringify([...current, newItem]));
+                                            }}
+                                        >
+                                            + 카테고리 추가
+                                        </Button>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        {(() => {
+                                            try {
+                                                const categories = JSON.parse(form.watch('party_size_config') || '[]');
+                                                return categories.map((cat: any, index: number) => (
+                                                    <div key={cat.id} className="flex items-end gap-3 p-3 rounded-md bg-white border border-slate-200 shadow-sm relative group">
+                                                        <div className="flex-1 space-y-2">
+                                                            <Label className="text-[10px] text-slate-500">항목명</Label>
+                                                            <Input
+                                                                className="h-9 text-sm"
+                                                                value={cat.label}
+                                                                onChange={(e) => {
+                                                                    const newCats = [...categories];
+                                                                    newCats[index].label = e.target.value;
+                                                                    form.setValue('party_size_config', JSON.stringify(newCats));
+                                                                }}
+                                                            />
+                                                        </div>
+                                                        <div className="w-32 space-y-2 text-center">
+                                                            <Label className="text-[10px] text-slate-500">유형 (Type)</Label>
+                                                            <Select
+                                                                value={cat.type === 'opt' || cat.required === false ? 'opt' : 'std'}
+                                                                onValueChange={(v) => {
+                                                                    const newCats = [...categories];
+                                                                    newCats[index].type = v;
+                                                                    newCats[index].required = v === 'std';
+                                                                    form.setValue('party_size_config', JSON.stringify(newCats));
+                                                                }}
+                                                            >
+                                                                <SelectTrigger className="h-9 text-[11px]"><SelectValue /></SelectTrigger>
+                                                                <SelectContent>
+                                                                    <SelectItem value="std">인원수 포함</SelectItem>
+                                                                    <SelectItem value="opt">옵션/비포함</SelectItem>
+                                                                </SelectContent>
+                                                            </Select>
+                                                        </div>
+                                                        <div className="w-20 space-y-2">
+                                                            <Label className="text-[10px] text-slate-500">최대값</Label>
+                                                            <Input
+                                                                type="number"
+                                                                className="h-9 text-sm text-right"
+                                                                value={cat.max}
+                                                                onChange={(e) => {
+                                                                    const newCats = [...categories];
+                                                                    newCats[index].max = parseInt(e.target.value) || 0;
+                                                                    form.setValue('party_size_config', JSON.stringify(newCats));
+                                                                }}
+                                                            />
+                                                        </div>
+                                                        <Button
+                                                            type="button"
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-9 px-2 text-rose-500 hover:bg-rose-50"
+                                                            onClick={() => {
+                                                                const newCats = categories.filter((_: any, i: number) => i !== index);
+                                                                form.setValue('party_size_config', JSON.stringify(newCats));
+                                                            }}
+                                                        >
+                                                            삭제
+                                                        </Button>
+                                                    </div>
+                                                ));
+                                            } catch (e) {
+                                                return <p className="text-xs text-rose-500">설정 데이터 오류</p>;
+                                            }
+                                        })()}
+                                    </div>
+                                    <p className="text-[10px] text-slate-400">
+                                        * 필수 항목은 1명 이상 입력해야 접수가 가능합니다.<br />
+                                        * 최대값은 해당 카테고리에서 선택 가능한 최대 인원입니다.
+                                    </p>
+                                </div>
+                            )}
+                        </AccordionContent>
+                    </AccordionItem>
+
                     {operationType === 'dining' && (
                         <AccordionItem value="dining-specialized" className="border-orange-100 bg-orange-50/10">
                             <AccordionTrigger className="text-orange-700 font-bold px-2 hover:no-underline">
@@ -674,26 +805,7 @@ export function GeneralSettings() {
                             </AccordionTrigger>
                             <AccordionContent className="space-y-6 p-4">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <FormField
-                                        control={form.control}
-                                        name="enable_party_size"
-                                        render={({ field }) => (
-                                            <FormItem className="flex flex-row items-center justify-between rounded-lg border border-orange-200 p-4 bg-white shadow-sm">
-                                                <div className="space-y-0.5">
-                                                    <FormLabel className="text-base text-orange-900 font-bold">인원수 입력 사용</FormLabel>
-                                                    <FormDescription className="text-orange-700/70 text-xs">
-                                                        접수 시 인원수를 입력받습니다. (성인/유아 등 구분 가능)
-                                                    </FormDescription>
-                                                </div>
-                                                <FormControl>
-                                                    <Checkbox
-                                                        checked={field.value}
-                                                        onCheckedChange={field.onChange}
-                                                    />
-                                                </FormControl>
-                                            </FormItem>
-                                        )}
-                                    />
+                                    {/* enable_party_size moved to Registration Input section */}
                                     <FormField
                                         control={form.control}
                                         name="enable_menu_ordering"
@@ -716,100 +828,7 @@ export function GeneralSettings() {
                                     />
                                 </div>
 
-                                {form.watch('enable_party_size') && (
-                                    <div className="space-y-4 pt-2 border-t border-orange-100">
-                                        <div className="flex items-center justify-between">
-                                            <h4 className="text-sm font-bold text-orange-900">👥 인원수 카테고리 구성</h4>
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                size="sm"
-                                                className="h-8 text-[11px] bg-white border-orange-200 text-orange-700 hover:bg-orange-50"
-                                                onClick={() => {
-                                                    const current = JSON.parse(form.getValues('party_size_config') || '[]');
-                                                    const newItem = { id: `cat_${Date.now()}`, label: '새 항목', min: 0, max: 20, required: false };
-                                                    form.setValue('party_size_config', JSON.stringify([...current, newItem]));
-                                                }}
-                                            >
-                                                + 카테고리 추가
-                                            </Button>
-                                        </div>
-
-                                        <div className="space-y-3">
-                                            {(() => {
-                                                try {
-                                                    const categories = JSON.parse(form.watch('party_size_config') || '[]');
-                                                    return categories.map((cat: any, index: number) => (
-                                                        <div key={cat.id} className="flex items-end gap-3 p-3 rounded-md bg-white border border-orange-100 shadow-sm relative group">
-                                                            <div className="flex-1 space-y-2">
-                                                                <Label className="text-[10px] text-orange-400">항목명</Label>
-                                                                <Input
-                                                                    className="h-9 text-sm"
-                                                                    value={cat.label}
-                                                                    onChange={(e) => {
-                                                                        const newCats = [...categories];
-                                                                        newCats[index].label = e.target.value;
-                                                                        form.setValue('party_size_config', JSON.stringify(newCats));
-                                                                    }}
-                                                                />
-                                                            </div>
-                                                            <div className="w-24 space-y-2 text-center">
-                                                                <Label className="text-[10px] text-orange-400">유형 (Type)</Label>
-                                                                <Select
-                                                                    value={cat.type === 'opt' || cat.required === false ? 'opt' : 'std'}
-                                                                    onValueChange={(v) => {
-                                                                        const newCats = [...categories];
-                                                                        newCats[index].type = v;
-                                                                        // Clean up old required field if exists, or sync it for safety
-                                                                        newCats[index].required = v === 'std';
-                                                                        form.setValue('party_size_config', JSON.stringify(newCats));
-                                                                    }}
-                                                                >
-                                                                    <SelectTrigger className="h-9 text-[11px]"><SelectValue /></SelectTrigger>
-                                                                    <SelectContent>
-                                                                        <SelectItem value="std">인원수 포함</SelectItem>
-                                                                        <SelectItem value="opt">옵션/비포함</SelectItem>
-                                                                    </SelectContent>
-                                                                </Select>
-                                                            </div>
-                                                            <div className="w-20 space-y-2">
-                                                                <Label className="text-[10px] text-orange-400">최대값</Label>
-                                                                <Input
-                                                                    type="number"
-                                                                    className="h-9 text-sm text-right"
-                                                                    value={cat.max}
-                                                                    onChange={(e) => {
-                                                                        const newCats = [...categories];
-                                                                        newCats[index].max = parseInt(e.target.value) || 0;
-                                                                        form.setValue('party_size_config', JSON.stringify(newCats));
-                                                                    }}
-                                                                />
-                                                            </div>
-                                                            <Button
-                                                                type="button"
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                className="h-9 px-2 text-rose-500 hover:bg-rose-50 hover:text-rose-600"
-                                                                onClick={() => {
-                                                                    const newCats = categories.filter((_: any, i: number) => i !== index);
-                                                                    form.setValue('party_size_config', JSON.stringify(newCats));
-                                                                }}
-                                                            >
-                                                                삭제
-                                                            </Button>
-                                                        </div>
-                                                    ));
-                                                } catch (e) {
-                                                    return <p className="text-xs text-rose-500">설정 데이터 오류</p>;
-                                                }
-                                            })()}
-                                        </div>
-                                        <p className="text-[10px] text-slate-400">
-                                            * 필수 항목은 1명 이상 입력해야 접수가 가능합니다.<br />
-                                            * 최대값은 해당 카테고리에서 선택 가능한 최대 인원입니다.
-                                        </p>
-                                    </div>
-                                )}
+                                {/* Party Size Config moved to Registration Input section */}
                             </AccordionContent>
                         </AccordionItem>
                     )}
@@ -1086,6 +1105,50 @@ export function GeneralSettings() {
                                                     </div>
                                                 )}
                                             </div>
+                                        </div>
+
+                                        <div className="mt-6 pt-4 border-t border-slate-200">
+                                            <div className="flex items-center justify-between">
+                                                <div className="space-y-0.5">
+                                                    <h4 className="text-sm font-medium text-purple-700">이 기기 전용 설정 (Advanced)</h4>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        매장 공통 설정 대신, 이 태블릿(브라우저)에만 적용되는 프록시/프린터 설정입니다.<br />
+                                                        다중 프록시나 프린터를 사용할 때 유용합니다.
+                                                    </p>
+                                                </div>
+                                                <Switch
+                                                    checked={localSettings.useLocalSettings}
+                                                    onCheckedChange={(val) => handleLocalSettingChange('useLocalSettings', val)}
+                                                />
+                                            </div>
+
+                                            {localSettings.useLocalSettings && (
+                                                <div className="mt-4 p-4 bg-purple-50 rounded-lg border border-purple-100 space-y-4 animate-in fade-in slide-in-from-top-2">
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        <div className="space-y-2">
+                                                            <Label className="text-xs font-semibold text-purple-900">로컬 프록시 IP (기기별 오버라이드)</Label>
+                                                            <Input
+                                                                className="bg-white h-8 text-xs"
+                                                                placeholder="예: 127.0.0.1 또는 192.168.0.x"
+                                                                value={localSettings.proxyIp || ''}
+                                                                onChange={(e) => handleLocalSettingChange('proxyIp', e.target.value)}
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-2">
+                                                            <Label className="text-xs font-semibold text-purple-900">목표 프린터 IP (LAN 모드)</Label>
+                                                            <Input
+                                                                className="bg-white h-8 text-xs"
+                                                                placeholder="예: 192.168.0.200"
+                                                                value={localSettings.printerIp || ''}
+                                                                onChange={(e) => handleLocalSettingChange('printerIp', e.target.value)}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <p className="text-[10px] text-purple-700/70">
+                                                        * 이 값들은 서버에 저장되지 않고 현재 기기(브라우저)에만 저장됩니다. 입력된 값이 공통 설정보다 우선 적용됩니다.
+                                                    </p>
+                                                </div>
+                                            )}
                                         </div>
 
                                         <div className="flex justify-end pt-2">
@@ -1547,7 +1610,7 @@ export function GeneralSettings() {
                                                 <FormLabel className="text-xs">접수 완료 안내 메시지</FormLabel>
                                                 <FormControl><Input className="h-9 text-xs" placeholder="예: {클래스명}  {회원명}님 대기 접수 되었습니다." {...field} value={field.value ?? ''} /></FormControl>
                                                 <FormDescription className="text-[10px]">
-                                                    {`{ 클래스명 }, { 회원명 }, { 순번 } 사용 가능`}
+                                                    {`{ 클래스명 }, { 회원명 }, { 순번 }, { 대기번호 } 사용 가능`}
                                                 </FormDescription>
                                             </FormItem>
                                         )}
@@ -1587,7 +1650,7 @@ export function GeneralSettings() {
                                                     <FormLabel className="text-xs">호출 메시지 커스텀</FormLabel>
                                                     <FormControl><Input placeholder="예: {순번}번 {회원명}님, 데스크로 오시기 바랍니다." {...field} value={field.value ?? ''} /></FormControl>
                                                     <FormDescription className="text-[10px]">
-                                                        {`{ 회원명 }, { 순번 }, { 클래스명 }을 사용할 수 있습니다. (대기현황판 전용)`}
+                                                        {`{ 회원명 }, { 순번 }, { 클래스명 }, { 대기번호 }을 사용할 수 있습니다. (대기현황판 전용)`}
                                                     </FormDescription>
                                                 </FormItem>
                                             )}
@@ -1624,7 +1687,7 @@ export function GeneralSettings() {
                                                                     />
                                                                 </FormControl>
                                                                 <FormDescription className="text-[10px]">
-                                                                    {`{순번}, {회원명} 사용 가능`}
+                                                                    {`{순번}, {회원명}, {대기번호} 사용 가능`}
                                                                 </FormDescription>
                                                             </FormItem>
                                                         )}
@@ -1659,7 +1722,7 @@ export function GeneralSettings() {
                                                                     />
                                                                 </FormControl>
                                                                 <FormDescription className="text-[10px]">
-                                                                    {`{순번}, {회원명} 사용 가능`}
+                                                                    {`{순번}, {회원명}, {대기번호} 사용 가능`}
                                                                 </FormDescription>
                                                             </FormItem>
                                                         )}

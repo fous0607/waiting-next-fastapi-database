@@ -118,28 +118,30 @@ export function useVoiceAlert(settings: VoiceSettings | null) {
 
     }, [settings]);
 
-    const speakCall = useCallback((item: { class_order: number, display_name: string, class_name: string }) => {
+    const speakCall = useCallback((item: { class_order: number, display_name: string, class_name: string, waiting_number?: number }) => {
         if (!settings?.enable_calling_voice_alert) return;
 
         const template = settings?.waiting_call_voice_message || "{순번}번 {회원명}님, 데스크로 오시기 바랍니다.";
         const message = template
             .replace(/{순번}/g, item.class_order.toString())
             .replace(/{회원명}/g, item.display_name)
-            .replace(/{클래스명}/g, item.class_name);
+            .replace(/{클래스명}/g, item.class_name)
+            .replace(/{대기번호}/g, (item.waiting_number || item.class_order).toString());
 
         speak(message, {
             repeat: settings?.waiting_call_voice_repeat_count || 1,
         });
     }, [settings, speak]);
 
-    const speakRegistration = useCallback((item: { class_name: string, display_name: string, class_order: number }) => {
+    const speakRegistration = useCallback((item: { class_name: string, display_name: string, class_order: number, waiting_number?: number }) => {
         if (!settings?.enable_waiting_voice_alert) return;
 
         const template = settings?.waiting_voice_message || "{클래스명}  {회원명}님 대기 접수 되었습니다.";
         const message = template
             .replace(/{클래스명}/g, item.class_name)
             .replace(/{회원명}/g, item.display_name)
-            .replace(/{순번}/g, item.class_order.toString());
+            .replace(/{순번}/g, item.class_order.toString())
+            .replace(/{대기번호}/g, (item.waiting_number || item.class_order).toString());
 
         speak(message);
     }, [settings, speak]);

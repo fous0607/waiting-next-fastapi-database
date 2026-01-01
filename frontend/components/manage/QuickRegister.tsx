@@ -7,6 +7,8 @@ import { useWaitingStore } from "@/lib/store/useWaitingStore";
 import { Loader2, UserRound } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { usePrinter } from "@/lib/printer/usePrinter";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Label } from "@/components/ui/label";
 
 interface MemberCandidate {
     id: number;
@@ -109,6 +111,26 @@ export function QuickRegister() {
     };
 
     const [personCount, setPersonCount] = useState(1);
+    const [partySizeDetails, setPartySizeDetails] = useState<Record<string, number>>({});
+    const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+
+    // Initialize/Reset details based on config when popover opens or config changes
+    const getPartySizeConfig = () => {
+        try {
+            return JSON.parse(storeSettings?.party_size_config || '[]');
+        } catch {
+            return [];
+        }
+    };
+
+    const handleDetailChange = (id: string, val: number) => {
+        const newDetails = { ...partySizeDetails, [id]: val };
+        setPartySizeDetails(newDetails);
+
+        // Update total person count automatically
+        const total = Object.values(newDetails).reduce((sum, v) => sum + v, 0);
+        setPersonCount(total > 0 ? total : 1);
+    };
 
     const handleRegister = async (overrideValue?: string) => {
         const valToSubmit = overrideValue || inputValue;
@@ -129,7 +151,10 @@ export function QuickRegister() {
                 input_value: valToSubmit.trim(),
                 class_id: currentClassId,
                 person_count: personCount,
-                total_party_size: personCount // Link them for consistency
+                total_party_size: personCount, // Link them for consistency
+                party_size_details: storeSettings?.enable_party_size && Object.keys(partySizeDetails).length > 0
+                    ? JSON.stringify(partySizeDetails)
+                    : undefined
             };
 
             const response = await api.post('/members/quick-register', payload);
@@ -196,14 +221,66 @@ export function QuickRegister() {
                         />
                         <div className="flex items-center bg-white border rounded-md px-2 shrink-0">
                             <span className="text-xs text-muted-foreground mr-2">인원</span>
-                            <Input
-                                type="number"
-                                min={1}
-                                max={50}
-                                value={personCount}
-                                onChange={(e) => setPersonCount(parseInt(e.target.value) || 1)}
-                                className="w-16 h-8 border-none text-center font-bold text-lg p-0 focus-visible:ring-0"
-                            />
+                            {storeSettings?.enable_party_size ? (
+                                <Popover open={isPopoverOpen} onOpenChange={(open) => {
+                                    if (open) {
+                                        // Initialize details if empty
+                                        const config = getPartySizeConfig();
+                                        if (Object.keys(partySizeDetails).length === 0 && config.length > 0) {
+                                            const initial: Record<string, number> = {};
+                                            config.forEach((c: any) => initial[c.id] = 0);
+                                            // Make at least one count 1 if total is 1
+                                            if (config.length > 0) initial[config[0].id] = 1;
+                                            setPartySizeDetails(initial);
+                                        }
+                                    }
+                                    setIsPopoverOpen(open);
+                                }}>
+                                    <PopoverTrigger asChild>
+                                        <Button variant="ghost" className="w-16 h-8 text-lg font-bold p-0 text-orange-600 hover:text-orange-700 hover:bg-orange-50">
+                                            {personCount}명
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-64 p-4" align="end">
+                                        <div className="space-y-4">
+                                            <h4 className="font-medium leading-none text-orange-900 mb-3">인원 구성 상세</h4>
+                                            {getPartySizeConfig().map((cat: any) => (
+                                                <div key={cat.id} className="flex items-center justify-between">
+                                                    <Label className="text-sm font-medium text-slate-700 w-20 truncate">{cat.label}</Label>
+                                                    <div className="flex items-center gap-2">
+                                                        <Button
+                                                            variant="outline" size="icon" className="h-7 w-7"
+                                                            onClick={() => handleDetailChange(cat.id, Math.max(0, (partySizeDetails[cat.id] || 0) - 1))}
+                                                        >
+                                                            -
+                                                        </Button>
+                                                        <span className="w-6 text-center text-sm font-bold">{partySizeDetails[cat.id] || 0}</span>
+                                                        <Button
+                                                            variant="outline" size="icon" className="h-7 w-7"
+                                                            onClick={() => handleDetailChange(cat.id, Math.min(cat.max || 99, (partySizeDetails[cat.id] || 0) + 1))}
+                                                        >
+                                                            +
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                            <div className="pt-3 border-t flex justify-between items-center">
+                                                <span className="text-sm font-bold text-slate-600">총 인원</span>
+                                                <span className="text-lg font-black text-orange-600">{personCount}명</span>
+                                            </div>
+                                        </div>
+                                    </PopoverContent>
+                                </Popover>
+                            ) : (
+                                <Input
+                                    type="number"
+                                    min={1}
+                                    max={50}
+                                    value={personCount}
+                                    onChange={(e) => setPersonCount(parseInt(e.target.value) || 1)}
+                                    className="w-16 h-8 border-none text-center font-bold text-lg p-0 focus-visible:ring-0"
+                                />
+                            )}
                         </div>
                         <Button onClick={() => handleRegister()} disabled={isLoading}>
                             {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "대기 등록"}
