@@ -26,16 +26,20 @@ export const usePrinter = () => {
         // QR URL Construction
         // format: {origin}/entry/{store_code}/status?phone={phone}
         // If phone is provided, we append it for direct lookup
+
+        // Resolve storeCode from options or settings
+        const resolvedStoreCode = options?.storeCode || settings?.store_code || settings?.code;
+
         let qrUrl = undefined;
-        if (options?.storeCode && typeof window !== 'undefined') {
-            qrUrl = `${window.location.origin}/entry/${options.storeCode}/status`;
-            if (options.phone) {
+        if (resolvedStoreCode && typeof window !== 'undefined') {
+            qrUrl = `${window.location.origin}/entry/${resolvedStoreCode}/status`;
+            if (options?.phone) {
                 // Simple text append. Ideally encrypt or encode, but for now raw phone as per request.
                 qrUrl += `?phone=${options.phone}`;
             }
             console.log('[Printer] Generated QR URL:', qrUrl);
         } else {
-            console.log('[Printer] QR URL not generated. storeCode:', options?.storeCode);
+            console.log('[Printer] QR URL not generated. storeCode:', resolvedStoreCode);
         }
 
         if (!settings?.enable_printer) {

@@ -1089,7 +1089,7 @@ export function GeneralSettings() {
                                         </div>
 
                                         <div className="flex justify-end pt-2">
-                                            <TestPrintButton settings={form.watch()} />
+                                            <TestPrintButton settings={{ ...form.watch(), store_code: storeCode }} />
                                         </div>
                                     </div>
                                 )}
