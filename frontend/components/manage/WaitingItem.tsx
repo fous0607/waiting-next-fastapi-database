@@ -269,7 +269,12 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                                     )}
                                 >
                                     <GripVertical className="w-4 h-4 text-slate-300 mr-1" />
-                                    <span className="text-xl font-black text-primary leading-none">#{item.waiting_number}</span>
+                                    <span className="text-xl font-black text-primary leading-none">
+                                        {storeSettings?.operation_type === 'dining'
+                                            ? `#${item.waiting_number}`
+                                            : `${index + 1}번`
+                                        }
+                                    </span>
                                 </div>
 
                                 {/* Name (Clickable for Phone Lookup) & Party Size */}

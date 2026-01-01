@@ -150,9 +150,9 @@ export function QuickRegister() {
             fetchWaitingList(currentClassId);
 
             // Print Ticket (if enabled)
-            if (storeSettings?.enable_printer && storeSettings?.auto_print_registration) {
+            if (storeSettings?.enable_printer && storeSettings?.auto_print_registration && response.data.data) {
                 printWaitingTicket(
-                    response.data.waiting_number,
+                    response.data.data.waiting_number,
                     new Date().toLocaleString(),
                     undefined,
                     { settings: storeSettings, storeName }

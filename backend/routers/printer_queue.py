@@ -57,6 +57,7 @@ class TicketData(BaseModel):
     person_count: Optional[int] = None
     qr_url: Optional[str] = None
     printer_qr_size: Optional[int] = None
+    enable_printer_qr: Optional[bool] = True
 
 @router.post("/generate-ticket")
 async def generate_ticket(ticket: TicketData):
@@ -133,7 +134,7 @@ async def generate_ticket(ticket: TicketData):
         commands.append(LF)
         
         # QR Code (New)
-        if ticket.qr_url:
+        if ticket.qr_url and ticket.enable_printer_qr:
             qr_data = ticket.qr_url
             qr_len = len(qr_data) + 3
             pL = qr_len % 256

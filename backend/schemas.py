@@ -244,6 +244,7 @@ class StoreSettingsUpdate(BaseModel):
     printer_port: Optional[int] = None
     auto_print_registration: Optional[bool] = None
     printer_qr_size: Optional[int] = None
+    enable_printer_qr: Optional[bool] = None
 
 class StoreSettings(StoreSettingsBase):
     id: int

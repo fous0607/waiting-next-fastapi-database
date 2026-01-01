@@ -209,6 +209,7 @@ class StoreSettings(Base):
     printer_port = Column(Integer, default=9100)
     auto_print_registration = Column(Boolean, default=True)
     printer_qr_size = Column(Integer, default=4) # QR Code Module Size (1-8)
+    enable_printer_qr = Column(Boolean, default=True) # QR Code Enable/Disable
 
     # 클래스 시간 설정
     default_class_minute = Column(Integer, default=50)  # 기본 수업 시간 (분)

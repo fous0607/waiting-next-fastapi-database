@@ -150,13 +150,28 @@ export class PrinterService {
 
                 // Use configured proxy IP (default to localhost)
                 // Note: Tablet must be able to reach this IP
-                // Clean up proxy IP (remove port if user added it, remove http:// prefix if present)
-                let cleanIp = proxyIp.replace('http://', '').replace('https://', '');
+                // Clean up proxy IP path
+                // 1. Remove protocol if present
+                // 2. Remove trailing slashes
+                // 3. Trim whitespace
+                // 4. Remove port if user added it (we force 8000)
+                let cleanIp = proxyIp.replace(/^(https?:\/\/)/, '').replace(/\/$/, '').trim();
+
                 if (cleanIp.includes(':')) {
                     cleanIp = cleanIp.split(':')[0];
                 }
+
+                if (!cleanIp) {
+                    throw new Error('프록시 IP 주소가 올바르지 않습니다.');
+                }
+
                 const proxyUrl = `http://${cleanIp}:8000/print`;
                 console.log(`[PrinterService] Sending print job to proxy at: ${proxyUrl}`);
+
+                // Check for Mixed Content issue
+                if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
+                    console.warn('[PrinterService] Mixed Content Warning: Attempting to call HTTP proxy from HTTPS origin.');
+                }
 
                 const response = await fetch(proxyUrl, {
                     method: 'POST',
@@ -178,10 +193,23 @@ export class PrinterService {
                 resolve();
             } catch (error) {
                 console.error('[PrinterService] Proxy Print Failed:', error);
-                reject(new Error(
-                    `프린터 연결 실패. 로컬 프린트 프로그램(print_proxy)이 ${proxyIp}에서 실행 중인지 확인해주세요.\n` +
-                    (error instanceof Error ? error.message : String(error))
-                ));
+
+                let errorMsg = `프린터 출력 실패: 프린터 연결 실패.\n로컬 프린트 프로그램(print_proxy)이 ${proxyIp}에서 실행 중인지 확인해주세요.`;
+
+                if (error instanceof Error) {
+                    if (error.message.includes('Failed to fetch')) {
+                        errorMsg += '\n(원인: 네트워크 연결 불가 또는 보안 차단됨)';
+                        if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
+                            errorMsg += '\n※ HTTPS 환경에서 HTTP 프록시 호출이 차단되었을 수 있습니다.';
+                        }
+                    } else {
+                        errorMsg += `\n(${error.message})`;
+                    }
+                } else {
+                    errorMsg += `\n(${String(error)})`;
+                }
+
+                reject(new Error(errorMsg));
             }
         });
     }

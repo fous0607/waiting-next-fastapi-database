@@ -131,12 +131,13 @@ const settingsSchema = z.object({
     // Receipt Printer Settings
     enable_printer: z.boolean().default(false),
     printer_connection_type: z.enum(['lan', 'bluetooth']).default('lan'),
-    printer_connection_mode: z.enum(['local_proxy', 'cloud_queue']).default('local_proxy'),
+    printer_connection_mode: z.enum(['local_proxy', 'cloud_queue', 'tablet']).default('local_proxy'),
     printer_proxy_ip: z.string().default('localhost'),
     printer_ip_address: z.string().optional().nullable(),
     printer_port: z.coerce.number().default(9100),
     auto_print_registration: z.boolean().default(true),
     printer_qr_size: z.coerce.number().min(1).max(8).default(4),
+    enable_printer_qr: z.boolean().default(true),
 });
 
 type SettingsFormValues = z.infer<typeof settingsSchema>;
@@ -223,6 +224,7 @@ export function GeneralSettings() {
             printer_port: 9100,
             auto_print_registration: true,
             printer_qr_size: 4,
+            enable_printer_qr: true,
         },
     });
 
@@ -541,38 +543,9 @@ export function GeneralSettings() {
                         </div>
                     )}
 
-                    {/* Printer QR Code Size */}
-                    <div className="space-y-4 pt-4 border-t">
-                        <div className="md:col-span-1">
-                            <Label>영수증 QR 코드 크기</Label>
-                            <div className="text-sm text-muted-foreground mb-4">
-                                영수증에 출력되는 QR 코드의 크기를 조절합니다. (1: 작음 ~ 8: 큼)
-                            </div>
-                            <div className="flex items-center space-x-4">
-                                <FormField
-                                    control={form.control}
-                                    name="printer_qr_size"
-                                    render={({ field }) => (
-                                        <>
-                                            <input
-                                                type="range"
-                                                min="1"
-                                                max="8"
-                                                step="1"
-                                                value={field.value || 4}
-                                                onChange={(e) => field.onChange(parseInt(e.target.value))}
-                                                className="w-[60%] h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 accent-primary"
-                                            />
-                                            <span className="w-12 text-center font-medium border rounded p-1">
-                                                {field.value || 4}
-                                            </span>
-                                        </>
-                                    )}
-                                />
-                            </div>
-                        </div>
-                    </div>
                 </div>
+
+
 
                 <Accordion type="single" collapsible className="w-full">
                     {/* Section: Waiting Management (New) */}
@@ -980,6 +953,7 @@ export function GeneralSettings() {
                                                         <SelectContent>
                                                             <SelectItem value="local_proxy">로컬 프록시 (PC 설치)</SelectItem>
                                                             <SelectItem value="cloud_queue">클라우드 큐 (예정)</SelectItem>
+                                                            <SelectItem value="tablet">태블릿 (준비 중)</SelectItem>
                                                         </SelectContent>
                                                     </Select>
                                                     <FormDescription className="text-xs">
@@ -1059,6 +1033,60 @@ export function GeneralSettings() {
                                                 </FormItem>
                                             )}
                                         />
+
+                                        {/* QR Code Settings (Moved here) */}
+                                        <div className="space-y-4 pt-4 border-t">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <FormField
+                                                    control={form.control}
+                                                    name="enable_printer_qr"
+                                                    render={({ field }) => (
+                                                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 bg-slate-50">
+                                                            <div className="space-y-0.5">
+                                                                <FormLabel className="text-base">영수증 QR 코드 사용</FormLabel>
+                                                                <FormDescription>
+                                                                    영수증에 현재 대기 상황 확인용 QR 코드를 인쇄합니다.
+                                                                </FormDescription>
+                                                            </div>
+                                                            <FormControl>
+                                                                <Checkbox
+                                                                    checked={field.value}
+                                                                    onCheckedChange={field.onChange}
+                                                                />
+                                                            </FormControl>
+                                                        </FormItem>
+                                                    )}
+                                                />
+
+                                                {form.watch('enable_printer_qr') && (
+                                                    <div className="space-y-2">
+                                                        <Label>영수증 QR 코드 크기 (1: 작음 ~ 8: 큼)</Label>
+                                                        <div className="flex items-center space-x-4 h-full pt-2">
+                                                            <FormField
+                                                                control={form.control}
+                                                                name="printer_qr_size"
+                                                                render={({ field }) => (
+                                                                    <>
+                                                                        <input
+                                                                            type="range"
+                                                                            min="1"
+                                                                            max="8"
+                                                                            step="1"
+                                                                            value={field.value || 4}
+                                                                            onChange={(e) => field.onChange(parseInt(e.target.value))}
+                                                                            className="w-[60%] h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 accent-primary"
+                                                                        />
+                                                                        <span className="w-12 text-center font-medium border rounded p-1">
+                                                                            {field.value || 4}
+                                                                        </span>
+                                                                    </>
+                                                                )}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
 
                                         <div className="flex justify-end pt-2">
                                             <TestPrintButton settings={form.watch()} />
@@ -1931,7 +1959,7 @@ export function GeneralSettings() {
                 </Accordion>
 
                 <Button type="submit" size="lg" className="w-full">설정 저장</Button>
-            </form>
+            </form >
         </Form >
     );
 }
