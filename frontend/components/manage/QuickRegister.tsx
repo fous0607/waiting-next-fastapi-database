@@ -176,6 +176,18 @@ export function QuickRegister() {
 
             // Print Ticket (if enabled)
             if (storeSettings?.enable_printer && storeSettings?.auto_print_registration && response.data.data) {
+                // Map party size details to labels
+                const config = getPartySizeConfig();
+                const printableDetails: Record<string, number> = {};
+
+                if (storeSettings?.enable_party_size && Object.keys(partySizeDetails).length > 0) {
+                    Object.entries(partySizeDetails).forEach(([id, count]) => {
+                        const item = config.find((c: any) => c.id === id);
+                        const label = item ? item.label : id;
+                        printableDetails[label] = count;
+                    });
+                }
+
                 printWaitingTicket(
                     response.data.data.waiting_number,
                     new Date().toLocaleString(),
@@ -184,9 +196,9 @@ export function QuickRegister() {
                         settings: storeSettings,
                         storeName,
                         personCount: personCount,
-                        phone: valToSubmit,
-                        partySizeDetails: storeSettings?.enable_party_size && Object.keys(partySizeDetails).length > 0
-                            ? JSON.stringify(partySizeDetails)
+                        phone: valToSubmit.replace(/\D/g, ''), // Ensure raw digits for QR
+                        partySizeDetails: Object.keys(printableDetails).length > 0
+                            ? JSON.stringify(printableDetails)
                             : undefined
                     }
                 );
