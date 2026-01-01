@@ -1178,8 +1178,13 @@ export function GeneralSettings() {
                                                                             }
                                                                             size="sm"
                                                                             onClick={() => {
-                                                                                handleLocalSettingChange('proxyIp', profile.proxyIp);
-                                                                                handleLocalSettingChange('printerIp', profile.printerIp);
+                                                                                const newSettings = {
+                                                                                    ...localSettings,
+                                                                                    proxyIp: profile.proxyIp,
+                                                                                    printerIp: profile.printerIp
+                                                                                };
+                                                                                setLocalSettings(newSettings);
+                                                                                LocalSettingsManager.saveSettings(newSettings);
                                                                                 toast.success(`'${profile.name}' 설정이 적용되었습니다.`);
                                                                             }}
                                                                             className="h-8 text-xs font-bold"
