@@ -31,6 +31,8 @@ class StoreSettingsBase(BaseModel):
     board_display_order: str = "number,name,order"
     waiting_board_page_size: int = 12
     waiting_board_rotation_interval: int = 5
+    board_display_template: str = "{순번} {이름}"
+    enable_privacy_masking: bool = False
     
     # 폰트 설정
     manager_font_family: str = "Nanum Gothic"

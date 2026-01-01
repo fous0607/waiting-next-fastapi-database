@@ -44,6 +44,28 @@ export function BoardCard({ item }: BoardCardProps) {
         return diffSeconds > -10 && diffSeconds < displayDuration;
     })();
 
+    // Template Processing
+    const settings = useWaitingStore.getState().storeSettings;
+    const template = settings?.board_display_template || "{순번} {이름}";
+    const enableMasking = settings?.enable_privacy_masking || false;
+
+    // Helper to mask name
+    const maskName = (name: string) => {
+        if (!name) return "";
+        if (name.length <= 1) return "*";
+        if (name.length === 2) return name[0] + "*";
+        return name[0] + "*".repeat(name.length - 2) + name[name.length - 1];
+    };
+
+    const finalName = enableMasking ? maskName(item.display_name) : item.display_name;
+
+    let displayText = template
+        .replace(/{순번}/g, String(item.class_order))
+        .replace(/{대기번호}/g, String(item.waiting_number))
+        .replace(/{이름}/g, finalName)
+        .replace(/{회원명}/g, finalName) // Alias
+        .replace(/{인원}/g, item.party_size_details || String(item.total_party_size));
+
     return (
         <Card className={`relative h-full p-3 flex flex-row items-center justify-between shadow-sm border-l-4 animate-in fade-in slide-in-from-bottom-2 duration-300 ${isCalled
             ? "border-l-red-500 bg-red-50 border-red-200"
@@ -69,7 +91,7 @@ export function BoardCard({ item }: BoardCardProps) {
             )}
 
             <div className="flex flex-col items-end max-w-[70%] z-10">
-                <span className="font-bold truncate text-slate-800" style={{ fontSize: 'var(--board-font-size)', fontFamily: 'var(--board-font-family)' }}>{item.display_name}</span>
+                <span className="font-bold truncate text-slate-800" style={{ fontSize: 'var(--board-font-size)', fontFamily: 'var(--board-font-family)' }}>{displayText}</span>
             </div>
         </Card>
     );

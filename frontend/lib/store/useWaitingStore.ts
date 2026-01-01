@@ -70,6 +70,10 @@ export interface StoreSettings {
     enable_duplicate_registration_voice?: boolean;
     duplicate_registration_voice_message?: string | null;
 
+    // Board Display
+    board_display_template?: string;
+    enable_privacy_masking?: boolean;
+
     // Add other settings as needed
     [key: string]: any;
 }

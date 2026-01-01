@@ -75,6 +75,10 @@ const settingsSchema = z.object({
     waiting_board_rotation_interval: z.coerce.number().min(3).default(5),
     waiting_board_transition_effect: z.string().optional(),
 
+    // Board Display Customization
+    board_display_template: z.string().default("{순번} {이름}"),
+    enable_privacy_masking: z.boolean().default(false),
+
     // Fonts & sizes
     manager_font_family: z.string().default("Nanum Gothic"),
     manager_font_size: z.string().default("15px"),
@@ -1335,6 +1339,56 @@ export function GeneralSettings() {
                                         </FormItem>
                                     )}
                                 />
+                            </div>
+
+
+
+                            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 mt-6 mb-6">
+                                <h4 className="font-bold mb-3 text-sm text-slate-700 flex items-center gap-2">
+                                    <span className="text-blue-500">★</span> 대기자 박스 표시 설정 (템플릿)
+                                </h4>
+                                <div className="space-y-4">
+                                    <FormField
+                                        control={form.control}
+                                        name="board_display_template"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>표시 형식 (Template)</FormLabel>
+                                                <FormControl>
+                                                    <Input {...field} placeholder="{순번} {이름}" className="font-mono bg-white" />
+                                                </FormControl>
+                                                <FormDescription className="text-xs space-y-1">
+                                                    변수를 사용하여 표시 형식을 자유롭게 설정하세요.<br />
+                                                    <span className="inline-block bg-slate-200 rounded px-1 text-slate-700 mx-1">{'{순번}'}</span>
+                                                    <span className="inline-block bg-slate-200 rounded px-1 text-slate-700 mx-1">{'{대기번호}'}</span>
+                                                    <span className="inline-block bg-slate-200 rounded px-1 text-slate-700 mx-1">{'{이름}'}</span>
+                                                    <span className="inline-block bg-slate-200 rounded px-1 text-slate-700 mx-1">{'{인원}'}</span>
+                                                </FormDescription>
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={form.control}
+                                        name="enable_privacy_masking"
+                                        render={({ field }) => (
+                                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 bg-white">
+                                                <div className="space-y-0.5">
+                                                    <FormLabel className="text-sm">개인정보 마스킹 (이름 가리기)</FormLabel>
+                                                    <FormDescription className="text-xs">
+                                                        이름의 가운데 글자를 '*'로 표시합니다. (예: 홍길동 → 홍*동)
+                                                    </FormDescription>
+                                                </div>
+                                                <FormControl>
+                                                    <Switch
+                                                        checked={field.value}
+                                                        onCheckedChange={field.onChange}
+                                                    />
+                                                </FormControl>
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
                             </div>
 
                             <h4 className="font-medium mt-4 mb-2 text-sm text-gray-500">대기현황판 페이지네이션 (자동 회전)</h4>

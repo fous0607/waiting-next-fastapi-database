@@ -129,6 +129,10 @@ class StoreSettings(Base):
     waiting_board_rotation_interval = Column(Integer, default=5)  # 대기현황판 페이지 회전 간격 (초)
     waiting_board_transition_effect = Column(String, default="slide")  # 대기현황판 페이지 전환 효과 (slide, fade, scale, none)
     
+    # Board Display Customization
+    board_display_template = Column(String, default="{순번} {이름}")  # 표시 템플릿
+    enable_privacy_masking = Column(Boolean, default=False)  # 개인정보 마스킹 사용 여부
+    
     # 폰트 설정
     manager_font_family = Column(String, default="Nanum Gothic")
     manager_font_size = Column(String, default="15px")
