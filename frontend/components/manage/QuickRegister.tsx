@@ -133,15 +133,20 @@ export function QuickRegister() {
     };
 
     const handleRegister = async (overrideValue?: string) => {
-        const valToSubmit = overrideValue || inputValue;
-
-        if (!valToSubmit.trim()) {
-            toast.error("이름, 전화번호 또는 바코드를 입력해주세요.");
+        if (!currentClassId) {
+            toast.error('등록할 교시를 선택해주세요.');
             return;
         }
 
-        if (!currentClassId) {
-            toast.error("선택된 클래스가 없습니다.");
+        let valToSubmit = overrideValue || inputValue;
+
+        // Auto-prepend 010 for 8-digit numbers
+        if (!overrideValue && valToSubmit.length === 8 && /^\d+$/.test(valToSubmit)) {
+            valToSubmit = '010' + valToSubmit;
+        }
+
+        if (!valToSubmit || !valToSubmit.trim()) {
+            toast.error("이름, 전화번호 또는 바코드를 입력해주세요.");
             return;
         }
 
