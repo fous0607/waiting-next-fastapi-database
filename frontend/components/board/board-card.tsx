@@ -46,7 +46,14 @@ export function BoardCard({ item }: BoardCardProps) {
 
     // Template Processing
     const settings = useWaitingStore.getState().storeSettings;
-    const template = settings?.board_display_template || "{순번} {이름}";
+    let template = settings?.board_display_template || "{이름}";
+
+    // Smart Fallback: If template is the old default "{순번} {이름}" and we have the left-side number, 
+    // simplify to "{이름}" to avoid duplication (e.g. "1   1 홍길동").
+    if (template === "{순번} {이름}") {
+        template = "{이름}";
+    }
+
     const enableMasking = settings?.enable_privacy_masking || false;
 
     // Helper to mask name

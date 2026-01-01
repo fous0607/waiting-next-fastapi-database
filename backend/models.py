@@ -130,7 +130,7 @@ class StoreSettings(Base):
     waiting_board_transition_effect = Column(String, default="slide")  # 대기현황판 페이지 전환 효과 (slide, fade, scale, none)
     
     # Board Display Customization
-    board_display_template = Column(String, default="{순번} {이름}")  # 표시 템플릿
+    board_display_template = Column(String, default="{이름}")  # 표시 템플릿
     enable_privacy_masking = Column(Boolean, default=False)  # 개인정보 마스킹 사용 여부
     
     # 폰트 설정

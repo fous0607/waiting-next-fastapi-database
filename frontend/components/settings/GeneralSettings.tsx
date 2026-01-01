@@ -76,7 +76,7 @@ const settingsSchema = z.object({
     waiting_board_transition_effect: z.string().optional(),
 
     // Board Display Customization
-    board_display_template: z.string().default("{순번} {이름}"),
+    board_display_template: z.string().default("{이름}"),
     enable_privacy_masking: z.boolean().default(false),
 
     // Fonts & sizes
@@ -1355,7 +1355,7 @@ export function GeneralSettings() {
                                             <FormItem>
                                                 <FormLabel>표시 형식 (Template)</FormLabel>
                                                 <FormControl>
-                                                    <Input {...field} placeholder="{순번} {이름}" className="font-mono bg-white" />
+                                                    <Input {...field} placeholder="{이름}" className="font-mono bg-white" />
                                                 </FormControl>
                                                 <FormDescription className="text-xs space-y-1">
                                                     변수를 사용하여 표시 형식을 자유롭게 설정하세요.<br />
