@@ -180,7 +180,15 @@ export function QuickRegister() {
                     response.data.data.waiting_number,
                     new Date().toLocaleString(),
                     undefined,
-                    { settings: storeSettings, storeName }
+                    {
+                        settings: storeSettings,
+                        storeName,
+                        personCount: personCount,
+                        phone: valToSubmit,
+                        partySizeDetails: storeSettings?.enable_party_size && Object.keys(partySizeDetails).length > 0
+                            ? JSON.stringify(partySizeDetails)
+                            : undefined
+                    }
                 );
             }
 
