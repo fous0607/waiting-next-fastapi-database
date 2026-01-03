@@ -51,6 +51,7 @@ from routers import (
     tts, # Google Cloud TTS Router
     printer_queue, # Printer Queue Router
     templates, # Print Template Router
+    debug, # DEBUG ROUTER
 )
 from core.logger import logger
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -169,6 +170,7 @@ app.include_router(public.router, prefix="/api/public", tags=["Public Access"])
 app.include_router(tts.router, prefix="/api/tts", tags=["Text to Speech"])
 app.include_router(printer_queue.router, prefix="/api/printer", tags=["Printer Queue"])
 app.include_router(templates.router, prefix="/api/templates", tags=["Print Templates"])
+app.include_router(debug.router, prefix="/api/debug", tags=["Debug"])
 
 
 @app.get("/")
