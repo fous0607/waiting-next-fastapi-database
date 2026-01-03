@@ -50,6 +50,15 @@ def get_safe_store_settings(db: Session, store_id: int):
     except (OperationalError, ProgrammingError):
         # Fallback if new column hasn't been migrated yet
         db.rollback()
+        
+        # 1차 시도: 자동 마이그레이션 실행
+        try:
+            from core.db_auto_migrator import check_and_migrate_table
+            check_and_migrate_table(StoreSettings)
+        except Exception as e:
+            # 마이그레이션 실패하더라도 계속 진행 (defer 사용)
+            pass
+
         settings = db.query(StoreSettings).options(
             defer(StoreSettings.attendance_count_type),
             defer(StoreSettings.attendance_lookback_days),
