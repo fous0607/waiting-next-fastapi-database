@@ -12,7 +12,7 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
-@router.post("/", response_model=NoticeResponse)
+@router.post("", response_model=NoticeResponse)
 def create_notice(
     notice: NoticeCreate,
     db: Session = Depends(get_db),
@@ -48,7 +48,7 @@ def create_notice(
         author_name=current_user.username
     )
 
-@router.get("/", response_model=List[NoticeResponse])
+@router.get("", response_model=List[NoticeResponse])
 def get_all_notices(
     skip: int = 0,
     limit: int = 100,

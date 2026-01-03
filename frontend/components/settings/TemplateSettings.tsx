@@ -201,7 +201,7 @@ export function TemplateSettings() {
                 toast.success("저장되었습니다.");
             } else {
                 // Create
-                await api.post(`/templates/`, { ...templateToSave, store_id: storeId });
+                await api.post(`/templates`, { ...templateToSave, store_id: storeId });
                 toast.success("생성되었습니다.");
             }
             fetchTemplates();

@@ -11,7 +11,7 @@ from services.audit_service import AuditService
 
 router = APIRouter(tags=["Configuration Snapshots"])
 
-@router.post("/", response_model=dict)
+@router.post("", response_model=dict)
 async def create_snapshot(
     description: str = Body(..., embed=True),
     current_store: Store = Depends(get_current_store),
@@ -59,7 +59,7 @@ async def create_snapshot(
     
     return {"id": snapshot.id, "created_at": snapshot.created_at, "description": description}
 
-@router.get("/", response_model=List[dict])
+@router.get("", response_model=List[dict])
 async def list_snapshots(
     current_store: Store = Depends(get_current_store),
     db: Session = Depends(get_db)

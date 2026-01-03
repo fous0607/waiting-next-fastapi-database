@@ -26,7 +26,7 @@ from auth import get_current_user, require_franchise_admin
 router = APIRouter()
 
 
-@router.get("/", response_model=List[StoreSchema])
+@router.get("", response_model=List[StoreSchema])
 async def get_stores(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -72,16 +72,9 @@ async def get_stores(
     return stores
 
 
-@router.get("", include_in_schema=False)
-async def get_stores_no_slash(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """Trailing slash 없는 요청 처리 (Redirect 방지용)"""
-    return await get_stores(current_user, db)
 
 
-@router.post("/", response_model=StoreSchema, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=StoreSchema, status_code=status.HTTP_201_CREATED)
 async def create_store(
     store_create: StoreCreate,
     current_user: User = Depends(require_franchise_admin),

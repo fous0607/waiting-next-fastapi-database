@@ -298,7 +298,7 @@ export function GeneralSettings() {
     useEffect(() => {
         const fetchSettings = async () => {
             try {
-                const { data } = await api.get('/store/');
+                const { data } = await api.get('/store');
                 // Map backend response to form values
                 // Ensure null values are replaced with defaults for required numeric fields
 
@@ -386,7 +386,7 @@ export function GeneralSettings() {
     const onSubmit = async (data: SettingsFormValues) => {
         console.log("Form submitting with data:", data); // Debug log
         try {
-            await api.put('/store/', data);
+            await api.put('/store', data);
             toast.success('설정이 저장되었습니다.');
             document.documentElement.setAttribute('data-theme', data.theme || 'zinc');
             localStorage.setItem('theme', data.theme || 'zinc');
@@ -423,7 +423,7 @@ export function GeneralSettings() {
     const fetchUnits = async () => {
         setIsLoadingUnits(true);
         try {
-            const { data } = await api.get('/printer-units/');
+            const { data } = await api.get('/printer-units');
             setProxyUnits(data.proxies);
             setPrinterUnits(data.printers);
         } catch (error) {

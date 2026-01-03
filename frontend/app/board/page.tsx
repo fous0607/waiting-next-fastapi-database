@@ -144,7 +144,7 @@ export default function BoardPage() {
     useEffect(() => {
         const loadStoreSettings = async () => {
             try {
-                const { data: settings } = await api.get('/store/');
+                const { data: settings } = await api.get('/store');
                 setStoreSettings(settings);
 
                 // Apply font settings to CSS variables

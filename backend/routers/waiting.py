@@ -568,7 +568,7 @@ async def register_waiting(
         message=message,
         is_new_member=is_new_member
     )
-@router.post("/", response_model=WaitingListResponse)
+@router.post("", response_model=WaitingListResponse)
 async def create_waiting(
     waiting: WaitingListCreate,
     db: Session = Depends(get_db),

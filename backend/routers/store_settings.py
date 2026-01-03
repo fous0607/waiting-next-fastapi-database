@@ -16,7 +16,7 @@ from auth import get_current_user, get_current_store
 
 router = APIRouter()
 
-@router.post("/", response_model=StoreSettingsSchema)
+@router.post("", response_model=StoreSettingsSchema)
 async def create_store_settings(
     settings: StoreSettingsCreate,
     current_store: Store = Depends(get_current_store),

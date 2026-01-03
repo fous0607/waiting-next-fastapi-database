@@ -7,7 +7,7 @@ from auth import get_current_user
 
 router = APIRouter(prefix="/printer-units", tags=["Printer Units"])
 
-@router.get("/", response_model=schemas.UnitRegistryResponse)
+@router.get("", response_model=schemas.UnitRegistryResponse)
 def get_units(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)

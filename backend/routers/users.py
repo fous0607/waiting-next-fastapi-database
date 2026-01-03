@@ -20,7 +20,7 @@ from auth import get_current_user, require_franchise_admin, get_password_hash
 router = APIRouter()
 
 
-@router.get("/", response_model=List[UserSchema])
+@router.get("", response_model=List[UserSchema])
 async def get_users(
     current_user: User = Depends(require_franchise_admin),
     db: Session = Depends(get_db)
@@ -58,14 +58,7 @@ async def get_users(
     return users
 
 
-@router.get("", include_in_schema=False)
-async def get_users_no_slash(
-    current_user: User = Depends(require_franchise_admin),
-    db: Session = Depends(get_db)
-):
-    """Trailing slash 없는 요청 처리 (Redirect 방지용)"""
-    return await get_users(current_user, db)
-@router.post("/", response_model=UserSchema, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=UserSchema, status_code=status.HTTP_201_CREATED)
 async def create_user(
     user_create: UserCreate,
     current_user: User = Depends(require_franchise_admin),

@@ -22,13 +22,13 @@ export interface NoticeCreate {
 export const noticeService = {
     // Admin: Create Notice
     createNotice: async (data: NoticeCreate): Promise<Notice> => {
-        const response = await api.post('/notices/', data);
+        const response = await api.post('/notices', data);
         return response.data;
     },
 
     // Admin: Get All Notices
     getNotices: async (): Promise<Notice[]> => {
-        const response = await api.get('/notices/');
+        const response = await api.get('/notices');
         return response.data;
     },
 

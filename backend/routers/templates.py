@@ -34,7 +34,7 @@ class TemplateResponse(TemplateBase):
     class Config:
         orm_mode = True
 
-@router.get("/", response_model=List[TemplateResponse])
+@router.get("", response_model=List[TemplateResponse])
 def get_templates_root():
     """Handle root access (missing store_id)"""
     return [] 
@@ -82,7 +82,7 @@ def force_migrate_templates(db: Session = Depends(get_db)):
         db.rollback()
         return {"status": "error", "message": f"Migration failed: {str(e)}"}
 
-@router.post("/", response_model=TemplateResponse)
+@router.post("", response_model=TemplateResponse)
 def create_template(template: TemplateCreate, db: Session = Depends(get_db)):
     """Create a new template"""
     # If this is the first template or set to active, handle active toggle?

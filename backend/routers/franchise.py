@@ -19,7 +19,7 @@ from auth import get_current_user, require_franchise_admin
 router = APIRouter()
 
 
-@router.get("/", response_model=FranchiseSchema)
+@router.get("", response_model=FranchiseSchema)
 async def get_franchise(
     current_user: User = Depends(require_franchise_admin),
     db: Session = Depends(get_db)

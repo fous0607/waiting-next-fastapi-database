@@ -127,7 +127,7 @@ export function ClassManagement() {
 
     const fetchHolidays = useCallback(async () => {
         try {
-            const { data } = await api.get('/holidays/');
+            const { data } = await api.get('/holidays');
             setHolidays(data);
         } catch (error) {
             console.error("Failed to fetch holidays", error);
@@ -243,7 +243,7 @@ export function ClassManagement() {
     const handleAddHoliday = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await api.post('/holidays/', { date: newHolidayDate, name: newHolidayName });
+            await api.post('/holidays', { date: newHolidayDate, name: newHolidayName });
             toast.success("공휴일이 등록되었습니다.");
             setIsHolidayModalOpen(false);
             fetchHolidays();
@@ -291,7 +291,7 @@ export function ClassManagement() {
                 await api.put(`/classes/${data.id}`, data);
                 toast.success("수정되었습니다.");
             } else {
-                await api.post("/classes/", data);
+                await api.post("/classes", data);
                 toast.success("추가되었습니다.");
             }
             setIsModalOpen(false);
