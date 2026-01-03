@@ -11,11 +11,14 @@ import { WaitingList } from "@/components/manage/WaitingList";
 import { useWaitingStore } from "@/lib/store/useWaitingStore";
 import { Toaster } from "@/components/ui/sonner";
 import { GlobalLoader } from "@/components/ui/GlobalLoader";
+import { ScreenIdentitySelector, IdentityStatus } from '@/components/settings/ScreenIdentitySelector';
+import { useState } from 'react';
 
 function ManageContent() {
     usePolling(5000); // Poll every 5 seconds
     const searchParams = useSearchParams();
     const { fetchStoreStatus, fetchClasses, setStoreId, isLoading, isConnected } = useWaitingStore();
+    const [hasIdentity, setHasIdentity] = useState(false);
 
     useEffect(() => {
         const storeId = searchParams.get('store');
@@ -35,17 +38,23 @@ function ManageContent() {
 
     return (
         <div className="w-full px-4 py-4 h-screen flex flex-col pb-10"> {/* Full width layout */}
-            <ManageHeader />
-            <QuickRegister />
+            <ScreenIdentitySelector category="management" onSelected={() => setHasIdentity(true)} />
+            {hasIdentity && (
+                <>
+                    <IdentityStatus />
+                    <ManageHeader />
+                    <QuickRegister />
 
-            <div className="mt-4 flex-1 flex flex-col min-h-0">
-                <ClassTabs />
-                <div className="flex-1 overflow-y-auto no-scrollbar mt-1 border rounded-md">
-                    <WaitingList />
-                </div>
-            </div>
+                    <div className="mt-4 flex-1 flex flex-col min-h-0">
+                        <ClassTabs />
+                        <div className="flex-1 overflow-y-auto no-scrollbar mt-1 border rounded-md">
+                            <WaitingList />
+                        </div>
+                    </div>
 
-            <Toaster />
+                    <Toaster />
+                </>
+            )}
         </div>
     );
 }

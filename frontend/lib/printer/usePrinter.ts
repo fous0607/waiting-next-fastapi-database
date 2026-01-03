@@ -25,7 +25,8 @@ export const usePrinter = () => {
             storeCode?: string,
             phone?: string,
             partySizeDetails?: string,
-            classOrder?: number
+            classOrder?: number,
+            customTemplate?: string
         }
     ) => {
         const settings = options?.settings || storeSettings;
@@ -74,7 +75,8 @@ export const usePrinter = () => {
                 printerQrSize: settings.printer_qr_size,
                 partySizeDetails: options?.partySizeDetails,
                 teamsAhead: options?.classOrder ? Math.max(0, options.classOrder - 1) : undefined,
-                waitingOrder: options?.classOrder
+                waitingOrder: options?.classOrder,
+                customTemplate: options?.customTemplate
             };
 
             await printerService.print(config, job);

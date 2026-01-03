@@ -232,6 +232,8 @@ class StoreSettings(Base):
     # 공지사항 설정
     show_program_notices = Column(Boolean, default=True)  # 프로그램 공지 표시 여부
 
+    # 화면 수량 및 프록시 설정 (JSON)
+    screen_configs = Column(String, nullable=True) 
 
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())

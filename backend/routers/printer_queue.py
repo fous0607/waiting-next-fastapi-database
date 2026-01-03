@@ -47,6 +47,7 @@ class TicketData(BaseModel):
     teams_ahead: Optional[int] = None
     waiting_order: Optional[int] = None
     store_id: Optional[int] = None # Added for fetching templates
+    custom_content: Optional[str] = None # For testing unsaved templates
 
 @router.post("/generate-ticket")
 async def generate_ticket(ticket: TicketData, db: Session = Depends(get_db)):
@@ -62,6 +63,15 @@ async def generate_ticket(ticket: TicketData, db: Session = Depends(get_db)):
                 PrintTemplate.is_active == True,
                 PrintTemplate.template_type == 'waiting_ticket'
             ).first()
+        
+        # Override template if custom content provided (Test Print)
+        template_content = None
+        if ticket.custom_content:
+            template_content = ticket.custom_content
+            print(f"[PrinterQueue] Using CUSTOM content for generation.")
+        elif template:
+            template_content = template.content
+            print(f"[PrinterQueue] Using template: {template.name}")
 
         ESC = b'\x1b'
         GS = b'\x1d'
@@ -93,7 +103,8 @@ async def generate_ticket(ticket: TicketData, db: Session = Depends(get_db)):
         commands.append(INIT)
 
         # Legacy Fallback Logic
-        if not template:
+        # Legacy Fallback Logic
+        if not template_content:
             print("[PrinterQueue] No active template found. Using legacy logic.")
             # ... Legacy code (pasted below for continuity) or refactored ...
             # For simplicity in this edit, I will include the legacy logic here.
@@ -187,7 +198,8 @@ async def generate_ticket(ticket: TicketData, db: Session = Depends(get_db)):
 
         else:
             # Dynamic Template Logic
-            print(f"[PrinterQueue] Using template: {template.name}")
+            template_name = template.name if template else "Custom Test"
+            print(f"[PrinterQueue] Using template: {template_name}")
             
             # Pre-calc variables
             import json
@@ -213,7 +225,7 @@ async def generate_ticket(ticket: TicketData, db: Session = Depends(get_db)):
             }
 
             # Normalize newlines
-            content = template.content.replace('\r\n', '\n')
+            content = template_content.replace('\r\n', '\n')
             lines = content.split('\n')
 
             for line in lines:

@@ -122,6 +122,7 @@ class StoreSettingsBase(BaseModel):
     printer_proxy_ip: str = "localhost"
     printer_port: int = 9100
     auto_print_registration: bool = True
+    screen_configs: Optional[str] = None # JSON string for device configurations
 
 class StoreSettingsCreate(StoreSettingsBase):
     pass
@@ -251,6 +252,7 @@ class StoreSettingsUpdate(BaseModel):
     auto_print_registration: Optional[bool] = None
     printer_qr_size: Optional[int] = None
     enable_printer_qr: Optional[bool] = None
+    screen_configs: Optional[str] = None
 
 class StoreSettings(StoreSettingsBase):
     id: int

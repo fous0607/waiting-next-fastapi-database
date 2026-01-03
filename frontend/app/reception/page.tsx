@@ -12,6 +12,7 @@ import { GlobalLoader } from "@/components/ui/GlobalLoader";
 import { useOperationLabels, type OperationType } from '@/hooks/useOperationLabels';
 import { useVoiceAlert } from '@/hooks/useVoiceAlert';
 import { usePrinter } from '@/lib/printer/usePrinter';
+import { ScreenIdentitySelector, IdentityStatus } from '@/components/settings/ScreenIdentitySelector';
 
 interface Member {
     id: number;
@@ -40,6 +41,7 @@ export default function ReceptionPage() {
     const [keypadStyle, setKeypadStyle] = useState('modern');
     const [storeSettings, setStoreSettings] = useState<any>(null);
     const [memberName, setMemberName] = useState('');
+    const [hasIdentity, setHasIdentity] = useState(false);
 
     const labels = useOperationLabels(storeSettings?.operation_type || 'general');
     const { printWaitingTicket } = usePrinter();
@@ -666,546 +668,552 @@ export default function ReceptionPage() {
 
     return (
         <>
-            {/* =================================================================================
+            <ScreenIdentitySelector category="reception_desk" onSelected={() => setHasIdentity(true)} />
+            {hasIdentity && (
+                <>
+                    <IdentityStatus />
+                    {/* =================================================================================
                TABLET / DESKTOP LAYOUT (Hidden on Mobile)
                - Existing layout preserved 100%
             ================================================================================= */}
-            <div className={`hidden md:flex h-screen w-screen flex-col items-center transition-colors duration-300 overflow-hidden ${styles.container}`}>
-                {/* Header */}
-                <div className={`w-full h-[80px] px-8 flex flex-row items-center justify-between shrink-0 transition-colors duration-300 ${keypadStyle === 'dark' ? 'bg-slate-800 text-white border-b border-slate-700' : 'bg-white text-slate-900 shadow-sm z-10'}`}>
-                    {/* Left: Connection Status */}
-                    <div className="flex-1 flex items-center justify-start">
-                        <div className={`flex items-center gap-2 text-sm font-medium ${isConnected ? 'text-green-600' : 'text-red-600'}`}>
-                            <div className={`w-2.5 h-2.5 rounded-full ${isConnected ? 'bg-green-600' : 'bg-red-600'} animate-pulse`} />
-                            {isConnected ? '시스템 정상 가동중' : '연결 끊김'}
-                        </div>
-                    </div>
-
-                    {/* Center: Store Name */}
-                    <div className="flex-[2] flex items-center justify-center">
-                        <h1 className={`text-3xl font-black tracking-tight ${keypadStyle === 'dark' ? 'text-white' : 'text-slate-900'}`}>{storeName}</h1>
-                    </div>
-
-                    {/* Right: Business Date/Time */}
-                    <div className="flex-1 flex flex-col items-end justify-center">
-                        <div className={`text-xs font-bold uppercase tracking-widest mb-0.5 ${keypadStyle === 'dark' ? 'text-slate-400' : 'text-slate-400'}`}>Current Time</div>
-                        <div className={`text-lg font-bold font-mono leading-none ${keypadStyle === 'dark' ? 'text-blue-400' : 'text-slate-700'}`}>
-                            {new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Main Content - Full Height & Centered */}
-                <div className={`flex-1 w-full max-w-4xl p-8 flex flex-col justify-between items-center ${keypadStyle === 'dark' ? 'scrollbar-thin scrollbar-thumb-slate-700' : ''}`}>
-
-                    {/* Status Message (Luxurious Style) */}
-                    <div className="w-full flex flex-col items-center justify-center min-h-[120px] transition-all">
-                        {waitingStatus?.is_full || waitingStatus?.is_business_hours === false || waitingStatus?.is_break_time === true ? (
-                            <div className="text-center animate-in zoom-in duration-300">
-                                <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-                                <span className="text-3xl font-bold text-red-600 block">
-                                    {waitingStatus?.is_break_time ? (
-                                        <>휴게 시간(Break Time)입니다<br /><span className="text-lg font-medium text-slate-500 mt-2 block font-sans">{waitingStatus.break_time?.end} 이후에 다시 시도해주세요</span></>
-                                    ) : waitingStatus?.is_business_hours === false ? (
-                                        <>{labels.classAction} 시간이 아닙니다<br /><span className="text-lg font-medium text-slate-500 mt-2 block font-sans">{labels.classAction}시간: {waitingStatus.business_hours?.start} ~ {waitingStatus.business_hours?.end}</span></>
-                                    ) : (
-                                        `현재 ${labels.registerLabel}가 마감되었습니다`
-                                    )}
-                                </span>
-                            </div>
-                        ) : (
-                            <div className="text-center space-y-3">
-                                <div className={`text-lg font-medium tracking-[0.2em] uppercase ${keypadStyle === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
-                                    Current Waiting Status
+                    <div className={`hidden md:flex h-screen w-screen flex-col items-center transition-colors duration-300 overflow-hidden ${styles.container}`}>
+                        {/* Header */}
+                        <div className={`w-full h-[80px] px-8 flex flex-row items-center justify-between shrink-0 transition-colors duration-300 ${keypadStyle === 'dark' ? 'bg-slate-800 text-white border-b border-slate-700' : 'bg-white text-slate-900 shadow-sm z-10'}`}>
+                            {/* Left: Connection Status */}
+                            <div className="flex-1 flex items-center justify-start">
+                                <div className={`flex items-center gap-2 text-sm font-medium ${isConnected ? 'text-green-600' : 'text-red-600'}`}>
+                                    <div className={`w-2.5 h-2.5 rounded-full ${isConnected ? 'bg-green-600' : 'bg-red-600'} animate-pulse`} />
+                                    {isConnected ? '시스템 정상 가동중' : '연결 끊김'}
                                 </div>
-                                <div className="relative inline-block">
-                                    <span className={`text-4xl md:text-5xl font-black tracking-tight ${keypadStyle === 'dark' ? 'text-white' : 'text-slate-900'}`}>
-                                        {waitingStatus ? `${waitingStatus.class_name}` : '...'}
-                                    </span>
-                                    <span className={`mx-4 text-3xl font-light ${keypadStyle === 'dark' ? 'text-slate-500' : 'text-slate-300'}`}>|</span>
-                                    <span className="text-4xl md:text-5xl font-black text-blue-600">
-                                        {waitingStatus ? `${waitingStatus.class_order}번째` : '...'}
-                                    </span>
-                                    <div className="text-xl md:text-2xl font-medium text-slate-400 mt-2 font-serif italic">
-                                        {labels.registerLabel} 중입니다
+                            </div>
+
+                            {/* Center: Store Name */}
+                            <div className="flex-[2] flex items-center justify-center">
+                                <h1 className={`text-3xl font-black tracking-tight ${keypadStyle === 'dark' ? 'text-white' : 'text-slate-900'}`}>{storeName}</h1>
+                            </div>
+
+                            {/* Right: Business Date/Time */}
+                            <div className="flex-1 flex flex-col items-end justify-center">
+                                <div className={`text-xs font-bold uppercase tracking-widest mb-0.5 ${keypadStyle === 'dark' ? 'text-slate-400' : 'text-slate-400'}`}>Current Time</div>
+                                <div className={`text-lg font-bold font-mono leading-none ${keypadStyle === 'dark' ? 'text-blue-400' : 'text-slate-700'}`}>
+                                    {new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Main Content - Full Height & Centered */}
+                        <div className={`flex-1 w-full max-w-4xl p-8 flex flex-col justify-between items-center ${keypadStyle === 'dark' ? 'scrollbar-thin scrollbar-thumb-slate-700' : ''}`}>
+
+                            {/* Status Message (Luxurious Style) */}
+                            <div className="w-full flex flex-col items-center justify-center min-h-[120px] transition-all">
+                                {waitingStatus?.is_full || waitingStatus?.is_business_hours === false || waitingStatus?.is_break_time === true ? (
+                                    <div className="text-center animate-in zoom-in duration-300">
+                                        <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+                                        <span className="text-3xl font-bold text-red-600 block">
+                                            {waitingStatus?.is_break_time ? (
+                                                <>휴게 시간(Break Time)입니다<br /><span className="text-lg font-medium text-slate-500 mt-2 block font-sans">{waitingStatus.break_time?.end} 이후에 다시 시도해주세요</span></>
+                                            ) : waitingStatus?.is_business_hours === false ? (
+                                                <>{labels.classAction} 시간이 아닙니다<br /><span className="text-lg font-medium text-slate-500 mt-2 block font-sans">{labels.classAction}시간: {waitingStatus.business_hours?.start} ~ {waitingStatus.business_hours?.end}</span></>
+                                            ) : (
+                                                `현재 ${labels.registerLabel}가 마감되었습니다`
+                                            )}
+                                        </span>
                                     </div>
+                                ) : (
+                                    <div className="text-center space-y-3">
+                                        <div className={`text-lg font-medium tracking-[0.2em] uppercase ${keypadStyle === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
+                                            Current Waiting Status
+                                        </div>
+                                        <div className="relative inline-block">
+                                            <span className={`text-4xl md:text-5xl font-black tracking-tight ${keypadStyle === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+                                                {waitingStatus ? `${waitingStatus.class_name}` : '...'}
+                                            </span>
+                                            <span className={`mx-4 text-3xl font-light ${keypadStyle === 'dark' ? 'text-slate-500' : 'text-slate-300'}`}>|</span>
+                                            <span className="text-4xl md:text-5xl font-black text-blue-600">
+                                                {waitingStatus ? `${waitingStatus.class_order}번째` : '...'}
+                                            </span>
+                                            <div className="text-xl md:text-2xl font-medium text-slate-400 mt-2 font-serif italic">
+                                                {labels.registerLabel} 중입니다
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Main Interaction Area (Display + Keypad + Button) */}
+                            <div className="w-full flex-1 flex flex-col gap-4 min-h-0 pt-4">
+                                {/* Phone Display */}
+                                <div className={`${styles.display} rounded-[2rem] h-[160px] flex flex-col items-center justify-center relative shadow-lg ring-1 ring-black/5 transition-all duration-300 shrink-0`}>
+                                    <div className={`text-6xl font-mono font-bold tracking-[0.15em] ${styles.displayText} ${phoneNumber.length === 4 ? '!text-blue-600' : ''}`}>
+                                        {formatDisplay(phoneNumber)}
+                                    </div>
+                                    <div className={`absolute bottom-6 text-lg font-bold ${styles.displayLabel} transition-all duration-300 ${phoneNumber.length === 4 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}>
+                                        뒷번호 4자리 조회
+                                    </div>
+
                                 </div>
-                            </div>
-                        )}
-                    </div>
 
-                    {/* Main Interaction Area (Display + Keypad + Button) */}
-                    <div className="w-full flex-1 flex flex-col gap-4 min-h-0 pt-4">
-                        {/* Phone Display */}
-                        <div className={`${styles.display} rounded-[2rem] h-[160px] flex flex-col items-center justify-center relative shadow-lg ring-1 ring-black/5 transition-all duration-300 shrink-0`}>
-                            <div className={`text-6xl font-mono font-bold tracking-[0.15em] ${styles.displayText} ${phoneNumber.length === 4 ? '!text-blue-600' : ''}`}>
-                                {formatDisplay(phoneNumber)}
-                            </div>
-                            <div className={`absolute bottom-6 text-lg font-bold ${styles.displayLabel} transition-all duration-300 ${phoneNumber.length === 4 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}>
-                                뒷번호 4자리 조회
-                            </div>
+                                {/* Keypad Grid */}
+                                <div className="flex-1 grid grid-cols-3 gap-3 min-h-0">
+                                    {numbers.map(num => (
+                                        <Button
+                                            key={num}
+                                            variant={keypadStyle === 'dark' ? 'secondary' : 'outline'}
+                                            className={`text-4xl md:text-5xl font-bold rounded-2xl h-full transition-all duration-100 active:scale-95 shadow-sm border-b-4 active:border-b-0 active:translate-y-1 ${styles.button}`}
+                                            onClick={() => handleNumberClick(num)}
+                                        >
+                                            {num}
+                                        </Button>
+                                    ))}
+                                    <Button
+                                        variant={keypadStyle === 'dark' ? 'ghost' : 'outline'}
+                                        className={`text-2xl font-bold rounded-2xl h-full transition-all duration-100 active:scale-95 shadow-sm ${styles.clearButton}`}
+                                        onClick={handleClear}
+                                    >
+                                        전체취소
+                                    </Button>
+                                    <Button
+                                        variant={keypadStyle === 'dark' ? 'secondary' : 'outline'}
+                                        className={`text-4xl md:text-5xl font-bold rounded-2xl h-full transition-all duration-100 active:scale-95 shadow-sm border-b-4 active:border-b-0 active:translate-y-1 ${styles.button}`}
+                                        onClick={() => handleNumberClick('0')}
+                                    >
+                                        0
+                                    </Button>
+                                    <Button
+                                        variant={keypadStyle === 'dark' ? 'ghost' : 'outline'}
+                                        className={`rounded-2xl h-full transition-all duration-100 active:scale-95 shadow-sm ${styles.backButton}`}
+                                        onClick={handleBackspace}
+                                    >
+                                        <Delete className="w-10 h-10" />
+                                    </Button>
+                                </div>
 
-                        </div>
-
-                        {/* Keypad Grid */}
-                        <div className="flex-1 grid grid-cols-3 gap-3 min-h-0">
-                            {numbers.map(num => (
+                                {/* Submit Button */}
                                 <Button
-                                    key={num}
-                                    variant={keypadStyle === 'dark' ? 'secondary' : 'outline'}
-                                    className={`text-4xl md:text-5xl font-bold rounded-2xl h-full transition-all duration-100 active:scale-95 shadow-sm border-b-4 active:border-b-0 active:translate-y-1 ${styles.button}`}
-                                    onClick={() => handleNumberClick(num)}
+                                    className={`w-full h-[100px] text-4xl md:text-5xl font-black rounded-[2rem] shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all active:scale-[0.98] shrink-0 mt-2 ${styles.submitButton}`}
+                                    size="lg"
+                                    disabled={isSubmitting || (waitingStatus?.is_full === true) || (waitingStatus?.is_business_hours === false) || (waitingStatus?.is_break_time === true)}
+                                    onClick={handleSubmit}
                                 >
-                                    {num}
+                                    {isSubmitting ? (
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin" />
+                                            <span>처리 중...</span>
+                                        </div>
+                                    ) : (
+                                        phoneNumber.length === 4 ? '회원 조회하기' : '대 기 접 수'
+                                    )}
                                 </Button>
-                            ))}
-                            <Button
-                                variant={keypadStyle === 'dark' ? 'ghost' : 'outline'}
-                                className={`text-2xl font-bold rounded-2xl h-full transition-all duration-100 active:scale-95 shadow-sm ${styles.clearButton}`}
-                                onClick={handleClear}
-                            >
-                                전체취소
-                            </Button>
-                            <Button
-                                variant={keypadStyle === 'dark' ? 'secondary' : 'outline'}
-                                className={`text-4xl md:text-5xl font-bold rounded-2xl h-full transition-all duration-100 active:scale-95 shadow-sm border-b-4 active:border-b-0 active:translate-y-1 ${styles.button}`}
-                                onClick={() => handleNumberClick('0')}
-                            >
-                                0
-                            </Button>
-                            <Button
-                                variant={keypadStyle === 'dark' ? 'ghost' : 'outline'}
-                                className={`rounded-2xl h-full transition-all duration-100 active:scale-95 shadow-sm ${styles.backButton}`}
-                                onClick={handleBackspace}
-                            >
-                                <Delete className="w-10 h-10" />
-                            </Button>
+                            </div>
                         </div>
-
-                        {/* Submit Button */}
-                        <Button
-                            className={`w-full h-[100px] text-4xl md:text-5xl font-black rounded-[2rem] shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all active:scale-[0.98] shrink-0 mt-2 ${styles.submitButton}`}
-                            size="lg"
-                            disabled={isSubmitting || (waitingStatus?.is_full === true) || (waitingStatus?.is_business_hours === false) || (waitingStatus?.is_break_time === true)}
-                            onClick={handleSubmit}
-                        >
-                            {isSubmitting ? (
-                                <div className="flex items-center gap-4">
-                                    <div className="w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin" />
-                                    <span>처리 중...</span>
-                                </div>
-                            ) : (
-                                phoneNumber.length === 4 ? '회원 조회하기' : '대 기 접 수'
-                            )}
-                        </Button>
                     </div>
-                </div>
-            </div>
 
-            {/* =================================================================================
+                    {/* =================================================================================
                MOBILE LAYOUT (Visible only on small screens)
                - Optimized for vertical scrolling and touch
             ================================================================================= */}
-            <div className={`flex md:hidden h-screen w-screen flex-col bg-slate-50 overflow-hidden ${styles.container}`}>
-                {/* Mobile Header: Compact */}
-                <div className={`w-full px-4 py-3 flex items-center justify-between shrink-0 shadow-sm z-10 relative ${keypadStyle === 'dark' ? 'bg-slate-800 text-white border-b border-slate-700' : 'bg-white text-slate-900'}`}>
-                    {/* Left: Status */}
-                    <div className="flex flex-col">
-                        <div className={`flex items-center gap-1.5 text-xs font-bold ${isConnected ? 'text-green-600' : 'text-red-600'}`}>
-                            <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-600' : 'bg-red-600'} animate-pulse`} />
-                            {isConnected ? '정상가동' : '연결끊김'}
-                        </div>
-                    </div>
+                    <div className={`flex md:hidden h-screen w-screen flex-col bg-slate-50 overflow-hidden ${styles.container}`}>
+                        {/* Mobile Header: Compact */}
+                        <div className={`w-full px-4 py-3 flex items-center justify-between shrink-0 shadow-sm z-10 relative ${keypadStyle === 'dark' ? 'bg-slate-800 text-white border-b border-slate-700' : 'bg-white text-slate-900'}`}>
+                            {/* Left: Status */}
+                            <div className="flex flex-col">
+                                <div className={`flex items-center gap-1.5 text-xs font-bold ${isConnected ? 'text-green-600' : 'text-red-600'}`}>
+                                    <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-600' : 'bg-red-600'} animate-pulse`} />
+                                    {isConnected ? '정상가동' : '연결끊김'}
+                                </div>
+                            </div>
 
-                    {/* Center: Store Name (Enhanced) */}
-                    <h1 className={`text-xl font-black truncate max-w-[180px] absolute left-1/2 -translate-x-1/2 text-center ${keypadStyle === 'dark' ? 'text-white' : 'text-slate-900'}`}>
-                        {storeName}
-                    </h1>
+                            {/* Center: Store Name (Enhanced) */}
+                            <h1 className={`text-xl font-black truncate max-w-[180px] absolute left-1/2 -translate-x-1/2 text-center ${keypadStyle === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+                                {storeName}
+                            </h1>
 
-                    {/* Right: Time */}
-                    <div className={`text-sm font-mono font-black ${keypadStyle === 'dark' ? 'text-blue-400' : 'text-slate-600'}`}>
-                        {new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
-                    </div>
-                </div>
-
-                {/* Mobile Waiting Status Banner */}
-                <div className="w-full bg-blue-600 text-white p-3 shrink-0 shadow-md">
-                    {waitingStatus?.is_full ? (
-                        <div className="flex items-center justify-center gap-2 animate-pulse">
-                            <AlertCircle className="w-5 h-5 text-yellow-300" />
-                            <span className="font-bold">접수 마감</span>
-                        </div>
-                    ) : (
-                        <div className="flex justify-between items-center px-2">
-                            <div className="text-sm opacity-90 font-medium">현재 접수 현황</div>
-                            <div className="flex items-baseline gap-2">
-                                <span className="text-xl font-bold">{waitingStatus?.class_name || '...'}</span>
-                                <span className="text-2xl font-black">{waitingStatus ? `${waitingStatus.class_order}팀` : '...'}</span>
+                            {/* Right: Time */}
+                            <div className={`text-sm font-mono font-black ${keypadStyle === 'dark' ? 'text-blue-400' : 'text-slate-600'}`}>
+                                {new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
                             </div>
                         </div>
-                    )}
-                </div>
 
-                {/* Mobile Content Area */}
-                <div className="flex-1 flex flex-col p-4 gap-3 min-h-0">
-
-                    {/* Display */}
-                    <div className={`${styles.display} rounded-2xl h-[80px] flex items-center justify-center relative shadow-sm ring-1 ring-black/5 shrink-0`}>
-                        <div className={`text-4xl font-mono font-bold tracking-widest ${styles.displayText} ${phoneNumber.length === 4 ? '!text-blue-600' : ''}`}>
-                            {formatDisplay(phoneNumber)}
-                        </div>
-
-                    </div>
-
-                    {/* Keypad */}
-                    <div className="flex-1 grid grid-cols-3 gap-2 min-h-0">
-                        {numbers.map(num => (
-                            <Button
-                                key={num}
-                                variant={keypadStyle === 'dark' ? 'secondary' : 'outline'}
-                                className={`text-3xl font-bold rounded-xl h-full active:bg-slate-100 ${styles.button}`}
-                                onClick={() => handleNumberClick(num)}
-                            >
-                                {num}
-                            </Button>
-                        ))}
-                        <Button
-                            variant="ghost"
-                            className={`text-lg font-bold rounded-xl h-full text-red-500 hover:bg-red-50 active:bg-red-100 ${styles.clearButton}`}
-                            onClick={handleClear}
-                        >
-                            취소
-                        </Button>
-                        <Button
-                            variant={keypadStyle === 'dark' ? 'secondary' : 'outline'}
-                            className={`text-3xl font-bold rounded-xl h-full active:bg-slate-100 ${styles.button}`}
-                            onClick={() => handleNumberClick('0')}
-                        >
-                            0
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            className={`rounded-xl h-full text-slate-400 hover:bg-slate-100 active:bg-slate-200 ${styles.backButton}`}
-                            onClick={handleBackspace}
-                        >
-                            <Delete className="w-8 h-8" />
-                        </Button>
-                    </div>
-
-                    {/* Submit Button */}
-                    <Button
-                        className={`w-full h-[70px] text-2xl font-bold rounded-xl shadow-lg active:scale-[0.98] shrink-0 ${styles.submitButton}`}
-                        disabled={isSubmitting || (waitingStatus?.is_full === true)}
-                        onClick={handleSubmit}
-                    >
-                        {isSubmitting ? <Loader2 className="w-6 h-6 animate-spin" /> : (phoneNumber.length === 4 ? '조회' : `${labels.registerLabel}하기`)}
-                    </Button>
-                </div>
-            </div>
-            {/* Selection Modal (Multiple Candidates) */}
-            <Dialog open={selectionDialog.open} onOpenChange={(open) => setSelectionDialog(prev => ({ ...prev, open }))}>
-                <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                        <DialogTitle>회원 선택</DialogTitle>
-                        <DialogDescription>
-                            같은 번호의 회원이 여러 명입니다. 접수할 회원을 선택해주세요.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-2 max-h-[60vh] overflow-y-auto py-2">
-                        {selectionDialog.members.map((member) => (
-                            <Button
-                                key={member.id}
-                                variant="outline"
-                                className="justify-between h-auto py-6 px-8 hover:bg-slate-50"
-                                onClick={() => {
-                                    setSelectionDialog(prev => ({ ...prev, open: false }));
-                                    if (storeSettings?.enable_party_size) {
-                                        setPartySizeDialog({ open: true, phone: member.phone, name: member.name });
-                                    } else {
-                                        processRegistration(member.phone, member.name);
-                                    }
-                                }}
-                            >
-                                <div className="flex items-center gap-6 w-full">
-                                    <div className="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0 border border-blue-100">
-                                        <UserRound className="w-8 h-8 text-blue-600" strokeWidth={2.5} />
-                                    </div>
-                                    <div className="flex-1 flex items-baseline justify-between gap-6">
-                                        <span className="font-bold text-3xl">{member.name}</span>
-                                        <span className="font-mono text-3xl font-black text-blue-600">
-                                            {member.phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3')}
-                                        </span>
+                        {/* Mobile Waiting Status Banner */}
+                        <div className="w-full bg-blue-600 text-white p-3 shrink-0 shadow-md">
+                            {waitingStatus?.is_full ? (
+                                <div className="flex items-center justify-center gap-2 animate-pulse">
+                                    <AlertCircle className="w-5 h-5 text-yellow-300" />
+                                    <span className="font-bold">접수 마감</span>
+                                </div>
+                            ) : (
+                                <div className="flex justify-between items-center px-2">
+                                    <div className="text-sm opacity-90 font-medium">현재 접수 현황</div>
+                                    <div className="flex items-baseline gap-2">
+                                        <span className="text-xl font-bold">{waitingStatus?.class_name || '...'}</span>
+                                        <span className="text-2xl font-black">{waitingStatus ? `${waitingStatus.class_order}팀` : '...'}</span>
                                     </div>
                                 </div>
-                                <div className="ml-8 text-right text-sm text-slate-400">
-                                    최근방문: {member.last_visit_date || '-'}
-                                </div>
-                            </Button>
-                        ))}
-                    </div>
-                    <Button variant="ghost" onClick={() => setSelectionDialog(prev => ({ ...prev, open: false }))}>
-                        취소
-                    </Button>
-                </DialogContent>
-            </Dialog>
-
-            {/* Success Modal */}
-            <Dialog open={resultDialog.open} onOpenChange={(open) => setResultDialog(prev => ({ ...prev, open }))}>
-                <DialogContent className="sm:max-w-md text-center py-10">
-                    <DialogHeader>
-                        <div className="mx-auto w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-4">
-                            <Check className="w-10 h-10" />
-                        </div>
-                        <DialogTitle className="text-center text-4xl font-bold mb-4">접수 완료</DialogTitle>
-                        <DialogDescription className="text-center text-2xl text-slate-600 mb-8 font-normal leading-relaxed">
-                            <span className="block text-5xl text-blue-600 font-black mb-4 mt-2">
-                                {resultDialog.data?.class_name} {resultDialog.data?.class_order}번째
-                                {resultDialog.data?.is_new_member && storeSettings?.show_new_member_text_in_waiting_modal && (
-                                    <span className="ml-2 inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-base font-bold text-blue-700 align-middle">
-                                        신규고객
-                                    </span>
-                                )}
-                            </span>
-                            {/* Always show member name if available */}
-                            {resultDialog.data?.name && (
-                                <span className="block text-3xl text-slate-900 font-bold mb-4">
-                                    {resultDialog.data.name}님
-                                </span>
                             )}
-                            대기 접수가 완료되었습니다.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <Button className="w-full h-20 text-3xl rounded-2xl" size="lg" onClick={() => setResultDialog(prev => ({ ...prev, open: false }))}>
-                        확인
-                    </Button>
-                </DialogContent>
-            </Dialog>
-
-            {/* Error Modal */}
-            <Dialog open={errorDialog.open} onOpenChange={(open) => setErrorDialog(prev => ({ ...prev, open }))}>
-                <DialogContent className="sm:max-w-md text-center py-10">
-                    <DialogHeader>
-                        <div className="mx-auto w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-4">
-                            <AlertCircle className="w-10 h-10" />
                         </div>
-                        <DialogTitle className="text-center text-2xl font-bold mb-2 text-red-600">접수 실패</DialogTitle>
-                        <DialogDescription className="text-center text-xl text-slate-800 mb-6 font-bold">
-                            {errorDialog.message}
-                        </DialogDescription>
-                    </DialogHeader>
-                    <Button
-                        className="w-full bg-slate-200 text-slate-800 hover:bg-slate-300"
-                        size="lg"
-                        onClick={() => setErrorDialog(prev => ({ ...prev, open: false }))}
-                    >
-                        확인
-                    </Button>
-                </DialogContent>
-            </Dialog>
-            {/* Member Registration Modal (Forced) */}
-            <Dialog open={registrationDialog.open} onOpenChange={(open) => {
-                if (!open) {
-                    setRegistrationDialog(prev => ({ ...prev, open }));
-                    setMemberName('');
-                }
-            }}>
-                <DialogContent className="sm:max-w-md text-center py-10">
-                    <DialogHeader>
-                        <div className="mx-auto w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-4">
-                            <Check className="w-10 h-10" />
-                        </div>
-                        <DialogTitle className="text-center text-3xl font-bold mb-2">신규 회원 등록</DialogTitle>
-                        <DialogDescription className="text-center text-xl text-slate-600 mb-6 font-normal whitespace-pre-line">
-                            {storeSettings?.registration_message || "처음 방문하셨네요!\n성함을 입력해 주세요."}
-                        </DialogDescription>
-                    </DialogHeader>
 
-                    <div className="py-2 mb-6">
-                        <input
-                            type="text"
-                            placeholder="이름 입력 (예: 홍길동)"
-                            value={memberName}
-                            onChange={(e) => setMemberName(e.target.value)}
-                            className="w-full h-20 text-3xl px-6 rounded-2xl border-2 border-blue-200 focus:border-blue-500 focus:outline-none transition-all text-center"
-                            autoFocus
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' && memberName.trim()) {
-                                    setRegistrationDialog(prev => ({ ...prev, open: false }));
-                                    if (storeSettings?.enable_party_size) {
-                                        setPartySizeDialog({ open: true, phone: registrationDialog.phone, name: memberName });
-                                    } else {
-                                        processRegistration(registrationDialog.phone, memberName);
-                                    }
-                                }
-                            }}
-                        />
+                        {/* Mobile Content Area */}
+                        <div className="flex-1 flex flex-col p-4 gap-3 min-h-0">
+
+                            {/* Display */}
+                            <div className={`${styles.display} rounded-2xl h-[80px] flex items-center justify-center relative shadow-sm ring-1 ring-black/5 shrink-0`}>
+                                <div className={`text-4xl font-mono font-bold tracking-widest ${styles.displayText} ${phoneNumber.length === 4 ? '!text-blue-600' : ''}`}>
+                                    {formatDisplay(phoneNumber)}
+                                </div>
+
+                            </div>
+
+                            {/* Keypad */}
+                            <div className="flex-1 grid grid-cols-3 gap-2 min-h-0">
+                                {numbers.map(num => (
+                                    <Button
+                                        key={num}
+                                        variant={keypadStyle === 'dark' ? 'secondary' : 'outline'}
+                                        className={`text-3xl font-bold rounded-xl h-full active:bg-slate-100 ${styles.button}`}
+                                        onClick={() => handleNumberClick(num)}
+                                    >
+                                        {num}
+                                    </Button>
+                                ))}
+                                <Button
+                                    variant="ghost"
+                                    className={`text-lg font-bold rounded-xl h-full text-red-500 hover:bg-red-50 active:bg-red-100 ${styles.clearButton}`}
+                                    onClick={handleClear}
+                                >
+                                    취소
+                                </Button>
+                                <Button
+                                    variant={keypadStyle === 'dark' ? 'secondary' : 'outline'}
+                                    className={`text-3xl font-bold rounded-xl h-full active:bg-slate-100 ${styles.button}`}
+                                    onClick={() => handleNumberClick('0')}
+                                >
+                                    0
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    className={`rounded-xl h-full text-slate-400 hover:bg-slate-100 active:bg-slate-200 ${styles.backButton}`}
+                                    onClick={handleBackspace}
+                                >
+                                    <Delete className="w-8 h-8" />
+                                </Button>
+                            </div>
+
+                            {/* Submit Button */}
+                            <Button
+                                className={`w-full h-[70px] text-2xl font-bold rounded-xl shadow-lg active:scale-[0.98] shrink-0 ${styles.submitButton}`}
+                                disabled={isSubmitting || (waitingStatus?.is_full === true)}
+                                onClick={handleSubmit}
+                            >
+                                {isSubmitting ? <Loader2 className="w-6 h-6 animate-spin" /> : (phoneNumber.length === 4 ? '조회' : `${labels.registerLabel}하기`)}
+                            </Button>
+                        </div>
                     </div>
-
-                    <div className="flex gap-4">
-                        <Button
-                            variant="outline"
-                            className="flex-1 h-20 text-2xl rounded-2xl"
-                            size="lg"
-                            onClick={() => setRegistrationDialog({ open: false, phone: '' })}
-                        >
-                            취소
-                        </Button>
-                        <Button
-                            className="flex-[2] h-20 text-3xl rounded-2xl bg-blue-600 hover:bg-blue-700"
-                            size="lg"
-                            disabled={!memberName.trim() || isSubmitting}
-                            onClick={() => {
-                                setRegistrationDialog(prev => ({ ...prev, open: false }));
-                                if (storeSettings?.enable_party_size) {
-                                    setPartySizeDialog({ open: true, phone: registrationDialog.phone, name: memberName });
-                                } else {
-                                    processRegistration(registrationDialog.phone, memberName);
-                                }
-                            }}
-                        >
-                            {isSubmitting ? '저장 중...' : '등록 완료'}
-                        </Button>
-                    </div>
-                </DialogContent>
-            </Dialog>
-
-            {/* Party Size Dialog (Phase 3) */}
-            <Dialog open={partySizeDialog.open} onOpenChange={(open) => {
-                if (!open) {
-                    setPartySizeDialog(prev => ({ ...prev, open: false }));
-                    setPartySizeSelections({});
-                }
-            }}>
-                <DialogContent className="sm:max-w-2xl text-center py-10">
-                    <DialogHeader>
-                        <div className="mx-auto w-16 h-16 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center mb-4">
-                            <UserRound className="w-10 h-10" />
-                        </div>
-                        <DialogTitle className="text-center text-4xl font-bold mb-2">방문 인원 선택</DialogTitle>
-                        <DialogDescription className="text-center text-xl text-slate-500 mb-6 font-normal">
-                            {partySizeDialog.name ? <span className="text-slate-900 font-bold">{partySizeDialog.name}님, </span> : ''}
-                            총 몇 분인가요?
-                        </DialogDescription>
-                    </DialogHeader>
-
-                    <div className="grid gap-4 py-4 px-4 bg-slate-50 rounded-[2.5rem] border border-slate-100 mb-8">
-                        {(() => {
-                            try {
-                                const configs = JSON.parse(storeSettings?.party_size_config || '[]');
-                                if (configs.length === 0) return <p className="py-4 text-slate-400">설정된 인원 분류가 없습니다.</p>;
-
-                                return configs.map((cat: any) => {
-                                    const currentCount = partySizeSelections[cat.id] || 0;
-                                    // Determine type: default to 'std' if undefined or if required is true (legacy)
-                                    const isStandard = cat.type === 'std' || cat.type === undefined || cat.required === true;
-
-                                    return (
-                                        <div key={cat.id} className="flex items-center justify-between bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-                                            <div className="text-left">
-                                                <div className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-                                                    {cat.label}
-                                                    {!isStandard && <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Option</span>}
-                                                </div>
-                                                <div className="text-sm text-slate-400">
-                                                    {isStandard ? '인원수 포함' : '인원수 제외 (옵션)'}
-                                                    {cat.max > 0 ? ` / 최대 ${cat.max}명` : ''}
-                                                </div>
+                    {/* Selection Modal (Multiple Candidates) */}
+                    <Dialog open={selectionDialog.open} onOpenChange={(open) => setSelectionDialog(prev => ({ ...prev, open }))}>
+                        <DialogContent className="sm:max-w-md">
+                            <DialogHeader>
+                                <DialogTitle>회원 선택</DialogTitle>
+                                <DialogDescription>
+                                    같은 번호의 회원이 여러 명입니다. 접수할 회원을 선택해주세요.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <div className="grid gap-2 max-h-[60vh] overflow-y-auto py-2">
+                                {selectionDialog.members.map((member) => (
+                                    <Button
+                                        key={member.id}
+                                        variant="outline"
+                                        className="justify-between h-auto py-6 px-8 hover:bg-slate-50"
+                                        onClick={() => {
+                                            setSelectionDialog(prev => ({ ...prev, open: false }));
+                                            if (storeSettings?.enable_party_size) {
+                                                setPartySizeDialog({ open: true, phone: member.phone, name: member.name });
+                                            } else {
+                                                processRegistration(member.phone, member.name);
+                                            }
+                                        }}
+                                    >
+                                        <div className="flex items-center gap-6 w-full">
+                                            <div className="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0 border border-blue-100">
+                                                <UserRound className="w-8 h-8 text-blue-600" strokeWidth={2.5} />
                                             </div>
-                                            <div className="flex items-center gap-6">
-                                                <Button
-                                                    variant="outline"
-                                                    className="w-14 h-14 rounded-full text-3xl font-bold border-2 border-slate-200 text-slate-400 hover:text-slate-600 active:scale-95"
-                                                    disabled={currentCount <= (cat.min || 0)}
-                                                    onClick={() => {
-                                                        setPartySizeSelections(prev => ({
-                                                            ...prev,
-                                                            [cat.id]: Math.max((cat.min || 0), currentCount - 1)
-                                                        }));
-                                                    }}
-                                                >
-                                                    -
-                                                </Button>
-                                                <div className="w-16 flex flex-col items-center">
-                                                    <span className="text-4xl font-bold text-slate-900 leading-none">
-                                                        {currentCount}
-                                                    </span>
-                                                    <span className="text-sm text-slate-400 font-medium mt-1">명</span>
-                                                </div>
-                                                <Button
-                                                    variant="outline"
-                                                    className="w-14 h-14 rounded-full text-3xl font-bold border-2 border-slate-200 text-slate-600 hover:bg-slate-50 active:scale-95 transition-all"
-                                                    disabled={cat.max > 0 && currentCount >= cat.max}
-                                                    onClick={() => {
-                                                        setPartySizeSelections(prev => ({
-                                                            ...prev,
-                                                            [cat.id]: Math.min((cat.max || 99), currentCount + 1)
-                                                        }));
-                                                    }}
-                                                >
-                                                    +
-                                                </Button>
+                                            <div className="flex-1 flex items-baseline justify-between gap-6">
+                                                <span className="font-bold text-3xl">{member.name}</span>
+                                                <span className="font-mono text-3xl font-black text-blue-600">
+                                                    {member.phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3')}
+                                                </span>
                                             </div>
                                         </div>
-                                    );
-                                });
-                            } catch (e) {
-                                return <p className="text-rose-500 py-4">인원 설정 데이터 형식이 올바르지 않습니다.</p>;
-                            }
-                        })()}
-                    </div>
+                                        <div className="ml-8 text-right text-sm text-slate-400">
+                                            최근방문: {member.last_visit_date || '-'}
+                                        </div>
+                                    </Button>
+                                ))}
+                            </div>
+                            <Button variant="ghost" onClick={() => setSelectionDialog(prev => ({ ...prev, open: false }))}>
+                                취소
+                            </Button>
+                        </DialogContent>
+                    </Dialog>
 
-                    <div className="flex gap-4">
-                        <Button
-                            variant="ghost"
-                            className="flex-1 h-20 text-2xl rounded-2xl text-slate-400 hover:bg-slate-50"
-                            onClick={() => {
-                                setPartySizeDialog({ open: false, phone: '', name: '' });
-                                setPartySizeSelections({});
-                            }}
-                        >
-                            취소
-                        </Button>
-                        <Button
-                            className="flex-[2] h-20 text-3xl rounded-2xl bg-slate-900 hover:bg-slate-800 text-white shadow-xl active:scale-[0.98]"
-                            disabled={(() => {
-                                const configs = JSON.parse(storeSettings?.party_size_config || '[]');
-                                let stdTotal = 0;
+                    {/* Success Modal */}
+                    <Dialog open={resultDialog.open} onOpenChange={(open) => setResultDialog(prev => ({ ...prev, open }))}>
+                        <DialogContent className="sm:max-w-md text-center py-10">
+                            <DialogHeader>
+                                <div className="mx-auto w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-4">
+                                    <Check className="w-10 h-10" />
+                                </div>
+                                <DialogTitle className="text-center text-4xl font-bold mb-4">접수 완료</DialogTitle>
+                                <DialogDescription className="text-center text-2xl text-slate-600 mb-8 font-normal leading-relaxed">
+                                    <span className="block text-5xl text-blue-600 font-black mb-4 mt-2">
+                                        {resultDialog.data?.class_name} {resultDialog.data?.class_order}번째
+                                        {resultDialog.data?.is_new_member && storeSettings?.show_new_member_text_in_waiting_modal && (
+                                            <span className="ml-2 inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-base font-bold text-blue-700 align-middle">
+                                                신규고객
+                                            </span>
+                                        )}
+                                    </span>
+                                    {/* Always show member name if available */}
+                                    {resultDialog.data?.name && (
+                                        <span className="block text-3xl text-slate-900 font-bold mb-4">
+                                            {resultDialog.data.name}님
+                                        </span>
+                                    )}
+                                    대기 접수가 완료되었습니다.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <Button className="w-full h-20 text-3xl rounded-2xl" size="lg" onClick={() => setResultDialog(prev => ({ ...prev, open: false }))}>
+                                확인
+                            </Button>
+                        </DialogContent>
+                    </Dialog>
 
-                                // Calculate standard total for validation
-                                configs.forEach((cat: any) => {
-                                    const count = partySizeSelections[cat.id] || 0;
-                                    const isStandard = cat.type === 'std' || cat.type === undefined || cat.required === true;
-                                    if (isStandard) stdTotal += count;
-                                });
+                    {/* Error Modal */}
+                    <Dialog open={errorDialog.open} onOpenChange={(open) => setErrorDialog(prev => ({ ...prev, open }))}>
+                        <DialogContent className="sm:max-w-md text-center py-10">
+                            <DialogHeader>
+                                <div className="mx-auto w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-4">
+                                    <AlertCircle className="w-10 h-10" />
+                                </div>
+                                <DialogTitle className="text-center text-2xl font-bold mb-2 text-red-600">접수 실패</DialogTitle>
+                                <DialogDescription className="text-center text-xl text-slate-800 mb-6 font-bold">
+                                    {errorDialog.message}
+                                </DialogDescription>
+                            </DialogHeader>
+                            <Button
+                                className="w-full bg-slate-200 text-slate-800 hover:bg-slate-300"
+                                size="lg"
+                                onClick={() => setErrorDialog(prev => ({ ...prev, open: false }))}
+                            >
+                                확인
+                            </Button>
+                        </DialogContent>
+                    </Dialog>
+                    {/* Member Registration Modal (Forced) */}
+                    <Dialog open={registrationDialog.open} onOpenChange={(open) => {
+                        if (!open) {
+                            setRegistrationDialog(prev => ({ ...prev, open }));
+                            setMemberName('');
+                        }
+                    }}>
+                        <DialogContent className="sm:max-w-md text-center py-10">
+                            <DialogHeader>
+                                <div className="mx-auto w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-4">
+                                    <Check className="w-10 h-10" />
+                                </div>
+                                <DialogTitle className="text-center text-3xl font-bold mb-2">신규 회원 등록</DialogTitle>
+                                <DialogDescription className="text-center text-xl text-slate-600 mb-6 font-normal whitespace-pre-line">
+                                    {storeSettings?.registration_message || "처음 방문하셨네요!\n성함을 입력해 주세요."}
+                                </DialogDescription>
+                            </DialogHeader>
 
-                                // Require at least 1 person in standard categories
-                                return stdTotal === 0 || isSubmitting;
-                            })()}
-                            onClick={async () => {
-                                const configs = JSON.parse(storeSettings?.party_size_config || '[]');
+                            <div className="py-2 mb-6">
+                                <input
+                                    type="text"
+                                    placeholder="이름 입력 (예: 홍길동)"
+                                    value={memberName}
+                                    onChange={(e) => setMemberName(e.target.value)}
+                                    className="w-full h-20 text-3xl px-6 rounded-2xl border-2 border-blue-200 focus:border-blue-500 focus:outline-none transition-all text-center"
+                                    autoFocus
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && memberName.trim()) {
+                                            setRegistrationDialog(prev => ({ ...prev, open: false }));
+                                            if (storeSettings?.enable_party_size) {
+                                                setPartySizeDialog({ open: true, phone: registrationDialog.phone, name: memberName });
+                                            } else {
+                                                processRegistration(registrationDialog.phone, memberName);
+                                            }
+                                        }
+                                    }}
+                                />
+                            </div>
 
-                                let stdTotal = 0;
-                                const details: Record<string, number> = {};
+                            <div className="flex gap-4">
+                                <Button
+                                    variant="outline"
+                                    className="flex-1 h-20 text-2xl rounded-2xl"
+                                    size="lg"
+                                    onClick={() => setRegistrationDialog({ open: false, phone: '' })}
+                                >
+                                    취소
+                                </Button>
+                                <Button
+                                    className="flex-[2] h-20 text-3xl rounded-2xl bg-blue-600 hover:bg-blue-700"
+                                    size="lg"
+                                    disabled={!memberName.trim() || isSubmitting}
+                                    onClick={() => {
+                                        setRegistrationDialog(prev => ({ ...prev, open: false }));
+                                        if (storeSettings?.enable_party_size) {
+                                            setPartySizeDialog({ open: true, phone: registrationDialog.phone, name: memberName });
+                                        } else {
+                                            processRegistration(registrationDialog.phone, memberName);
+                                        }
+                                    }}
+                                >
+                                    {isSubmitting ? '저장 중...' : '등록 완료'}
+                                </Button>
+                            </div>
+                        </DialogContent>
+                    </Dialog>
 
-                                configs.forEach((cat: any) => {
-                                    const count = partySizeSelections[cat.id] || 0;
-                                    // Save name (label) and count
-                                    if (count > 0) {
-                                        details[cat.label] = count;
+                    {/* Party Size Dialog (Phase 3) */}
+                    <Dialog open={partySizeDialog.open} onOpenChange={(open) => {
+                        if (!open) {
+                            setPartySizeDialog(prev => ({ ...prev, open: false }));
+                            setPartySizeSelections({});
+                        }
+                    }}>
+                        <DialogContent className="sm:max-w-2xl text-center py-10">
+                            <DialogHeader>
+                                <div className="mx-auto w-16 h-16 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center mb-4">
+                                    <UserRound className="w-10 h-10" />
+                                </div>
+                                <DialogTitle className="text-center text-4xl font-bold mb-2">방문 인원 선택</DialogTitle>
+                                <DialogDescription className="text-center text-xl text-slate-500 mb-6 font-normal">
+                                    {partySizeDialog.name ? <span className="text-slate-900 font-bold">{partySizeDialog.name}님, </span> : ''}
+                                    총 몇 분인가요?
+                                </DialogDescription>
+                            </DialogHeader>
+
+                            <div className="grid gap-4 py-4 px-4 bg-slate-50 rounded-[2.5rem] border border-slate-100 mb-8">
+                                {(() => {
+                                    try {
+                                        const configs = JSON.parse(storeSettings?.party_size_config || '[]');
+                                        if (configs.length === 0) return <p className="py-4 text-slate-400">설정된 인원 분류가 없습니다.</p>;
+
+                                        return configs.map((cat: any) => {
+                                            const currentCount = partySizeSelections[cat.id] || 0;
+                                            // Determine type: default to 'std' if undefined or if required is true (legacy)
+                                            const isStandard = cat.type === 'std' || cat.type === undefined || cat.required === true;
+
+                                            return (
+                                                <div key={cat.id} className="flex items-center justify-between bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                                                    <div className="text-left">
+                                                        <div className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                                                            {cat.label}
+                                                            {!isStandard && <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Option</span>}
+                                                        </div>
+                                                        <div className="text-sm text-slate-400">
+                                                            {isStandard ? '인원수 포함' : '인원수 제외 (옵션)'}
+                                                            {cat.max > 0 ? ` / 최대 ${cat.max}명` : ''}
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-6">
+                                                        <Button
+                                                            variant="outline"
+                                                            className="w-14 h-14 rounded-full text-3xl font-bold border-2 border-slate-200 text-slate-400 hover:text-slate-600 active:scale-95"
+                                                            disabled={currentCount <= (cat.min || 0)}
+                                                            onClick={() => {
+                                                                setPartySizeSelections(prev => ({
+                                                                    ...prev,
+                                                                    [cat.id]: Math.max((cat.min || 0), currentCount - 1)
+                                                                }));
+                                                            }}
+                                                        >
+                                                            -
+                                                        </Button>
+                                                        <div className="w-16 flex flex-col items-center">
+                                                            <span className="text-4xl font-bold text-slate-900 leading-none">
+                                                                {currentCount}
+                                                            </span>
+                                                            <span className="text-sm text-slate-400 font-medium mt-1">명</span>
+                                                        </div>
+                                                        <Button
+                                                            variant="outline"
+                                                            className="w-14 h-14 rounded-full text-3xl font-bold border-2 border-slate-200 text-slate-600 hover:bg-slate-50 active:scale-95 transition-all"
+                                                            disabled={cat.max > 0 && currentCount >= cat.max}
+                                                            onClick={() => {
+                                                                setPartySizeSelections(prev => ({
+                                                                    ...prev,
+                                                                    [cat.id]: Math.min((cat.max || 99), currentCount + 1)
+                                                                }));
+                                                            }}
+                                                        >
+                                                            +
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            );
+                                        });
+                                    } catch (e) {
+                                        return <p className="text-rose-500 py-4">인원 설정 데이터 형식이 올바르지 않습니다.</p>;
                                     }
+                                })()}
+                            </div>
 
-                                    const isStandard = cat.type === 'std' || cat.type === undefined || cat.required === true;
-                                    if (isStandard) stdTotal += count;
-                                });
+                            <div className="flex gap-4">
+                                <Button
+                                    variant="ghost"
+                                    className="flex-1 h-20 text-2xl rounded-2xl text-slate-400 hover:bg-slate-50"
+                                    onClick={() => {
+                                        setPartySizeDialog({ open: false, phone: '', name: '' });
+                                        setPartySizeSelections({});
+                                    }}
+                                >
+                                    취소
+                                </Button>
+                                <Button
+                                    className="flex-[2] h-20 text-3xl rounded-2xl bg-slate-900 hover:bg-slate-800 text-white shadow-xl active:scale-[0.98]"
+                                    disabled={(() => {
+                                        const configs = JSON.parse(storeSettings?.party_size_config || '[]');
+                                        let stdTotal = 0;
 
-                                await processRegistration(partySizeDialog.phone, partySizeDialog.name, stdTotal, details);
-                            }}
-                        >
-                            {isSubmitting ? <Loader2 className="w-8 h-8 animate-spin mx-auto" /> : '접수 완료하기'}
-                        </Button>
-                    </div>
-                </DialogContent>
-            </Dialog>
+                                        // Calculate standard total for validation
+                                        configs.forEach((cat: any) => {
+                                            const count = partySizeSelections[cat.id] || 0;
+                                            const isStandard = cat.type === 'std' || cat.type === undefined || cat.required === true;
+                                            if (isStandard) stdTotal += count;
+                                        });
+
+                                        // Require at least 1 person in standard categories
+                                        return stdTotal === 0 || isSubmitting;
+                                    })()}
+                                    onClick={async () => {
+                                        const configs = JSON.parse(storeSettings?.party_size_config || '[]');
+
+                                        let stdTotal = 0;
+                                        const details: Record<string, number> = {};
+
+                                        configs.forEach((cat: any) => {
+                                            const count = partySizeSelections[cat.id] || 0;
+                                            // Save name (label) and count
+                                            if (count > 0) {
+                                                details[cat.label] = count;
+                                            }
+
+                                            const isStandard = cat.type === 'std' || cat.type === undefined || cat.required === true;
+                                            if (isStandard) stdTotal += count;
+                                        });
+
+                                        await processRegistration(partySizeDialog.phone, partySizeDialog.name, stdTotal, details);
+                                    }}
+                                >
+                                    {isSubmitting ? <Loader2 className="w-8 h-8 animate-spin mx-auto" /> : '접수 완료하기'}
+                                </Button>
+                            </div>
+                        </DialogContent>
+                    </Dialog>
+                </>
+            )}
         </>
     );
 }

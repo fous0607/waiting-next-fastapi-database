@@ -8,6 +8,7 @@ import { cn, playSilentAudio } from '@/lib/utils';
 import { useVoiceAlert } from '@/hooks/useVoiceAlert';
 import { BoardCard } from '@/components/board/board-card';
 import { GlobalLoader } from "@/components/ui/GlobalLoader";
+import { ScreenIdentitySelector, IdentityStatus } from '@/components/settings/ScreenIdentitySelector';
 
 
 
@@ -51,6 +52,7 @@ export default function BoardPage() {
     const [data, setData] = useState<BoardData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [pageIndices, setPageIndices] = useState<Record<number, number>>({});
+    const [hasIdentity, setHasIdentity] = useState(false);
     const dataRef = useRef<BoardData | null>(null);
 
     useEffect(() => {
@@ -327,152 +329,158 @@ export default function BoardPage() {
 
     return (
         <div className="min-h-screen bg-slate-50 p-4 flex flex-col">
-            <header className="mb-4 flex justify-between items-center bg-white p-4 rounded-xl shadow-sm">
-                <h1 className="text-4xl font-black text-slate-800 tracking-tight">대기현황</h1>
-                <div className="flex items-center gap-3">
-                    {!isAudioEnabled && (
-                        <button
-                            onClick={enableAudio}
-                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-full text-sm font-bold animate-bounce shadow-lg hover:bg-blue-700 transition-colors"
-                        >
-                            <span>🔊</span>
-                            <span>터치하여 음성 켜기</span>
-                        </button>
-                    )}
-                    <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${isConnected ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                        <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-600' : 'bg-red-600'}`} />
-                        {isConnected ? '연결됨' : '연결 끊김'}
-                    </div>
-                    <div className="text-2xl font-medium text-slate-500">
-                        {data?.business_date ? new Date(data.business_date).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' }) : ''}
-                    </div>
-                </div>
-            </header>
-
-            {/* Adjust grid columns based on both rows_per_class (internal card columns) AND actual class count */}
-            <div className={`flex-1 grid gap-4 ${(data.rows_per_class || 1) >= 2
-                ? `grid-cols-1 ${data.classes.length >= 2 ? 'lg:grid-cols-2' : ''}`
-                : `grid-cols-1 ${data.classes.length === 2 ? 'md:grid-cols-2' :
-                    data.classes.length === 3 ? 'md:grid-cols-2 lg:grid-cols-3' :
-                        data.classes.length >= 4 ? 'md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : ''
-                }`
-                }`}>
-                {data.classes.map((cls) => {
-                    const items = classGroups[cls.id] || [];
-                    const pageSize = data.waiting_board_page_size || 12;
-
-                    const rawPage = pageIndices[cls.id] || 0;
-                    const totalPages = Math.ceil(items.length / pageSize);
-                    // Safety check: if current page is invalid (e.g. items deleted), reset to 0
-                    const currentPage = (totalPages > 0 && rawPage >= totalPages) ? 0 : rawPage;
-
-                    const currentItems = items.slice(currentPage * pageSize, (currentPage + 1) * pageSize);
-
-                    // Fixed visual slots to prevent layout shift - use pageSize for height calculation
-                    const rowsPerClass = data.rows_per_class || 1;
-                    const visualRowCount = Math.ceil(pageSize / rowsPerClass);
-
-                    return (
-                        <div key={cls.id} className="flex flex-col bg-white rounded-xl shadow-sm border overflow-hidden">
-                            <div className="bg-slate-800 text-white p-4 text-center relative z-10">
-                                <h2 className="text-2xl font-bold mb-1">{cls.class_name}</h2>
-                                <div className="text-sm opacity-80 flex justify-between px-4">
-                                    <span>{cls.start_time.substring(0, 5)} ~ {cls.end_time.substring(0, 5)}</span>
-                                    <span>{items.length}명 / {cls.max_capacity}명</span>
-                                </div>
-                                {totalPages > 1 && (
-                                    <div className="absolute top-4 right-4 bg-white/20 px-2 py-0.5 rounded text-xs font-bold">
-                                        {currentPage + 1} / {totalPages}
-                                    </div>
-                                )}
+            <ScreenIdentitySelector category="board" onSelected={() => setHasIdentity(true)} />
+            {hasIdentity && (
+                <>
+                    <IdentityStatus />
+                    <header className="mb-4 flex justify-between items-center bg-white p-4 rounded-xl shadow-sm">
+                        <h1 className="text-4xl font-black text-slate-800 tracking-tight">대기현황</h1>
+                        <div className="flex items-center gap-3">
+                            {!isAudioEnabled && (
+                                <button
+                                    onClick={enableAudio}
+                                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-full text-sm font-bold animate-bounce shadow-lg hover:bg-blue-700 transition-colors"
+                                >
+                                    <span>🔊</span>
+                                    <span>터치하여 음성 켜기</span>
+                                </button>
+                            )}
+                            <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${isConnected ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-600' : 'bg-red-600'}`} />
+                                {isConnected ? '연결됨' : '연결 끊김'}
                             </div>
-                            <div className="p-4 flex-1 bg-slate-100 overflow-hidden relative">
-                                <AnimatePresence mode="wait">
-                                    <motion.div
-                                        key={currentPage}
-                                        initial="initial"
-                                        animate="animate"
-                                        exit="exit"
-                                        variants={{
-                                            slide: {
-                                                initial: { opacity: 0, x: 20 },
-                                                animate: { opacity: 1, x: 0 },
-                                                exit: { opacity: 0, x: -20 },
-                                            },
-                                            fade: {
-                                                initial: { opacity: 0 },
-                                                animate: { opacity: 1 },
-                                                exit: { opacity: 0 },
-                                            },
-                                            scale: {
-                                                initial: { opacity: 0, scale: 0.9 },
-                                                animate: { opacity: 1, scale: 1 },
-                                                exit: { opacity: 0, scale: 1.1 },
-                                            },
-                                            none: {
-                                                initial: { opacity: 1 },
-                                                animate: { opacity: 1 },
-                                                exit: { opacity: 1 },
-                                            }
-                                        }[data.waiting_board_transition_effect as 'slide' | 'fade' | 'scale' | 'none' || 'slide'] || {
-                                            initial: { opacity: 0, x: 20 },
-                                            animate: { opacity: 1, x: 0 },
-                                            exit: { opacity: 0, x: -20 },
-                                        }}
-                                        transition={{ duration: 0.3, ease: "easeInOut" }}
-                                        className="grid gap-2 content-start h-full"
-                                        style={{
-                                            gridTemplateColumns: `repeat(${rowsPerClass}, 1fr)`,
-                                            gridTemplateRows: `repeat(${visualRowCount}, minmax(0, 1fr))`
-                                        }}
-                                    >
-                                        {items.length === 0 ? (
-                                            <div className="h-full col-span-full flex flex-col items-center justify-center text-gray-400 row-span-full" style={{ gridRow: `span ${visualRowCount}` }}>
-                                                <span className="text-4xl mb-4">📭</span>
-                                                <p className="text-xl">대기자가 없습니다</p>
-                                            </div>
-                                        ) : (
-                                            <>
-                                                {currentItems.map((item) => (
-                                                    <BoardCard key={item.id} item={item} />
-                                                ))}
-                                            </>
-                                        )}
-                                    </motion.div>
-                                </AnimatePresence>
+                            <div className="text-2xl font-medium text-slate-500">
+                                {data?.business_date ? new Date(data.business_date).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' }) : ''}
                             </div>
                         </div>
-                    );
-                })}
-            </div>
-            {/* Audio Enable Overlay */}
-            {/* Case 1: Big Overlay (Initial 3 seconds or until clicked) */}
-            {!isAudioEnabled && showOverlay && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={enableAudio}>
-                    <div className="bg-white p-8 rounded-2xl shadow-2xl text-center max-w-md cursor-pointer transform transition-transform hover:scale-105">
-                        <div className="text-6xl mb-4">🔊</div>
-                        <h2 className="text-2xl font-black text-slate-900 mb-2">음성 안내 시작하기</h2>
-                        <p className="text-slate-600 mb-6">
-                            원활한 음성 호출을 위해<br />화면을 한 번 터치해주세요.<br />
-                            <span className="text-xs text-slate-400 font-normal mt-2 block">(3초 후 자동으로 닫힙니다)</span>
-                        </p>
-                        <button className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold text-lg w-full">
-                            확인
-                        </button>
-                    </div>
-                </div>
-            )}
+                    </header>
 
-            {/* Case 2: Persistent Mini-Button (If auto-enable failed and overlay closed) */}
-            {!isAudioEnabled && !showOverlay && (
-                <button
-                    onClick={enableAudio}
-                    className="fixed bottom-6 right-6 z-50 bg-red-600 text-white p-4 rounded-full shadow-lg hover:bg-red-700 hover:scale-110 transition-all animate-bounce flex items-center gap-2"
-                    title="음성 안내 켜기"
-                >
-                    <span className="text-2xl">🔇</span>
-                    <span className="font-bold text-sm whitespace-nowrap">소리 켜기</span>
-                </button>
+                    {/* Adjust grid columns based on both rows_per_class (internal card columns) AND actual class count */}
+                    <div className={`flex-1 grid gap-4 ${(data.rows_per_class || 1) >= 2
+                        ? `grid-cols-1 ${data.classes.length >= 2 ? 'lg:grid-cols-2' : ''}`
+                        : `grid-cols-1 ${data.classes.length === 2 ? 'md:grid-cols-2' :
+                            data.classes.length === 3 ? 'md:grid-cols-2 lg:grid-cols-3' :
+                                data.classes.length >= 4 ? 'md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : ''
+                        }`
+                        }`}>
+                        {data.classes.map((cls) => {
+                            const items = classGroups[cls.id] || [];
+                            const pageSize = data.waiting_board_page_size || 12;
+
+                            const rawPage = pageIndices[cls.id] || 0;
+                            const totalPages = Math.ceil(items.length / pageSize);
+                            // Safety check: if current page is invalid (e.g. items deleted), reset to 0
+                            const currentPage = (totalPages > 0 && rawPage >= totalPages) ? 0 : rawPage;
+
+                            const currentItems = items.slice(currentPage * pageSize, (currentPage + 1) * pageSize);
+
+                            // Fixed visual slots to prevent layout shift - use pageSize for height calculation
+                            const rowsPerClass = data.rows_per_class || 1;
+                            const visualRowCount = Math.ceil(pageSize / rowsPerClass);
+
+                            return (
+                                <div key={cls.id} className="flex flex-col bg-white rounded-xl shadow-sm border overflow-hidden">
+                                    <div className="bg-slate-800 text-white p-4 text-center relative z-10">
+                                        <h2 className="text-2xl font-bold mb-1">{cls.class_name}</h2>
+                                        <div className="text-sm opacity-80 flex justify-between px-4">
+                                            <span>{cls.start_time.substring(0, 5)} ~ {cls.end_time.substring(0, 5)}</span>
+                                            <span>{items.length}명 / {cls.max_capacity}명</span>
+                                        </div>
+                                        {totalPages > 1 && (
+                                            <div className="absolute top-4 right-4 bg-white/20 px-2 py-0.5 rounded text-xs font-bold">
+                                                {currentPage + 1} / {totalPages}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="p-4 flex-1 bg-slate-100 overflow-hidden relative">
+                                        <AnimatePresence mode="wait">
+                                            <motion.div
+                                                key={currentPage}
+                                                initial="initial"
+                                                animate="animate"
+                                                exit="exit"
+                                                variants={{
+                                                    slide: {
+                                                        initial: { opacity: 0, x: 20 },
+                                                        animate: { opacity: 1, x: 0 },
+                                                        exit: { opacity: 0, x: -20 },
+                                                    },
+                                                    fade: {
+                                                        initial: { opacity: 0 },
+                                                        animate: { opacity: 1 },
+                                                        exit: { opacity: 0 },
+                                                    },
+                                                    scale: {
+                                                        initial: { opacity: 0, scale: 0.9 },
+                                                        animate: { opacity: 1, scale: 1 },
+                                                        exit: { opacity: 0, scale: 1.1 },
+                                                    },
+                                                    none: {
+                                                        initial: { opacity: 1 },
+                                                        animate: { opacity: 1 },
+                                                        exit: { opacity: 1 },
+                                                    }
+                                                }[data.waiting_board_transition_effect as 'slide' | 'fade' | 'scale' | 'none' || 'slide'] || {
+                                                    initial: { opacity: 0, x: 20 },
+                                                    animate: { opacity: 1, x: 0 },
+                                                    exit: { opacity: 0, x: -20 },
+                                                }}
+                                                transition={{ duration: 0.3, ease: "easeInOut" }}
+                                                className="grid gap-2 content-start h-full"
+                                                style={{
+                                                    gridTemplateColumns: `repeat(${rowsPerClass}, 1fr)`,
+                                                    gridTemplateRows: `repeat(${visualRowCount}, minmax(0, 1fr))`
+                                                }}
+                                            >
+                                                {items.length === 0 ? (
+                                                    <div className="h-full col-span-full flex flex-col items-center justify-center text-gray-400 row-span-full" style={{ gridRow: `span ${visualRowCount}` }}>
+                                                        <span className="text-4xl mb-4">📭</span>
+                                                        <p className="text-xl">대기자가 없습니다</p>
+                                                    </div>
+                                                ) : (
+                                                    <>
+                                                        {currentItems.map((item) => (
+                                                            <BoardCard key={item.id} item={item} />
+                                                        ))}
+                                                    </>
+                                                )}
+                                            </motion.div>
+                                        </AnimatePresence>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                    {/* Audio Enable Overlay */}
+                    {/* Case 1: Big Overlay (Initial 3 seconds or until clicked) */}
+                    {!isAudioEnabled && showOverlay && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={enableAudio}>
+                            <div className="bg-white p-8 rounded-2xl shadow-2xl text-center max-w-md cursor-pointer transform transition-transform hover:scale-105">
+                                <div className="text-6xl mb-4">🔊</div>
+                                <h2 className="text-2xl font-black text-slate-900 mb-2">음성 안내 시작하기</h2>
+                                <p className="text-slate-600 mb-6">
+                                    원활한 음성 호출을 위해<br />화면을 한 번 터치해주세요.<br />
+                                    <span className="text-xs text-slate-400 font-normal mt-2 block">(3초 후 자동으로 닫힙니다)</span>
+                                </p>
+                                <button className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold text-lg w-full">
+                                    확인
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Case 2: Persistent Mini-Button (If auto-enable failed and overlay closed) */}
+                    {!isAudioEnabled && !showOverlay && (
+                        <button
+                            onClick={enableAudio}
+                            className="fixed bottom-6 right-6 z-50 bg-red-600 text-white p-4 rounded-full shadow-lg hover:bg-red-700 hover:scale-110 transition-all animate-bounce flex items-center gap-2"
+                            title="음성 안내 켜기"
+                        >
+                            <span className="text-2xl">🔇</span>
+                            <span className="font-bold text-sm whitespace-nowrap">소리 켜기</span>
+                        </button>
+                    )}
+                </>
             )}
         </div>
     );

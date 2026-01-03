@@ -26,6 +26,7 @@ export interface PrintJob {
     partySizeDetails?: string; // JSON string
     teamsAhead?: number;
     waitingOrder?: number;
+    customTemplate?: string; // For testing unsaved templates
 }
 
 export class PrinterService {
@@ -50,7 +51,8 @@ export class PrinterService {
                 printer_qr_size: job.printerQrSize,
                 party_size_details: job.partySizeDetails,
                 teams_ahead: job.teamsAhead,
-                waiting_order: job.waitingOrder
+                waiting_order: job.waitingOrder,
+                custom_content: job.customTemplate
             });
 
             // Response data should be an array of integers (bytes)
@@ -229,11 +231,41 @@ export class PrinterService {
 
         // Check Local Settings Overrides
         const localSettings = LocalSettingsManager.getSettings();
+
+        // New Multi-Registry Logic
+        if (localSettings.useLocalSettings && localSettings.activeConnections && localSettings.activeConnections.length > 0) {
+            console.log(`[PrinterService] Using ${localSettings.activeConnections.length} Active Local Connections`);
+
+            const results = await Promise.allSettled(
+                localSettings.activeConnections.map(async (conn) => {
+                    if (conn.connectionType === 'bluetooth') {
+                        return this.printBluetooth(data);
+                    } else {
+                        const targetPort = conn.printerPort || 9100;
+                        const proxyPort = conn.proxyPort || 8000;
+                        return this.printLan(conn.printerIp, targetPort, data, conn.proxyIp, proxyPort);
+                    }
+                })
+            );
+
+            const failures = results.filter(r => r.status === 'rejected');
+            if (failures.length > 0) {
+                console.error('[PrinterService] Some print jobs failed:', failures);
+                // If all failed, throw error. If some succeeded, maybe just toast/warn (but we are in a service)
+                // For now, if any failed, we might want to alert the user.
+                if (failures.length === localSettings.activeConnections.length) {
+                    throw new Error('모든 프린터 출력에 실패했습니다.');
+                }
+            }
+            return;
+        }
+
+        // Legacy / Default Single Connection Logic
         let targetPrinterIp = config.ip;
         let targetProxyIp = config.proxyIp || 'localhost';
 
         if (localSettings.useLocalSettings) {
-            console.log('[PrinterService] Using Local Device Settings Override');
+            console.log('[PrinterService] Using Local Device Settings Override (Legacy)');
             if (localSettings.printerIp) targetPrinterIp = localSettings.printerIp;
             if (localSettings.proxyIp) targetProxyIp = localSettings.proxyIp;
         }

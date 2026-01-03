@@ -8,15 +8,31 @@ export interface SavedPrinterProfile {
     printerIp: string;
 }
 
+export interface ActiveConnection {
+    id: string;
+    name: string;
+    proxyIp: string;
+    proxyPort: number;
+    printerIp: string;
+    printerPort: number;
+    connectionType: 'lan' | 'bluetooth';
+}
+
 export interface LocalDeviceSettings {
     useLocalSettings: boolean;
+    // Legacy single connection support
     proxyIp?: string;
     proxyPort?: number;
     printerIp?: string;
     printerPort?: number;
     proxyUnitId?: number;
     printerUnitId?: number;
+    // New multi-registry support
+    activeConnections?: ActiveConnection[];
     profiles?: SavedPrinterProfile[];
+    // Screen Instance ID for this device
+    assignedScreenId?: string;
+    assignedScreenName?: string;
 }
 
 export const LocalSettingsManager = {

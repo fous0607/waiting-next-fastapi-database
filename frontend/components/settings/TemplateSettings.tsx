@@ -12,6 +12,10 @@ import { toast } from 'sonner';
 import api from '@/lib/api';
 import { cn } from '@/lib/utils';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { TemplatePreviewModal } from './TemplatePreviewModal';
+import { Eye } from 'lucide-react';
+import { usePrinter } from '@/lib/printer/usePrinter';
+import { useWaitingStore } from '@/lib/store/useWaitingStore';
 
 // Types
 interface PrintTemplate {
@@ -77,6 +81,9 @@ export function TemplateSettings() {
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [options, setOptions] = useState<any>({});
+    const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+    const { testPrint, isPrinting: isPrinterBusy } = usePrinter();
+    const { storeSettings } = useWaitingStore();
 
     // Initial Fetch
     useEffect(() => {
@@ -255,6 +262,21 @@ export function TemplateSettings() {
         toast.info("코드가 추가되었습니다.", { duration: 1000 });
     };
 
+    const handleTestPrint = async () => {
+        if (!editingTemplate || !editingTemplate.content) return;
+
+        try {
+            // We pass customTemplate content for the test print
+            // and use current store settings for IP/Proxy info
+            await testPrint({
+                ...storeSettings,
+                customTemplate: editingTemplate.content
+            });
+        } catch (error) {
+            console.error("Test print failed:", error);
+        }
+    };
+
     return (
         <div className="flex h-[800px] border rounded-lg overflow-hidden bg-white shadow-sm">
             {/* Sidebar List */}
@@ -375,9 +397,17 @@ export function TemplateSettings() {
                                     onChange={e => setEditingTemplate({ ...editingTemplate, content: e.target.value })}
                                     spellCheck={false}
                                 />
-                                <div className="flex justify-end">
-                                    <Button variant="outline" size="sm" onClick={() => toast.info("프린터 연결 필요 (구현 예정)")}>
-                                        <Printer className="w-3.5 h-3.5 mr-1" /> 테스트 출력
+                                <div className="flex justify-end gap-2">
+                                    <Button variant="outline" size="sm" onClick={() => setIsPreviewOpen(true)} className="bg-white">
+                                        <Eye className="w-3.5 h-3.5 mr-1" /> 미리보기
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={handleTestPrint}
+                                        disabled={isPrinterBusy}
+                                    >
+                                        <Printer className="w-3.5 h-3.5 mr-1" /> {isPrinterBusy ? "출력 중..." : "테스트 출력"}
                                     </Button>
                                 </div>
                             </div>
@@ -460,6 +490,16 @@ export function TemplateSettings() {
                     </div>
                 )}
             </div>
+
+            {editingTemplate && (
+                <TemplatePreviewModal
+                    isOpen={isPreviewOpen}
+                    onClose={() => setIsPreviewOpen(false)}
+                    templateContent={editingTemplate.content || ""}
+                    templateName={editingTemplate.name || ""}
+                    options={options}
+                />
+            )}
         </div>
     );
 }

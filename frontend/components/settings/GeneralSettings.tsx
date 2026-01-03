@@ -4,7 +4,7 @@ import QRCode from 'react-qr-code';
 import { useEffect, useState } from 'react';
 import { QRPrintModal } from './QRPrintModal';
 import { TestPrintButton } from './TestPrintButton';
-import { Loader2, Copy, Check, ClipboardList, XCircle, UserPlus, Pencil, Plus, Trash2, Globe, Printer } from 'lucide-react';
+import { Loader2, Copy, Check, ClipboardList, XCircle, UserPlus, Pencil, Plus, Trash2, Globe, Printer, LayoutPanelLeft } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -23,7 +23,8 @@ import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useOperationLabels } from '@/hooks/useOperationLabels';
 import { useVoiceAlert } from '@/hooks/useVoiceAlert';
-import { LocalSettingsManager, LocalDeviceSettings } from '@/lib/printer/LocalSettingsManager';
+import { LocalSettingsManager, LocalDeviceSettings, ActiveConnection } from '@/lib/printer/LocalSettingsManager';
+import { ScreenQuantitySettings } from './ScreenQuantitySettings';
 
 // Comprehensive Schema matching Backend StoreSettings
 const settingsSchema = z.object({
@@ -143,6 +144,7 @@ const settingsSchema = z.object({
     auto_print_registration: z.boolean().default(true),
     printer_qr_size: z.coerce.number().min(1).max(8).default(4),
     enable_printer_qr: z.boolean().default(true),
+    screen_configs: z.string().optional().nullable(),
 });
 
 type SettingsFormValues = z.infer<typeof settingsSchema>;
@@ -185,6 +187,10 @@ export function GeneralSettings() {
     const [newProxy, setNewProxy] = useState({ name: '', ip: '', port: 8000 });
     const [newPrinter, setNewPrinter] = useState({ name: '', ip: '', port: 9100, connection_type: 'lan' });
 
+    // Multi-Connection Form State
+    const [selectedProxyId, setSelectedProxyId] = useState<string>('');
+    const [selectedPrinterId, setSelectedPrinterId] = useState<string>('');
+
 
     useEffect(() => {
         setLocalSettings(LocalSettingsManager.getSettings());
@@ -194,6 +200,40 @@ export function GeneralSettings() {
         const newSettings = { ...localSettings, [key]: value };
         setLocalSettings(newSettings);
         LocalSettingsManager.saveSettings(newSettings);
+    };
+
+    const handleAddActiveConnection = () => {
+        if (!selectedProxyId || !selectedPrinterId) {
+            toast.error('중계기와 프린터를 모두 선택해주세요.');
+            return;
+        }
+
+        const proxy = proxyUnits.find(u => u.id === parseInt(selectedProxyId));
+        const printer = printerUnits.find(u => u.id === parseInt(selectedPrinterId));
+
+        if (!proxy || !printer) return;
+
+        const newConn = {
+            id: Date.now().toString(),
+            name: `${proxy.name} -> ${printer.name}`,
+            proxyIp: proxy.ip,
+            proxyPort: proxy.port,
+            printerIp: printer.ip || '',
+            printerPort: printer.port,
+            connectionType: printer.connection_type as 'lan' | 'bluetooth'
+        };
+
+        const currentConnections = localSettings.activeConnections || [];
+        handleLocalSettingChange('activeConnections', [...currentConnections, newConn]);
+        toast.success('출력 연결이 추가되었습니다.');
+        setSelectedProxyId('');
+        setSelectedPrinterId('');
+    };
+
+    const handleRemoveActiveConnection = (id: string) => {
+        const currentConnections = localSettings.activeConnections || [];
+        handleLocalSettingChange('activeConnections', currentConnections.filter((c: ActiveConnection) => c.id !== id));
+        toast.success('출력 연결이 제거되었습니다.');
     };
 
     const form = useForm<SettingsFormValues>({
@@ -1313,98 +1353,102 @@ export function GeneralSettings() {
 
                                             {localSettings.useLocalSettings && (
                                                 <div className="space-y-6 animate-in fade-in slide-in-from-top-2">
-
-                                                    {/* Selection from Registry */}
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                        <div className="space-y-2">
-                                                            <Label className="text-xs font-bold text-slate-600">연결할 중계기 선택</Label>
-                                                            <Select
-                                                                value={localSettings.proxyUnitId?.toString() || 'manual'}
-                                                                onValueChange={(val) => {
-                                                                    if (val === 'manual') {
-                                                                        handleLocalSettingChange('proxyUnitId', undefined);
-                                                                    } else {
-                                                                        const id = parseInt(val);
-                                                                        const unit = proxyUnits.find(u => u.id === id);
-                                                                        if (unit) {
-                                                                            const ns = { ...localSettings, proxyUnitId: id, proxyIp: unit.ip, proxyPort: unit.port };
-                                                                            setLocalSettings(ns);
-                                                                            LocalSettingsManager.saveSettings(ns);
-                                                                            toast.success(`중계기 '${unit.name}'가 선택되었습니다.`);
-                                                                        }
-                                                                    }
-                                                                }}
-                                                            >
-                                                                <SelectTrigger className="bg-white">
-                                                                    <SelectValue placeholder="중계기 선택" />
-                                                                </SelectTrigger>
-                                                                <SelectContent>
-                                                                    <SelectItem value="manual">직접 입력 (Legacy)</SelectItem>
-                                                                    {proxyUnits.map(u => (
-                                                                        <SelectItem key={u.id} value={u.id.toString()}>{u.name} ({u.ip})</SelectItem>
-                                                                    ))}
-                                                                </SelectContent>
-                                                            </Select>
-                                                        </div>
-
-                                                        <div className="space-y-2">
-                                                            <Label className="text-xs font-bold text-slate-600">연결할 프린터 선택</Label>
-                                                            <Select
-                                                                value={localSettings.printerUnitId?.toString() || 'manual'}
-                                                                onValueChange={(val) => {
-                                                                    if (val === 'manual') {
-                                                                        handleLocalSettingChange('printerUnitId', undefined);
-                                                                    } else {
-                                                                        const id = parseInt(val);
-                                                                        const unit = printerUnits.find(u => u.id === id);
-                                                                        if (unit) {
-                                                                            const ns = {
-                                                                                ...localSettings,
-                                                                                printerUnitId: id,
-                                                                                printerIp: unit.ip,
-                                                                                printerPort: unit.port
-                                                                            };
-                                                                            setLocalSettings(ns);
-                                                                            LocalSettingsManager.saveSettings(ns);
-                                                                            toast.success(`프린터 '${unit.name}'가 선택되었습니다.`);
-                                                                        }
-                                                                    }
-                                                                }}
-                                                            >
-                                                                <SelectTrigger className="bg-white">
-                                                                    <SelectValue placeholder="프린터 선택" />
-                                                                </SelectTrigger>
-                                                                <SelectContent>
-                                                                    <SelectItem value="manual">직접 입력 (Legacy)</SelectItem>
-                                                                    {printerUnits.map(u => (
-                                                                        <SelectItem key={u.id} value={u.id.toString()}>{u.name} {u.ip ? `(${u.ip})` : '(Bluetooth)'}</SelectItem>
-                                                                    ))}
-                                                                </SelectContent>
-                                                            </Select>
+                                                    {/* Active Connections List */}
+                                                    <div className="space-y-3">
+                                                        <Label className="text-xs font-bold text-slate-600 flex items-center gap-2">
+                                                            <Check className="w-3 h-3 text-purple-600" /> 활성화된 출력 연결 목록 ({localSettings.activeConnections?.length || 0})
+                                                        </Label>
+                                                        <div className="grid gap-2">
+                                                            {localSettings.activeConnections?.map(conn => (
+                                                                <div key={conn.id} className="flex items-center justify-between p-3 bg-white border border-purple-100 rounded-lg shadow-sm">
+                                                                    <div className="flex-1">
+                                                                        <div className="text-sm font-bold text-slate-800">{conn.id.startsWith('legacy') ? '기존 설정' : conn.name}</div>
+                                                                        <div className="text-[10px] text-slate-500 font-mono mt-0.5">
+                                                                            Proxy: {conn.proxyIp}:{conn.proxyPort} → Printer: {conn.printerIp || 'Bluetooth'}
+                                                                        </div>
+                                                                    </div>
+                                                                    <Button variant="ghost" size="icon" onClick={() => handleRemoveActiveConnection(conn.id)} className="h-8 w-8 text-red-400 hover:text-red-600">
+                                                                        <XCircle className="w-4 h-4" />
+                                                                    </Button>
+                                                                </div>
+                                                            ))}
+                                                            {(!localSettings.activeConnections || localSettings.activeConnections.length === 0) && (
+                                                                <div className="text-center py-6 bg-slate-50 border-dashed border-2 rounded-lg text-slate-400 text-xs">
+                                                                    연결된 출력 장치가 없습니다. 아래에서 연결을 추가하세요.
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     </div>
 
-                                                    {/* Active Settings Display */}
-                                                    <div className="bg-purple-50 p-4 rounded-xl border border-purple-200">
-                                                        <div className="flex items-center gap-2 mb-3">
-                                                            <Check className="w-5 h-5 text-purple-600" />
-                                                            <span className="font-bold text-purple-900">현재 적용된 설정 (Snapshot)</span>
-                                                        </div>
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                            <div className="bg-white p-3 rounded-lg border border-purple-100 shadow-sm">
-                                                                <Label className="text-xs font-semibold text-slate-500 block mb-1">로컬 프록시 IP</Label>
-                                                                <div className="font-mono text-lg font-bold text-slate-800">
-                                                                    {localSettings.proxyIp || <span className="text-gray-300">미설정</span>}
-                                                                </div>
+                                                    {/* Add Connection UI */}
+                                                    <div className="bg-purple-50/50 p-4 rounded-xl border border-purple-100 space-y-4">
+                                                        <h5 className="text-xs font-bold text-purple-700 flex items-center gap-2">
+                                                            <Plus className="w-3 h-3" /> 새 출력 연결 추가
+                                                        </h5>
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                            <div className="space-y-2">
+                                                                <Label className="text-[10px] text-slate-500">중계기(Proxy) 선택</Label>
+                                                                <Select value={selectedProxyId} onValueChange={setSelectedProxyId}>
+                                                                    <SelectTrigger className="bg-white h-9 text-xs">
+                                                                        <SelectValue placeholder="중계기 선택" />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {proxyUnits.map(u => (
+                                                                            <SelectItem key={u.id} value={u.id.toString()}>{u.name} ({u.ip})</SelectItem>
+                                                                        ))}
+                                                                    </SelectContent>
+                                                                </Select>
                                                             </div>
-                                                            <div className="bg-white p-3 rounded-lg border border-purple-100 shadow-sm">
-                                                                <Label className="text-xs font-semibold text-slate-500 block mb-1">목표 프린터 IP</Label>
-                                                                <div className="font-mono text-lg font-bold text-slate-800">
-                                                                    {localSettings.printerIp || <span className="text-gray-300">미설정 (LAN)</span>}
-                                                                </div>
+                                                            <div className="space-y-2">
+                                                                <Label className="text-[10px] text-slate-500">프린터(Printer) 선택</Label>
+                                                                <Select value={selectedPrinterId} onValueChange={setSelectedPrinterId}>
+                                                                    <SelectTrigger className="bg-white h-9 text-xs">
+                                                                        <SelectValue placeholder="프린터 선택" />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {printerUnits.map(u => (
+                                                                            <SelectItem key={u.id} value={u.id.toString()}>{u.name} {u.ip ? `(${u.ip})` : '(BT)'}</SelectItem>
+                                                                        ))}
+                                                                    </SelectContent>
+                                                                </Select>
                                                             </div>
                                                         </div>
+                                                        <Button onClick={handleAddActiveConnection} className="w-full h-9 bg-purple-600 hover:bg-purple-700 font-bold" size="sm">
+                                                            <Plus className="w-4 h-4 mr-2" /> 이 출력 연결 추가하기
+                                                        </Button>
                                                     </div>
+
+                                                    {/* Legacy Notification (Keep for data safety, but hidden if empty) */}
+                                                    {(localSettings.proxyIp || localSettings.printerIp) && !localSettings.activeConnections?.some(c => c.id.startsWith('legacy')) && (
+                                                        <div className="bg-orange-50 p-3 rounded-lg border border-orange-200 flex items-center justify-between">
+                                                            <div className="text-[10px] text-orange-700 leading-tight">
+                                                                기존 단일 연결 설정이 감지되었습니다.<br />
+                                                                <strong>{localSettings.proxyIp} → {localSettings.printerIp}</strong>
+                                                            </div>
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="h-7 text-[10px] border-orange-200 text-orange-700 hover:bg-orange-100"
+                                                                onClick={() => {
+                                                                    const legacyConn = {
+                                                                        id: `legacy_${Date.now()}`,
+                                                                        name: '기존 설정',
+                                                                        proxyIp: localSettings.proxyIp || 'localhost',
+                                                                        proxyPort: localSettings.proxyPort || 8000,
+                                                                        printerIp: localSettings.printerIp || '',
+                                                                        printerPort: localSettings.printerPort || 9100,
+                                                                        connectionType: 'lan' as const
+                                                                    };
+                                                                    handleLocalSettingChange('activeConnections', [...(localSettings.activeConnections || []), legacyConn]);
+                                                                    // Clear legacy
+                                                                    handleLocalSettingChange('proxyIp', undefined);
+                                                                    handleLocalSettingChange('printerIp', undefined);
+                                                                }}
+                                                            >
+                                                                새 목록에 통합
+                                                            </Button>
+                                                        </div>
+                                                    )}
 
                                                     {/* Profile Registry */}
                                                     <div className="border rounded-xl p-4 bg-slate-50/50">
