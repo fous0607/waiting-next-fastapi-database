@@ -438,6 +438,7 @@ class PrintTemplate(Base):
     store_id = Column(Integer, ForeignKey("store.id"), nullable=False, index=True)
     name = Column(String, nullable=False)
     content = Column(String, nullable=False) # Template content with placeholders
+    options = Column(String, nullable=True) # JSON string for options (font size, etc.)
     template_type = Column(String, default="waiting_ticket") # waiting_ticket, receipt
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=func.now())

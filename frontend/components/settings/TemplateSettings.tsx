@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 // import { ScrollArea } from '@/components/ui/scroll-area'; // Removed to fix build
-import { Plus, Trash2, Printer, Save, FileText, Check, LayoutTemplate } from 'lucide-react';
+import { Plus, Trash2, Printer, Save, FileText, Check, LayoutTemplate, Settings } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '@/lib/api';
 import { cn } from '@/lib/utils';
@@ -19,6 +19,7 @@ interface PrintTemplate {
     store_id: number;
     name: string;
     content: string;
+    options: string; // JSON string
     template_type: string;
     is_active: boolean;
     created_at?: string;
@@ -49,8 +50,11 @@ const VARIABLES = [
     { code: "{DATE}", label: "날짜/시간", desc: "발권 시간" },
     { code: "{PEOPLE}", label: "인원수", desc: "총 인원 또는 상세 인원" },
     { code: "{TEAMS_AHEAD}", label: "내 앞 대기", desc: "앞 대기 팀 수" },
-    { code: "{ORDER}", label: "대기순서", desc: "현재 대기 순서" },
-    { code: "{QR}", label: "QR코드", desc: "상태 확인 QR (설정 시)" },
+    { code: "{ORDER}", label: "입장순서/순번", desc: "대기 순번" },
+    { code: "{MEMBER_NAME}", label: "회원명", desc: "회원 이름 (비회원시 공란)" },
+    { code: "{PHONE}", label: "전화번호", desc: "전화번호 (마스킹)" },
+    { code: "{QR}", label: "QR코드", desc: "상태 확인 QR" },
+    { code: "{BARCODE}", label: "바코드", desc: "회원/대기 바코드" },
 ];
 
 const FORMAT_TAGS = [
@@ -72,48 +76,77 @@ export function TemplateSettings() {
     const [editingTemplate, setEditingTemplate] = useState<Partial<PrintTemplate> | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [options, setOptions] = useState<any>({});
 
     // Initial Fetch
     useEffect(() => {
         fetchTemplates();
     }, []);
 
+    // Sync options state when editingTemplate changes (only when ID changes to avoid loop, or check content)
+    // Actually, we can just initialize options when we START editing (in handleEdit/handleCreate)
+    // and when we change options, we update editingTemplate. options state is just for UI binding.
+
     const fetchTemplates = async () => {
         setIsLoading(true);
         try {
-            // Need store_id. Using localStorage as per SettingsPage logic
+            const storeId = localStorage.getItem('selected_store_id');
+            console.log("TemplateSettings: Fetching for storeId:", storeId);
+
+            if (!storeId) {
+                console.warn("TemplateSettings: No storeId in localStorage");
+                return;
+            }
+
+            const { data } = await api.get(`/templates/${storeId}`);
+            console.log("TemplateSettings: Fetched data:", data);
+
+            setTemplates(data);
+        } catch (error) {
+            console.error("Failed to fetch templates:", error);
+            // toast.error("템플릿 목록을 불러오지 못했습니다.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleInitSamples = async () => {
+        setIsLoading(true);
+        try {
             const storeId = localStorage.getItem('selected_store_id');
             if (!storeId) return;
 
-            const { data } = await api.get(`/templates/${storeId}`);
+            const { data } = await api.post(`/templates/${storeId}/init-samples`);
             setTemplates(data);
-
-            // Auto select active one or first one
-            const active = data.find((t: PrintTemplate) => t.is_active);
-            if (active) {
-                // Don't auto-edit, just highlight?
-            }
+            toast.success("샘플 양식이 복원되었습니다.");
         } catch (error) {
-            console.error("Failed to fetch templates:", error);
-            toast.error("템플릿 목록을 불러오지 못했습니다.");
+            toast.error("샘플 초기화 실패");
         } finally {
             setIsLoading(false);
         }
     };
 
     const handleCreate = () => {
-        setEditingTemplate({
+        const newTemplate = {
             name: "새 템플릿",
             content: DEFAULT_TEMPLATE,
             template_type: "waiting_ticket",
+            options: "{}",
             is_active: false
-        });
-        setActiveId(null); // Deselect list when creating new
+        };
+        setEditingTemplate(newTemplate);
+        setOptions({});
+        setActiveId(null);
     };
 
     const handleEdit = (template: PrintTemplate) => {
         setActiveId(template.id);
         setEditingTemplate({ ...template });
+        try {
+            setOptions(JSON.parse(template.options || "{}"));
+        } catch (e) {
+            setOptions({});
+        }
     };
 
     const handleDelete = async (id: number) => {
@@ -137,13 +170,19 @@ export function TemplateSettings() {
         try {
             const storeId = parseInt(localStorage.getItem('selected_store_id') || "0");
 
+            // Ensure options is stringified
+            const templateToSave = {
+                ...editingTemplate,
+                options: JSON.stringify(options)
+            };
+
             if ('id' in editingTemplate && editingTemplate.id) {
                 // Update
-                await api.put(`/templates/${editingTemplate.id}`, editingTemplate);
+                await api.put(`/templates/${editingTemplate.id}`, templateToSave);
                 toast.success("저장되었습니다.");
             } else {
                 // Create
-                await api.post(`/templates/`, { ...editingTemplate, store_id: storeId });
+                await api.post(`/templates/`, { ...templateToSave, store_id: storeId });
                 toast.success("생성되었습니다.");
             }
             fetchTemplates();
@@ -155,6 +194,15 @@ export function TemplateSettings() {
         } finally {
             setIsSaving(false);
         }
+    };
+
+    const updateOption = (key: string, value: any) => {
+        const newOptions = { ...options, [key]: value };
+        setOptions(newOptions);
+        // Note: we don't update editingTemplate.options here immediately to allow independent state, 
+        // but handleSave uses 'options' state. 
+        // Syncing it for UI consistency if we needed preview.
+        setEditingTemplate(prev => prev ? ({ ...prev, options: JSON.stringify(newOptions) }) : null);
     };
 
     const toggleActive = async (template: PrintTemplate) => {
@@ -171,7 +219,6 @@ export function TemplateSettings() {
         setEditingTemplate(prev => {
             if (!prev) return null;
 
-            // Try to find textarea and insert at cursor
             const textarea = document.querySelector('textarea');
             if (textarea) {
                 const start = textarea.selectionStart;
@@ -181,11 +228,6 @@ export function TemplateSettings() {
                 const before = text.substring(0, start);
                 const after = text.substring(end);
 
-                // Restoration of focus/cursor is tricky in React state update cycle without refs
-                // For now, this logic updates CONTENT correctly at cursor.
-                // Re-focusing might need useEffect or direct DOM manipulation after render.
-
-                // Let's just update content.
                 return { ...prev, content: before + code + after };
             }
 
@@ -198,7 +240,7 @@ export function TemplateSettings() {
         <div className="flex h-[800px] border rounded-lg overflow-hidden bg-white shadow-sm">
             {/* Sidebar List */}
             <div className="w-64 border-r bg-slate-50 flex flex-col">
-                <div className="p-4 border-b">
+                <div className="p-4 border-b flex justify-between items-center">
                     <h3 className="font-semibold text-slate-800 flex items-center gap-2">
                         <LayoutTemplate className="w-4 h-4" /> 양식 목록
                     </h3>
@@ -218,21 +260,34 @@ export function TemplateSettings() {
                                     <span className="font-medium text-sm truncate">{t.name}</span>
                                     {t.is_active && <Badge variant="secondary" className="text-[10px] h-5 bg-blue-100 text-blue-700 hover:bg-blue-100">사용중</Badge>}
                                 </div>
-                                <p className="text-[10px] text-slate-400 truncate">{t.created_at?.substring(0, 10)}</p>
+                                <div className="flex justify-between items-center">
+                                    <p className="text-[10px] text-slate-400 truncate">{t.created_at?.substring(0, 10)}</p>
+                                    <span className="text-[10px] text-slate-400 bg-slate-100 px-1 rounded">
+                                        {t.template_type === 'waiting_ticket' ? '대기표' : '주방주문서'}
+                                    </span>
+                                </div>
                             </div>
                         ))}
 
                         {templates.length === 0 && !isLoading && (
-                            <div className="text-center py-8 text-xs text-slate-400">
-                                등록된 양식이 없습니다.
+                            <div className="text-center py-8 text-xs text-slate-400 flex flex-col gap-2">
+                                <span>등록된 양식이 없습니다.</span>
+                                <Button variant="link" size="sm" onClick={handleInitSamples} className="text-blue-500">
+                                    샘플 양식 불러오기
+                                </Button>
                             </div>
                         )}
                     </div>
                 </div>
-                <div className="p-3 border-t bg-slate-50">
+                <div className="p-3 border-t bg-slate-50 space-y-2">
                     <Button onClick={handleCreate} className="w-full" size="sm">
                         <Plus className="w-4 h-4 mr-2" /> 새 양식 추가
                     </Button>
+                    {templates.length > 0 && (
+                        <Button variant="outline" onClick={handleInitSamples} className="w-full text-xs h-8" size="sm">
+                            샘플 양식 복원
+                        </Button>
+                    )}
                 </div>
             </div>
 
@@ -243,13 +298,22 @@ export function TemplateSettings() {
                         {/* Header */}
                         <div className="h-14 border-b flex items-center justify-between px-4 bg-white">
                             <div className="flex items-center gap-2 flex-1 mr-4">
-                                <Label className="whitespace-nowrap w-16">양식명</Label>
+                                <Label className="whitespace-nowrap w-4">명칭</Label>
                                 <Input
                                     value={editingTemplate.name}
                                     onChange={e => setEditingTemplate({ ...editingTemplate, name: e.target.value })}
-                                    className="h-8 max-w-sm"
-                                    placeholder="양식 이름을 입력하세요"
+                                    className="h-8 w-40"
+                                    placeholder="양식 이름"
                                 />
+                                <Label className="whitespace-nowrap w-4 ml-2">유형</Label>
+                                <select
+                                    className="h-8 rounded-md border text-sm px-2 w-32"
+                                    value={editingTemplate.template_type}
+                                    onChange={e => setEditingTemplate({ ...editingTemplate, template_type: e.target.value })}
+                                >
+                                    <option value="waiting_ticket">대기표</option>
+                                    <option value="kitchen_order">주방주문서</option>
+                                </select>
                             </div>
                             <div className="flex items-center gap-2">
                                 {(activeId && !editingTemplate.is_active) && (
@@ -282,7 +346,10 @@ export function TemplateSettings() {
                         <div className="flex-1 flex min-h-0">
                             {/* Text Area */}
                             <div className="flex-1 p-4 bg-slate-100 flex flex-col gap-2">
-                                <Label>출력 내용 디자인</Label>
+                                <div className="flex justify-between items-center">
+                                    <Label>출력 내용 디자인</Label>
+
+                                </div>
                                 <textarea
                                     className="flex-1 w-full p-4 font-mono text-sm border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     value={editingTemplate.content}
@@ -298,7 +365,38 @@ export function TemplateSettings() {
 
                             {/* Right Sidebar: Code List */}
                             <div className="w-64 border-l bg-slate-50 flex flex-col">
-                                <div className="p-3 border-b text-xs font-semibold text-slate-600 bg-slate-100">
+                                <div className="p-3 border-b text-xs font-semibold text-slate-600 bg-slate-100 flex items-center gap-2">
+                                    <Settings className="w-3 h-3" /> 기본 옵션
+                                </div>
+                                <div className="p-3 space-y-3">
+                                    <div className="space-y-1">
+                                        <Label className="text-[10px] text-slate-500">폰트 크기 조정</Label>
+                                        <select
+                                            className="w-full text-xs border rounded p-1"
+                                            value={options.fontSize || "normal"}
+                                            onChange={(e) => updateOption("fontSize", e.target.value)}
+                                        >
+                                            <option value="small">작게</option>
+                                            <option value="normal">보통</option>
+                                            <option value="large">크게</option>
+                                        </select>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <Label className="text-[10px] text-slate-500">여백 조정 (Top in lines)</Label>
+                                        <select
+                                            className="w-full text-xs border rounded p-1"
+                                            value={options.paddingTop || "0"}
+                                            onChange={(e) => updateOption("paddingTop", e.target.value)}
+                                        >
+                                            <option value="0">0 줄</option>
+                                            <option value="1">1 줄</option>
+                                            <option value="2">2 줄</option>
+                                            <option value="3">3 줄</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="p-3 border-y text-xs font-semibold text-slate-600 bg-slate-100">
                                     데이터 필드 (클릭하여 삽입)
                                 </div>
                                 <div className="flex-1 overflow-y-auto no-scrollbar">
