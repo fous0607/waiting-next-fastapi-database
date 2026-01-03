@@ -41,6 +41,71 @@ def check_database(db: Session = Depends(get_db)):
             "traceback": traceback.format_exc()
         }
 
+@router.get("/simulate-login")
+def simulate_login(username: str = None, db: Session = Depends(get_db)):
+    """Simulate login DB access patterns to find the crash"""
+    from models import User, Store
+    import traceback
+    
+    logs = []
+    def log(msg):
+        logs.append(msg)
+        
+    try:
+        log("Starting simulation...")
+        
+        # 1. Get User
+        if username:
+            user = db.query(User).filter(User.username == username).first()
+        else:
+            user = db.query(User).first()
+            if user:
+                username = user.username
+            
+        if not user:
+            return {"status": "failed", "detail": "No user found in DB", "logs": logs}
+            
+        log(f"Found user: {user.username}, Role: {user.role}, Active: {user.is_active}")
+        
+        # 2. Access Store
+        log("Accessing user.store...")
+        if user.store:
+            log(f"Store: {user.store.name} (Active: {user.store.is_active})")
+        else:
+            log("No store linked")
+            
+        # 3. Access Managed Stores (if any)
+        log("Accessing user.managed_stores...")
+        try:
+             # Just iterate to trigger lazy load
+            count = len(user.managed_stores)
+            log(f"Managed Stores Count: {count}")
+        except Exception as e:
+            log(f"Error accessing managed_stores: {str(e)}")
+            raise e
+            
+        # 4. Check DateTimes (often issue with SQLite vs Postgres)
+        log("Checking timestamps...")
+        log(f"Created: {user.created_at}")
+        
+        return {
+            "status": "success",
+            "message": "User fetched and relationships accessed safely",
+            "logs": logs,
+            "user_info": {
+                "id": user.id,
+                "username": user.username
+            }
+        }
+        
+    except Exception as e:
+        return {
+            "status": "error",
+            "detail": str(e),
+            "traceback": traceback.format_exc(),
+            "logs": logs
+        }
+
 @router.get("/schema/{table_name}")
 def get_table_schema(table_name: str):
     """Get schema for a specific table"""
