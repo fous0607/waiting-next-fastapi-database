@@ -50,6 +50,7 @@ from routers import (
     public, # Public Router (QR/Mobile)
     tts, # Google Cloud TTS Router
     printer_queue, # Printer Queue Router
+    templates, # Print Template Router
 )
 from core.logger import logger
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -79,7 +80,6 @@ Base.metadata.create_all(bind=engine)
 
 # 정적 파일 및 템플릿 설정
 app.mount("/static", StaticFiles(directory="static"), name="static")
-app.mount("/static", StaticFiles(directory="static"), name="static")
 # templates = Jinja2Templates(directory="templates")
 
 from create_initial_superuser import create_initial_superuser
@@ -106,8 +106,7 @@ async def startup_event():
         check_and_migrate_table(SettingsSnapshot)
         check_and_migrate_table(Notice)
         check_and_migrate_table(NoticeAttachment)
-        check_and_migrate_table(Notice)
-        check_and_migrate_table(NoticeAttachment)
+        check_and_migrate_table(PrintTemplate) # Auto-migrate new table
         
         # Ensure TTS cache directory exists
         from services.tts_service import TTS_CACHE_DIR
@@ -169,6 +168,7 @@ app.include_router(polling.router, prefix="/api/polling", tags=["Polling Optimiz
 app.include_router(public.router, prefix="/api/public", tags=["Public Access"])
 app.include_router(tts.router, prefix="/api/tts", tags=["Text to Speech"])
 app.include_router(printer_queue.router, prefix="/api/printer", tags=["Printer Queue"])
+app.include_router(templates.router, prefix="/api/templates", tags=["Print Templates"])
 
 
 @app.get("/")

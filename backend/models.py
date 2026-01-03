@@ -425,5 +425,20 @@ class NoticeAttachment(Base):
     file_type = Column(String, nullable=False)  # MIME type
     created_at = Column(DateTime, default=func.now())
 
+
+
+class PrintTemplate(Base):
+    """출력 양식 템플릿"""
+    __tablename__ = "print_templates"
+
+    id = Column(Integer, primary_key=True, index=True)
+    store_id = Column(Integer, ForeignKey("store.id"), nullable=False, index=True)
+    name = Column(String, nullable=False)
+    content = Column(String, nullable=False) # Template content with placeholders
+    template_type = Column(String, default="waiting_ticket") # waiting_ticket, receipt
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+
     # Relationships
-    notice = relationship("Notice", back_populates="attachments")
+    store = relationship("Store", backref="print_templates")
