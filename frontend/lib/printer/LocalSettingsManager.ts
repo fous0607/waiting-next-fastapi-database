@@ -11,8 +11,11 @@ export interface SavedPrinterProfile {
 export interface LocalDeviceSettings {
     useLocalSettings: boolean;
     proxyIp?: string;
+    proxyPort?: number;
     printerIp?: string;
     printerPort?: number;
+    proxyUnitId?: number;
+    printerUnitId?: number;
     profiles?: SavedPrinterProfile[];
 }
 

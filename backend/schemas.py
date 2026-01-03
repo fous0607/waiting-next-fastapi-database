@@ -702,3 +702,44 @@ class NoticeResponse(BaseModel):
     
     class Config:
         from_attributes = True
+# Proxy & Printer Unit Schemas
+class ProxyUnitBase(BaseModel):
+    name: str
+    ip: str
+    port: int = 8000
+    description: Optional[str] = None
+    is_active: bool = True
+
+class ProxyUnitCreate(ProxyUnitBase):
+    pass
+
+class ProxyUnit(ProxyUnitBase):
+    id: int
+    store_id: int
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class PrinterUnitBase(BaseModel):
+    name: str
+    ip: Optional[str] = None
+    port: int = 9100
+    connection_type: str = "lan"
+    model_name: Optional[str] = None
+    is_active: bool = True
+
+class PrinterUnitCreate(PrinterUnitBase):
+    pass
+
+class PrinterUnit(PrinterUnitBase):
+    id: int
+    store_id: int
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class UnitRegistryResponse(BaseModel):
+    proxies: List[ProxyUnit]
+    printers: List[PrinterUnit]

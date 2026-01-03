@@ -148,7 +148,7 @@ export class PrinterService {
      * Tablet sends job to Backend -> Backend Queues it -> PC Proxy Polls and Prints.
      * This avoids Mixed Content and Network Addressing issues.
      */
-    async printLan(ip: string, port: number, data: Uint8Array, proxyIp: string = 'localhost'): Promise<void> {
+    async printLan(ip: string, printerPort: number, data: Uint8Array, proxyIp: string = 'localhost', proxyPort: number = 8000): Promise<void> {
         // Prepare Data
         const dataArray = Array.from(data);
 
@@ -157,7 +157,7 @@ export class PrinterService {
         if (cleanIp.includes(':')) cleanIp = cleanIp.split(':')[0];
         if (!cleanIp) throw new Error('프록시 IP 주소가 올바르지 않습니다.');
 
-        const proxyUrl = `http://${cleanIp}:8000/print`;
+        const proxyUrl = `http://${cleanIp}:${proxyPort}/print`;
 
         // Check Mixed Content for warning
         if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
@@ -183,7 +183,7 @@ export class PrinterService {
                     },
                     body: JSON.stringify({
                         ip: ip,
-                        port: port,
+                        port: printerPort,
                         data: dataArray
                     })
                 });
@@ -244,7 +244,7 @@ export class PrinterService {
             if (!targetPrinterIp) throw new Error('IP Address is required for LAN printing');
 
             // Pass effective IPs to printLan
-            return this.printLan(targetPrinterIp, config.port || 9100, data, targetProxyIp);
+            return this.printLan(targetPrinterIp, config.port || 9100, data, targetProxyIp, localSettings.proxyPort || 8000);
         }
     }
 }

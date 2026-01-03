@@ -20,9 +20,8 @@ load_env_file()
 
 from database import engine, Base
 from models import (
-    Franchise, Holiday, Store, User, StoreSettings, DailyClosing, 
-    ClassInfo, Member, WaitingList, ClassClosure, WaitingHistory, 
-    AuditLog, SettingsSnapshot, Notice, NoticeAttachment, PrintTemplate
+    AuditLog, SettingsSnapshot, Notice, NoticeAttachment, PrintTemplate,
+    ProxyUnit, PrinterUnit
 )
 
 from routers import (
@@ -51,6 +50,7 @@ from routers import (
     tts, # Google Cloud TTS Router
     printer_queue, # Printer Queue Router
     templates, # Print Template Router
+    printer_units, # New Proxy/Printer Units Registry Router
     debug, # DEBUG ROUTER
 )
 from core.logger import logger
@@ -108,6 +108,8 @@ async def startup_event():
         check_and_migrate_table(Notice)
         check_and_migrate_table(NoticeAttachment)
         check_and_migrate_table(PrintTemplate) # Auto-migrate new table
+        check_and_migrate_table(ProxyUnit)
+        check_and_migrate_table(PrinterUnit)
         
         # Ensure TTS cache directory exists
         from services.tts_service import TTS_CACHE_DIR
@@ -170,6 +172,7 @@ app.include_router(public.router, prefix="/api/public", tags=["Public Access"])
 app.include_router(tts.router, prefix="/api/tts", tags=["Text to Speech"])
 app.include_router(printer_queue.router, prefix="/api/printer", tags=["Printer Queue"])
 app.include_router(templates.router, prefix="/api/templates", tags=["Print Templates"])
+app.include_router(printer_units.router, prefix="/api")
 app.include_router(debug.router, prefix="/api/debug", tags=["Debug"])
 
 

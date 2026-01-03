@@ -4,7 +4,7 @@ import QRCode from 'react-qr-code';
 import { useEffect, useState } from 'react';
 import { QRPrintModal } from './QRPrintModal';
 import { TestPrintButton } from './TestPrintButton';
-import { Loader2, Copy, Check, ClipboardList, XCircle, UserPlus, Pencil } from 'lucide-react';
+import { Loader2, Copy, Check, ClipboardList, XCircle, UserPlus, Pencil, Plus, Trash2, Globe, Printer } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -147,6 +147,22 @@ const settingsSchema = z.object({
 
 type SettingsFormValues = z.infer<typeof settingsSchema>;
 
+interface ProxyUnit {
+    id: number;
+    name: string;
+    ip: string;
+    port: number;
+    description?: string;
+}
+
+interface PrinterUnit {
+    id: number;
+    name: string;
+    ip?: string;
+    port: number;
+    connection_type: string;
+}
+
 export function GeneralSettings() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(true);
@@ -159,6 +175,16 @@ export function GeneralSettings() {
     const [profileProxy, setProfileProxy] = useState('');
     const [profilePrinter, setProfilePrinter] = useState('');
     const [editingProfileId, setEditingProfileId] = useState<string | null>(null);
+
+    // Unit Registry State
+    const [proxyUnits, setProxyUnits] = useState<ProxyUnit[]>([]);
+    const [printerUnits, setPrinterUnits] = useState<PrinterUnit[]>([]);
+    const [isLoadingUnits, setIsLoadingUnits] = useState(false);
+
+    // New Unit Form State
+    const [newProxy, setNewProxy] = useState({ name: '', ip: '', port: 8000 });
+    const [newPrinter, setNewPrinter] = useState({ name: '', ip: '', port: 9100, connection_type: 'lan' });
+
 
     useEffect(() => {
         setLocalSettings(LocalSettingsManager.getSettings());
@@ -397,6 +423,76 @@ export function GeneralSettings() {
             speakCall({ class_order: 1, display_name: '홍길동', class_name: '테스트교시' });
         }
     };
+
+    const fetchUnits = async () => {
+        setIsLoadingUnits(true);
+        try {
+            const { data } = await api.get('/printer-units/');
+            setProxyUnits(data.proxies);
+            setPrinterUnits(data.printers);
+        } catch (error) {
+            console.error('Failed to fetch units:', error);
+        } finally {
+            setIsLoadingUnits(false);
+        }
+    };
+
+    const handleAddProxy = async () => {
+        if (!newProxy.name || !newProxy.ip) {
+            toast.error('이름과 IP를 입력해주세요.');
+            return;
+        }
+        try {
+            await api.post('/printer-units/proxies', newProxy);
+            setNewProxy({ name: '', ip: '', port: 8000 });
+            fetchUnits();
+            toast.success('프록시가 등록되었습니다.');
+        } catch (error) {
+            toast.error('프록시 등록 실패');
+        }
+    };
+
+    const handleDeleteProxy = async (id: number) => {
+        if (!confirm('정말 삭제하시겠습니까?')) return;
+        try {
+            await api.delete(`/printer-units/proxies/${id}`);
+            fetchUnits();
+            toast.success('프록시가 삭제되었습니다.');
+        } catch (error) {
+            toast.error('삭제 실패');
+        }
+    };
+
+    const handleAddPrinter = async () => {
+        if (!newPrinter.name) {
+            toast.error('이름을 입력해주세요.');
+            return;
+        }
+        try {
+            await api.post('/printer-units/printers', newPrinter);
+            setNewPrinter({ name: '', ip: '', port: 9100, connection_type: 'lan' });
+            fetchUnits();
+            toast.success('프린터가 등록되었습니다.');
+        } catch (error) {
+            toast.error('프린터 등록 실패');
+        }
+    };
+
+    const handleDeletePrinter = async (id: number) => {
+        if (!confirm('정말 삭제하시겠습니까?')) return;
+        try {
+            await api.delete(`/printer-units/printers/${id}`);
+            fetchUnits();
+            toast.success('프린터가 삭제되었습니다.');
+        } catch (error) {
+            toast.error('삭제 실패');
+        }
+    };
+
+    useEffect(() => {
+        fetchUnits();
+    }, []);
+
 
     return (
         <Form {...form}>
@@ -1118,14 +1214,93 @@ export function GeneralSettings() {
                                         </div>
 
                                         <div className="mt-8 pt-6 border-t border-slate-200">
+                                            <div className="mb-8 border-b pb-8">
+                                                <h4 className="text-base font-bold text-slate-800 flex items-center gap-2 mb-4">
+                                                    <Globe className="w-5 h-5 text-blue-600" /> 매장 장치 레지스트리 (중앙 관리)
+                                                </h4>
+                                                <p className="text-sm text-slate-500 mb-6 font-medium bg-blue-50 p-3 rounded-lg border border-blue-100">
+                                                    매장에서 사용하는 모든 중계기(Proxy)와 프린터를 여기에 등록하세요. 등록된 장치는 모든 기기에서 선택하여 사용할 수 있습니다.
+                                                </p>
+
+                                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                                    {/* Proxy Registry UI */}
+                                                    <div className="space-y-4">
+                                                        <h5 className="text-sm font-bold flex items-center gap-2 text-slate-700">
+                                                            <Globe className="w-4 h-4" /> 중계기(Proxy) 목록
+                                                        </h5>
+                                                        <div className="space-y-2 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
+                                                            {proxyUnits.map(p => (
+                                                                <div key={p.id} className="flex items-center justify-between p-3 bg-white border rounded-lg shadow-sm">
+                                                                    <div>
+                                                                        <div className="font-bold text-slate-800">{p.name}</div>
+                                                                        <div className="text-xs text-slate-500 font-mono">{p.ip}:{p.port}</div>
+                                                                    </div>
+                                                                    <Button variant="ghost" size="icon" onClick={() => handleDeleteProxy(p.id)} className="text-red-400 hover:text-red-600">
+                                                                        <Trash2 className="w-4 h-4" />
+                                                                    </Button>
+                                                                </div>
+                                                            ))}
+                                                            {proxyUnits.length === 0 && <div className="text-center py-4 border-dashed border-2 rounded-lg text-slate-300 text-xs text-sm">등록된 중계기가 없습니다.</div>}
+                                                        </div>
+                                                        <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+                                                            <div className="grid grid-cols-2 gap-2">
+                                                                <Input placeholder="이름 (예: 메인 PC)" value={newProxy.name} onChange={e => setNewProxy({ ...newProxy, name: e.target.value })} className="h-9 text-xs" />
+                                                                <Input placeholder="IP (예: 192.168.0.5)" value={newProxy.ip} onChange={e => setNewProxy({ ...newProxy, ip: e.target.value })} className="h-9 text-xs font-mono" />
+                                                            </div>
+                                                            <Button variant="secondary" onClick={handleAddProxy} className="w-full h-9 text-xs font-bold" size="sm">
+                                                                <Plus className="w-4 h-4 mr-1" /> 중계기 추가
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Printer Registry UI */}
+                                                    <div className="space-y-4">
+                                                        <h5 className="text-sm font-bold flex items-center gap-2 text-slate-700">
+                                                            <Printer className="w-4 h-4" /> 프린터 목록
+                                                        </h5>
+                                                        <div className="space-y-2 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
+                                                            {printerUnits.map(p => (
+                                                                <div key={p.id} className="flex items-center justify-between p-3 bg-white border rounded-lg shadow-sm">
+                                                                    <div>
+                                                                        <div className="font-bold text-slate-800">{p.name}</div>
+                                                                        <div className="text-xs text-slate-500 font-mono">
+                                                                            {p.connection_type === 'lan' ? `LAN: ${p.ip}:${p.port}` : 'Bluetooth'}
+                                                                        </div>
+                                                                    </div>
+                                                                    <Button variant="ghost" size="icon" onClick={() => handleDeletePrinter(p.id)} className="text-red-400 hover:text-red-600">
+                                                                        <Trash2 className="w-4 h-4" />
+                                                                    </Button>
+                                                                </div>
+                                                            ))}
+                                                            {printerUnits.length === 0 && <div className="text-center py-4 border-dashed border-2 rounded-lg text-slate-300 text-xs text-sm">등록된 프린터가 없습니다.</div>}
+                                                        </div>
+                                                        <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+                                                            <Input placeholder="이름 (예: 주방 프린터)" value={newPrinter.name} onChange={e => setNewPrinter({ ...newPrinter, name: e.target.value })} className="h-9 text-xs" />
+                                                            <div className="grid grid-cols-2 gap-2">
+                                                                <Input placeholder="IP (LAN 전용)" disabled={newPrinter.connection_type !== 'lan'} value={newPrinter.ip || ''} onChange={e => setNewPrinter({ ...newPrinter, ip: e.target.value })} className="h-9 text-xs font-mono" />
+                                                                <Select value={newPrinter.connection_type} onValueChange={v => setNewPrinter({ ...newPrinter, connection_type: v })}>
+                                                                    <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
+                                                                    <SelectContent>
+                                                                        <SelectItem value="lan">LAN</SelectItem>
+                                                                        <SelectItem value="bluetooth">Bluetooth</SelectItem>
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            </div>
+                                                            <Button variant="secondary" onClick={handleAddPrinter} className="w-full h-9 text-xs font-bold" size="sm">
+                                                                <Plus className="w-4 h-4 mr-1" /> 프린터 추가
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
                                             <div className="flex items-center justify-between mb-4">
                                                 <div>
                                                     <h4 className="text-base font-bold text-slate-800 flex items-center gap-2">
-                                                        <span className="text-purple-600">★</span> 기기별 프린터/프록시 설정
+                                                        <span className="text-purple-600">★</span> 이 기기(태블릿) 연결 링크 설정
                                                     </h4>
                                                     <p className="text-sm text-slate-500 mt-1">
-                                                        이 태블릿(브라우저)에서 사용할 독립적인 설정을 등록하고 선택하세요.<br />
-                                                        주방용, 카운터용 등 여러 설정을 미리 등록해두고 간편하게 전환할 수 있습니다.
+                                                        현재 사용 중인 이 기기에서 어떤 중계기를 통해 어떤 프린터로 인쇄할지 선택하세요.
                                                     </p>
                                                 </div>
                                                 <Switch
@@ -1137,11 +1312,81 @@ export function GeneralSettings() {
                                             {localSettings.useLocalSettings && (
                                                 <div className="space-y-6 animate-in fade-in slide-in-from-top-2">
 
+                                                    {/* Selection from Registry */}
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        <div className="space-y-2">
+                                                            <Label className="text-xs font-bold text-slate-600">연결할 중계기 선택</Label>
+                                                            <Select
+                                                                value={localSettings.proxyUnitId?.toString() || 'manual'}
+                                                                onValueChange={(val) => {
+                                                                    if (val === 'manual') {
+                                                                        handleLocalSettingChange('proxyUnitId', undefined);
+                                                                    } else {
+                                                                        const id = parseInt(val);
+                                                                        const unit = proxyUnits.find(u => u.id === id);
+                                                                        if (unit) {
+                                                                            const ns = { ...localSettings, proxyUnitId: id, proxyIp: unit.ip, proxyPort: unit.port };
+                                                                            setLocalSettings(ns);
+                                                                            LocalSettingsManager.saveSettings(ns);
+                                                                            toast.success(`중계기 '${unit.name}'가 선택되었습니다.`);
+                                                                        }
+                                                                    }
+                                                                }}
+                                                            >
+                                                                <SelectTrigger className="bg-white">
+                                                                    <SelectValue placeholder="중계기 선택" />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    <SelectItem value="manual">직접 입력 (Legacy)</SelectItem>
+                                                                    {proxyUnits.map(u => (
+                                                                        <SelectItem key={u.id} value={u.id.toString()}>{u.name} ({u.ip})</SelectItem>
+                                                                    ))}
+                                                                </SelectContent>
+                                                            </Select>
+                                                        </div>
+
+                                                        <div className="space-y-2">
+                                                            <Label className="text-xs font-bold text-slate-600">연결할 프린터 선택</Label>
+                                                            <Select
+                                                                value={localSettings.printerUnitId?.toString() || 'manual'}
+                                                                onValueChange={(val) => {
+                                                                    if (val === 'manual') {
+                                                                        handleLocalSettingChange('printerUnitId', undefined);
+                                                                    } else {
+                                                                        const id = parseInt(val);
+                                                                        const unit = printerUnits.find(u => u.id === id);
+                                                                        if (unit) {
+                                                                            const ns = {
+                                                                                ...localSettings,
+                                                                                printerUnitId: id,
+                                                                                printerIp: unit.ip,
+                                                                                printerPort: unit.port
+                                                                            };
+                                                                            setLocalSettings(ns);
+                                                                            LocalSettingsManager.saveSettings(ns);
+                                                                            toast.success(`프린터 '${unit.name}'가 선택되었습니다.`);
+                                                                        }
+                                                                    }
+                                                                }}
+                                                            >
+                                                                <SelectTrigger className="bg-white">
+                                                                    <SelectValue placeholder="프린터 선택" />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    <SelectItem value="manual">직접 입력 (Legacy)</SelectItem>
+                                                                    {printerUnits.map(u => (
+                                                                        <SelectItem key={u.id} value={u.id.toString()}>{u.name} {u.ip ? `(${u.ip})` : '(Bluetooth)'}</SelectItem>
+                                                                    ))}
+                                                                </SelectContent>
+                                                            </Select>
+                                                        </div>
+                                                    </div>
+
                                                     {/* Active Settings Display */}
                                                     <div className="bg-purple-50 p-4 rounded-xl border border-purple-200">
                                                         <div className="flex items-center gap-2 mb-3">
                                                             <Check className="w-5 h-5 text-purple-600" />
-                                                            <span className="font-bold text-purple-900">현재 적용된 설정</span>
+                                                            <span className="font-bold text-purple-900">현재 적용된 설정 (Snapshot)</span>
                                                         </div>
                                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                             <div className="bg-white p-3 rounded-lg border border-purple-100 shadow-sm">
@@ -1153,7 +1398,7 @@ export function GeneralSettings() {
                                                             <div className="bg-white p-3 rounded-lg border border-purple-100 shadow-sm">
                                                                 <Label className="text-xs font-semibold text-slate-500 block mb-1">목표 프린터 IP</Label>
                                                                 <div className="font-mono text-lg font-bold text-slate-800">
-                                                                    {localSettings.printerIp || <span className="text-gray-300">미설정</span>}
+                                                                    {localSettings.printerIp || <span className="text-gray-300">미설정 (LAN)</span>}
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -1206,7 +1451,7 @@ export function GeneralSettings() {
                                                                                 ? "적용됨" : "적용하기"
                                                                             }
                                                                         </Button>
-                                                                        
+
                                                                         {/* Edit Button */}
                                                                         <Button
                                                                             variant="ghost"
@@ -1312,10 +1557,10 @@ export function GeneralSettings() {
 
                                                                             if (editingProfileId) {
                                                                                 // Update existing
-                                                                                newProfiles = currentProfiles.map(p => 
-                                                                                    p.id === editingProfileId 
-                                                                                    ? { ...p, name: profileName, proxyIp: profileProxy, printerIp: profilePrinter }
-                                                                                    : p
+                                                                                newProfiles = currentProfiles.map(p =>
+                                                                                    p.id === editingProfileId
+                                                                                        ? { ...p, name: profileName, proxyIp: profileProxy, printerIp: profilePrinter }
+                                                                                        : p
                                                                                 );
                                                                                 toast.success("설정이 수정되었습니다.");
                                                                                 setEditingProfileId(null);
@@ -1332,7 +1577,7 @@ export function GeneralSettings() {
                                                                             }
 
                                                                             handleLocalSettingChange('profiles', newProfiles);
-                                                                            
+
                                                                             // Reset inputs
                                                                             setProfileName('');
                                                                             setProfileProxy('');
@@ -1362,7 +1607,7 @@ export function GeneralSettings() {
                                         </div>
                                     </div>
                                 )}
-                                    </div>
+                            </div>
                         </AccordionContent>
                     </AccordionItem>
 

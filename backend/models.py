@@ -61,6 +61,8 @@ class Store(Base):
     franchise = relationship("Franchise", back_populates="stores")
     users = relationship("User", back_populates="store", foreign_keys="User.store_id")
     store_settings = relationship("StoreSettings", back_populates="store")
+    printer_units = relationship("PrinterUnit", back_populates="store", cascade="all, delete-orphan")
+    proxy_units = relationship("ProxyUnit", back_populates="store", cascade="all, delete-orphan")
     daily_closings = relationship("DailyClosing", back_populates="store")
     classes = relationship("ClassInfo", back_populates="store")
     members = relationship("Member", back_populates="store")
@@ -446,3 +448,36 @@ class PrintTemplate(Base):
 
     # Relationships
     store = relationship("Store", backref="print_templates")
+
+class ProxyUnit(Base):
+    """중계기(Proxy) 장치 레지스트리"""
+    __tablename__ = "proxy_units"
+
+    id = Column(Integer, primary_key=True, index=True)
+    store_id = Column(Integer, ForeignKey("store.id"), nullable=False, index=True)
+    name = Column(String, nullable=False) # 장치 별칭 (예: 카운터 PC)
+    ip = Column(String, nullable=False) # IP 주소 또는 localhost
+    port = Column(Integer, default=8000)
+    description = Column(String, nullable=True)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+
+    store = relationship("Store", back_populates="proxy_units")
+
+class PrinterUnit(Base):
+    """프린터(Printer) 장치 레지스트리"""
+    __tablename__ = "printer_units"
+
+    id = Column(Integer, primary_key=True, index=True)
+    store_id = Column(Integer, ForeignKey("store.id"), nullable=False, index=True)
+    name = Column(String, nullable=False) # 장치 별칭 (예: 주방 프린터)
+    ip = Column(String, nullable=True) # LAN 프린터 IP
+    port = Column(Integer, default=9100)
+    connection_type = Column(String, default="lan") # lan, bluetooth
+    model_name = Column(String, nullable=True)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+
+    store = relationship("Store", back_populates="printer_units")
