@@ -15,8 +15,22 @@ def get_units(
     if not current_user.store_id:
         raise HTTPException(status_code=400, detail="User not assigned to a store")
     
-    proxies = db.query(models.ProxyUnit).filter(models.ProxyUnit.store_id == current_user.store_id).all()
-    printers = db.query(models.PrinterUnit).filter(models.PrinterUnit.store_id == current_user.store_id).all()
+    try:
+        proxies = db.query(models.ProxyUnit).filter(models.ProxyUnit.store_id == current_user.store_id).all()
+        printers = db.query(models.PrinterUnit).filter(models.PrinterUnit.store_id == current_user.store_id).all()
+    except Exception as e:
+        db.rollback()
+        # 자동 마이그레이션 시도
+        try:
+            from core.db_auto_migrator import check_and_migrate_table
+            check_and_migrate_table(models.ProxyUnit)
+            check_and_migrate_table(models.PrinterUnit)
+            
+            proxies = db.query(models.ProxyUnit).filter(models.ProxyUnit.store_id == current_user.store_id).all()
+            printers = db.query(models.PrinterUnit).filter(models.PrinterUnit.store_id == current_user.store_id).all()
+        except Exception as migrate_error:
+            # 최종 실패 시 빈 목록 반환하여 500 방지
+            return {"proxies": [], "printers": []}
     
     return {"proxies": proxies, "printers": printers}
 

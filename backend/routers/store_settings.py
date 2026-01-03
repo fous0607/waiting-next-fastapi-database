@@ -47,192 +47,194 @@ def get_safe_store_settings(db: Session, store_id: int):
         settings = db.query(StoreSettings).filter(
             StoreSettings.store_id == store_id
         ).first()
-    except (OperationalError, ProgrammingError):
-        # Fallback if new column hasn't been migrated yet
+    except Exception as general_error:
+        # Fallback for ANY error (missing columns, migration issues, etc.)
         db.rollback()
         
         # 1차 시도: 자동 마이그레이션 실행
         try:
             from core.db_auto_migrator import check_and_migrate_table
             check_and_migrate_table(StoreSettings)
-        except Exception as e:
-            # 마이그레이션 실패하더라도 계속 진행 (defer 사용)
+        except Exception:
             pass
 
-        settings = db.query(StoreSettings).options(
-            defer(StoreSettings.attendance_count_type),
-            defer(StoreSettings.attendance_lookback_days),
-            defer(StoreSettings.show_waiting_number),
-            defer(StoreSettings.mask_customer_name),
-            defer(StoreSettings.name_display_length),
-            defer(StoreSettings.show_order_number),
-            defer(StoreSettings.board_display_order),
-            defer(StoreSettings.board_display_template),
-            defer(StoreSettings.enable_privacy_masking),
-            defer(StoreSettings.manager_font_family),
-            defer(StoreSettings.manager_font_size),
-            defer(StoreSettings.board_font_family),
-            defer(StoreSettings.board_font_size),
-            defer(StoreSettings.keypad_style),
-            defer(StoreSettings.keypad_font_size),
-            defer(StoreSettings.keypad_sound_enabled),
-            defer(StoreSettings.keypad_sound_type),
-            defer(StoreSettings.daily_opening_rule),
-            defer(StoreSettings.enable_revisit_badge),
-            defer(StoreSettings.revisit_period_days),
-            defer(StoreSettings.revisit_badge_style),
-            defer(StoreSettings.waiting_modal_timeout),
-            defer(StoreSettings.show_member_name_in_waiting_modal),
-            defer(StoreSettings.show_new_member_text_in_waiting_modal),
-            defer(StoreSettings.enable_waiting_voice_alert),
-            defer(StoreSettings.enable_calling_voice_alert),
-            defer(StoreSettings.waiting_voice_message),
-            defer(StoreSettings.waiting_voice_name),
-            defer(StoreSettings.waiting_voice_rate),
-            defer(StoreSettings.waiting_voice_pitch),
-            defer(StoreSettings.manager_button_size),
-            defer(StoreSettings.waiting_manager_max_width),
-            defer(StoreSettings.waiting_list_box_size),
-            defer(StoreSettings.waiting_board_page_size),
-            defer(StoreSettings.waiting_board_rotation_interval),
-            defer(StoreSettings.waiting_board_transition_effect),
-            defer(StoreSettings.theme),
-            defer(StoreSettings.default_class_minute),
-            defer(StoreSettings.default_break_minute),
-            defer(StoreSettings.default_max_capacity),
-            defer(StoreSettings.require_member_registration),
-            defer(StoreSettings.registration_message),
-            defer(StoreSettings.max_dashboard_connections),
-            defer(StoreSettings.dashboard_connection_policy),
-            defer(StoreSettings.sequential_closing),
-            defer(StoreSettings.business_start_time),
-            defer(StoreSettings.business_end_time),
-            defer(StoreSettings.enable_break_time),
-            defer(StoreSettings.break_start_time),
-            defer(StoreSettings.break_end_time),
-            defer(StoreSettings.operation_type),
-            defer(StoreSettings.detail_mode),
-            defer(StoreSettings.enable_party_size),
-            defer(StoreSettings.enable_menu_ordering),
-            defer(StoreSettings.party_size_config),
-            defer(StoreSettings.screen_configs),
-            defer(StoreSettings.auto_register_member),
-            defer(StoreSettings.business_day_start),
-            defer(StoreSettings.auto_closing),
-            defer(StoreSettings.closing_action),
-            defer(StoreSettings.show_program_notices),
-            defer(StoreSettings.enable_printer),
-            defer(StoreSettings.printer_connection_type),
-            defer(StoreSettings.printer_connection_mode),
-            defer(StoreSettings.printer_ip_address),
-            defer(StoreSettings.printer_proxy_ip),
-            defer(StoreSettings.printer_port),
-            defer(StoreSettings.auto_print_registration),
-            defer(StoreSettings.printer_qr_size),
-            defer(StoreSettings.enable_printer_qr),
-            defer(StoreSettings.manager_calling_voice_message),
-            defer(StoreSettings.enable_manager_calling_voice_alert),
-            defer(StoreSettings.enable_manager_entry_voice_alert),
-            defer(StoreSettings.manager_entry_voice_message),
-            defer(StoreSettings.waiting_call_voice_message),
-            defer(StoreSettings.waiting_call_voice_repeat_count),
-            defer(StoreSettings.enable_duplicate_registration_voice),
-            defer(StoreSettings.duplicate_registration_voice_message),
-            defer(StoreSettings.calling_status_display_second),
-            defer(StoreSettings.enable_franchise_monitoring)
-        ).filter(
-            StoreSettings.store_id == store_id
-        ).first()
+        try:
+            settings = db.query(StoreSettings).options(
+                defer(StoreSettings.attendance_count_type),
+                defer(StoreSettings.attendance_lookback_days),
+                defer(StoreSettings.show_waiting_number),
+                defer(StoreSettings.mask_customer_name),
+                defer(StoreSettings.name_display_length),
+                defer(StoreSettings.show_order_number),
+                defer(StoreSettings.board_display_order),
+                defer(StoreSettings.board_display_template),
+                defer(StoreSettings.enable_privacy_masking),
+                defer(StoreSettings.manager_font_family),
+                defer(StoreSettings.manager_font_size),
+                defer(StoreSettings.board_font_family),
+                defer(StoreSettings.board_font_size),
+                defer(StoreSettings.keypad_style),
+                defer(StoreSettings.keypad_font_size),
+                defer(StoreSettings.keypad_sound_enabled),
+                defer(StoreSettings.keypad_sound_type),
+                defer(StoreSettings.daily_opening_rule),
+                defer(StoreSettings.enable_revisit_badge),
+                defer(StoreSettings.revisit_period_days),
+                defer(StoreSettings.revisit_badge_style),
+                defer(StoreSettings.waiting_modal_timeout),
+                defer(StoreSettings.show_member_name_in_waiting_modal),
+                defer(StoreSettings.show_new_member_text_in_waiting_modal),
+                defer(StoreSettings.enable_waiting_voice_alert),
+                defer(StoreSettings.enable_calling_voice_alert),
+                defer(StoreSettings.waiting_voice_message),
+                defer(StoreSettings.waiting_voice_name),
+                defer(StoreSettings.waiting_voice_rate),
+                defer(StoreSettings.waiting_voice_pitch),
+                defer(StoreSettings.manager_button_size),
+                defer(StoreSettings.waiting_manager_max_width),
+                defer(StoreSettings.waiting_list_box_size),
+                defer(StoreSettings.waiting_board_page_size),
+                defer(StoreSettings.waiting_board_rotation_interval),
+                defer(StoreSettings.waiting_board_transition_effect),
+                defer(StoreSettings.theme),
+                defer(StoreSettings.default_class_minute),
+                defer(StoreSettings.default_break_minute),
+                defer(StoreSettings.default_max_capacity),
+                defer(StoreSettings.require_member_registration),
+                defer(StoreSettings.registration_message),
+                defer(StoreSettings.max_dashboard_connections),
+                defer(StoreSettings.dashboard_connection_policy),
+                defer(StoreSettings.sequential_closing),
+                defer(StoreSettings.business_start_time),
+                defer(StoreSettings.business_end_time),
+                defer(StoreSettings.enable_break_time),
+                defer(StoreSettings.break_start_time),
+                defer(StoreSettings.break_end_time),
+                defer(StoreSettings.operation_type),
+                defer(StoreSettings.detail_mode),
+                defer(StoreSettings.enable_party_size),
+                defer(StoreSettings.enable_menu_ordering),
+                defer(StoreSettings.party_size_config),
+                defer(StoreSettings.screen_configs),
+                defer(StoreSettings.auto_register_member),
+                defer(StoreSettings.business_day_start),
+                defer(StoreSettings.auto_closing),
+                defer(StoreSettings.closing_action),
+                defer(StoreSettings.show_program_notices),
+                defer(StoreSettings.enable_printer),
+                defer(StoreSettings.printer_connection_type),
+                defer(StoreSettings.printer_connection_mode),
+                defer(StoreSettings.printer_ip_address),
+                defer(StoreSettings.printer_proxy_ip),
+                defer(StoreSettings.printer_port),
+                defer(StoreSettings.auto_print_registration),
+                defer(StoreSettings.printer_qr_size),
+                defer(StoreSettings.enable_printer_qr),
+                defer(StoreSettings.manager_calling_voice_message),
+                defer(StoreSettings.enable_manager_calling_voice_alert),
+                defer(StoreSettings.enable_manager_entry_voice_alert),
+                defer(StoreSettings.manager_entry_voice_message),
+                defer(StoreSettings.waiting_call_voice_message),
+                defer(StoreSettings.waiting_call_voice_repeat_count),
+                defer(StoreSettings.enable_duplicate_registration_voice),
+                defer(StoreSettings.duplicate_registration_voice_message),
+                defer(StoreSettings.calling_status_display_second),
+                defer(StoreSettings.enable_franchise_monitoring)
+            ).filter(
+                StoreSettings.store_id == store_id
+            ).first()
 
-        if settings:
-            def set_default(obj, field, default_val):
-                try:
-                    val = getattr(obj, field)
-                    if val is None:
+            if settings:
+                def set_default(obj, field, default_val):
+                    try:
+                        val = getattr(obj, field)
+                        if val is None:
+                            setattr(obj, field, default_val)
+                    except (AttributeError, Exception):
                         setattr(obj, field, default_val)
-                except (AttributeError, Exception):
-                    setattr(obj, field, default_val)
 
-            set_default(settings, 'attendance_count_type', 'days')
-            set_default(settings, 'attendance_lookback_days', 30)
-            set_default(settings, 'show_waiting_number', True)
-            set_default(settings, 'mask_customer_name', False)
-            set_default(settings, 'name_display_length', 0)
-            set_default(settings, 'show_order_number', True)
-            set_default(settings, 'board_display_order', "number,name,order")
-            set_default(settings, 'board_display_template', "{이름}")
-            set_default(settings, 'enable_privacy_masking', False)
-            set_default(settings, 'manager_font_family', "Nanum Gothic")
-            set_default(settings, 'manager_font_size', "15px")
-            set_default(settings, 'board_font_family', "Nanum Gothic")
-            set_default(settings, 'board_font_size', "24px")
-            set_default(settings, 'keypad_style', "modern")
-            set_default(settings, 'keypad_font_size', "large")
-            set_default(settings, 'keypad_sound_enabled', True)
-            set_default(settings, 'keypad_sound_type', "button")
-            set_default(settings, 'daily_opening_rule', "strict")
-            set_default(settings, 'enable_revisit_badge', False)
-            set_default(settings, 'revisit_period_days', 0)
-            set_default(settings, 'revisit_badge_style', "indigo_solid")
-            set_default(settings, 'waiting_modal_timeout', 5)
-            set_default(settings, 'show_member_name_in_waiting_modal', True)
-            set_default(settings, 'show_new_member_text_in_waiting_modal', True)
-            set_default(settings, 'enable_waiting_voice_alert', False)
-            set_default(settings, 'enable_calling_voice_alert', True)
-            set_default(settings, 'waiting_voice_message', "")
-            set_default(settings, 'waiting_voice_name', "유나")
-            set_default(settings, 'waiting_voice_rate', 0.8)
-            set_default(settings, 'waiting_voice_pitch', 1.0)
-            set_default(settings, 'manager_button_size', "medium")
-            set_default(settings, 'waiting_manager_max_width', None)
-            set_default(settings, 'waiting_list_box_size', "medium")
-            set_default(settings, 'waiting_board_page_size', 12)
-            set_default(settings, 'waiting_board_rotation_interval', 5)
-            set_default(settings, 'waiting_board_transition_effect', "slide")
-            set_default(settings, 'theme', "zinc")
-            set_default(settings, 'default_class_minute', 50)
-            set_default(settings, 'default_break_minute', 10)
-            set_default(settings, 'default_max_capacity', 10)
-            set_default(settings, 'require_member_registration', False)
-            set_default(settings, 'registration_message', "처음 방문하셨네요!\n성함을 입력해 주세요.")
-            set_default(settings, 'max_dashboard_connections', 2)
-            set_default(settings, 'dashboard_connection_policy', "eject_old")
-            set_default(settings, 'sequential_closing', False)
-            set_default(settings, 'business_start_time', time(9, 0))
-            set_default(settings, 'business_end_time', time(22, 0))
-            set_default(settings, 'enable_break_time', False)
-            set_default(settings, 'break_start_time', time(12, 0))
-            set_default(settings, 'break_end_time', time(13, 0))
-            set_default(settings, 'operation_type', 'general')
-            set_default(settings, 'detail_mode', 'standard')
-            set_default(settings, 'enable_party_size', False)
-            set_default(settings, 'enable_menu_ordering', False)
-            set_default(settings, 'party_size_config', None)
-            set_default(settings, 'screen_configs', None)
-            set_default(settings, 'auto_register_member', False)
-            set_default(settings, 'business_day_start', 7)
-            set_default(settings, 'auto_closing', True)
-            set_default(settings, 'closing_action', 'reset')
-            set_default(settings, 'show_program_notices', True)
-            set_default(settings, 'enable_printer', False)
-            set_default(settings, 'printer_connection_type', 'lan')
-            set_default(settings, 'printer_connection_mode', 'local_proxy')
-            set_default(settings, 'printer_ip_address', None)
-            set_default(settings, 'printer_proxy_ip', 'localhost')
-            set_default(settings, 'printer_port', 9100)
-            set_default(settings, 'auto_print_registration', True)
-            set_default(settings, 'printer_qr_size', 4)
-            set_default(settings, 'enable_printer_qr', True)
-            set_default(settings, 'manager_calling_voice_message', "{순번}번 {회원명}님, 호출되었습니다.")
-            set_default(settings, 'enable_manager_calling_voice_alert', False)
-            set_default(settings, 'enable_manager_entry_voice_alert', False)
-            set_default(settings, 'manager_entry_voice_message', "{순번}번 {회원명}님, 입장해주세요.")
-            set_default(settings, 'waiting_call_voice_message', "{순번}번 {회원명}님, 데스크로 오시기 바랍니다.")
-            set_default(settings, 'waiting_call_voice_repeat_count', 1)
-            set_default(settings, 'enable_duplicate_registration_voice', False)
-            set_default(settings, 'duplicate_registration_voice_message', "이미 대기 중인 번호입니다.")
-            set_default(settings, 'calling_status_display_second', 60)
-            set_default(settings, 'enable_franchise_monitoring', False)
+                set_default(settings, 'attendance_count_type', 'days')
+                set_default(settings, 'attendance_lookback_days', 30)
+                set_default(settings, 'show_waiting_number', True)
+                set_default(settings, 'mask_customer_name', False)
+                set_default(settings, 'name_display_length', 0)
+                set_default(settings, 'show_order_number', True)
+                set_default(settings, 'board_display_order', "number,name,order")
+                set_default(settings, 'board_display_template', "{이름}")
+                set_default(settings, 'enable_privacy_masking', False)
+                set_default(settings, 'manager_font_family', "Nanum Gothic")
+                set_default(settings, 'manager_font_size', "15px")
+                set_default(settings, 'board_font_family', "Nanum Gothic")
+                set_default(settings, 'board_font_size', "24px")
+                set_default(settings, 'keypad_style', "modern")
+                set_default(settings, 'keypad_font_size', "large")
+                set_default(settings, 'keypad_sound_enabled', True)
+                set_default(settings, 'keypad_sound_type', "button")
+                set_default(settings, 'daily_opening_rule', "strict")
+                set_default(settings, 'enable_revisit_badge', False)
+                set_default(settings, 'revisit_period_days', 0)
+                set_default(settings, 'revisit_badge_style', "indigo_solid")
+                set_default(settings, 'waiting_modal_timeout', 5)
+                set_default(settings, 'show_member_name_in_waiting_modal', True)
+                set_default(settings, 'show_new_member_text_in_waiting_modal', True)
+                set_default(settings, 'enable_waiting_voice_alert', False)
+                set_default(settings, 'enable_calling_voice_alert', True)
+                set_default(settings, 'waiting_voice_message', "")
+                set_default(settings, 'waiting_voice_name', "유나")
+                set_default(settings, 'waiting_voice_rate', 0.8)
+                set_default(settings, 'waiting_voice_pitch', 1.0)
+                set_default(settings, 'manager_button_size', "medium")
+                set_default(settings, 'waiting_manager_max_width', None)
+                set_default(settings, 'waiting_list_box_size', "medium")
+                set_default(settings, 'waiting_board_page_size', 12)
+                set_default(settings, 'waiting_board_rotation_interval', 5)
+                set_default(settings, 'waiting_board_transition_effect', "slide")
+                set_default(settings, 'theme', "zinc")
+                set_default(settings, 'default_class_minute', 50)
+                set_default(settings, 'default_break_minute', 10)
+                set_default(settings, 'default_max_capacity', 10)
+                set_default(settings, 'require_member_registration', False)
+                set_default(settings, 'registration_message', "처음 방문하셨네요!\n성함을 입력해 주세요.")
+                set_default(settings, 'max_dashboard_connections', 2)
+                set_default(settings, 'dashboard_connection_policy', "eject_old")
+                set_default(settings, 'sequential_closing', False)
+                set_default(settings, 'business_start_time', time(9, 0))
+                set_default(settings, 'business_end_time', time(22, 0))
+                set_default(settings, 'enable_break_time', False)
+                set_default(settings, 'break_start_time', time(12, 0))
+                set_default(settings, 'break_end_time', time(13, 0))
+                set_default(settings, 'operation_type', 'general')
+                set_default(settings, 'detail_mode', 'standard')
+                set_default(settings, 'enable_party_size', False)
+                set_default(settings, 'enable_menu_ordering', False)
+                set_default(settings, 'party_size_config', None)
+                set_default(settings, 'screen_configs', None)
+                set_default(settings, 'auto_register_member', False)
+                set_default(settings, 'business_day_start', 7)
+                set_default(settings, 'auto_closing', True)
+                set_default(settings, 'closing_action', 'reset')
+                set_default(settings, 'show_program_notices', True)
+                set_default(settings, 'enable_printer', False)
+                set_default(settings, 'printer_connection_type', 'lan')
+                set_default(settings, 'printer_connection_mode', 'local_proxy')
+                set_default(settings, 'printer_ip_address', None)
+                set_default(settings, 'printer_proxy_ip', 'localhost')
+                set_default(settings, 'printer_port', 9100)
+                set_default(settings, 'auto_print_registration', True)
+                set_default(settings, 'printer_qr_size', 4)
+                set_default(settings, 'enable_printer_qr', True)
+                set_default(settings, 'manager_calling_voice_message', "{순번}번 {회원명}님, 호출되었습니다.")
+                set_default(settings, 'enable_manager_calling_voice_alert', False)
+                set_default(settings, 'enable_manager_entry_voice_alert', False)
+                set_default(settings, 'manager_entry_voice_message', "{순번}번 {회원명}님, 입장해주세요.")
+                set_default(settings, 'waiting_call_voice_message', "{순번}번 {회원명}님, 데스크로 오시기 바랍니다.")
+                set_default(settings, 'waiting_call_voice_repeat_count', 1)
+                set_default(settings, 'enable_duplicate_registration_voice', False)
+                set_default(settings, 'duplicate_registration_voice_message', "이미 대기 중인 번호입니다.")
+                set_default(settings, 'calling_status_display_second', 60)
+                set_default(settings, 'enable_franchise_monitoring', False)
+        except Exception:
+            return None
 
     return settings
 

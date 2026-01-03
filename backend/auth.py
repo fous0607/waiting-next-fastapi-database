@@ -181,7 +181,17 @@ async def get_current_store(
                 detail="매장 정보가 없습니다"
             )
 
-        store = db.query(Store).filter(Store.id == current_user.store_id).first()
+        try:
+            store = db.query(Store).filter(Store.id == current_user.store_id).first()
+        except Exception:
+            db.rollback()
+            try:
+                from core.db_auto_migrator import check_and_migrate_table
+                check_and_migrate_table(Store)
+                store = db.query(Store).filter(Store.id == current_user.store_id).first()
+            except Exception:
+                store = None
+
         if not store:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
