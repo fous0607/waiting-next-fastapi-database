@@ -212,7 +212,6 @@ class StoreSettings(Base):
     printer_ip_address = Column(String, nullable=True) # Target Printer IP
     printer_proxy_ip = Column(String, default="localhost") # Local Proxy Server IP (for Tablet)
     printer_port = Column(Integer, default=9100)
-    printer_port = Column(Integer, default=9100)
     auto_print_registration = Column(Boolean, default=True)
     printer_qr_size = Column(Integer, default=4) # QR Code Module Size (1-8)
     enable_printer_qr = Column(Boolean, default=True) # QR Code Enable/Disable

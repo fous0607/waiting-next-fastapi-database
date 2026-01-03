@@ -20,6 +20,7 @@ from schemas import (
 )
 from sse_manager import sse_manager
 from utils import get_today_date
+from routers.store_settings import get_safe_store_settings
 
 import logging
 
@@ -184,11 +185,7 @@ async def get_waiting_board(
     today = get_current_business_date(db, current_store.id)
 
     # 매장 설정 조회
-    settings = db.query(StoreSettings).options(
-        defer(StoreSettings.enable_franchise_monitoring)
-    ).filter(
-        StoreSettings.store_id == current_store.id
-    ).first()
+    settings = get_safe_store_settings(db, current_store.id)
     if not settings:
         raise HTTPException(status_code=404, detail="매장 설정을 찾을 수 없습니다.")
 

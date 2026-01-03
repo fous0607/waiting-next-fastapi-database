@@ -17,6 +17,7 @@ from schemas import (
 )
 from sse_manager import sse_manager
 from utils import get_today_date, get_kst_now
+from routers.store_settings import get_safe_store_settings
 
 router = APIRouter()
 
@@ -236,8 +237,7 @@ async def register_waiting(
         raise HTTPException(status_code=400, detail="이미 대기 중인 번호입니다.\n핸드폰번호를 다시 확인하여 주세요.")
 
     # 매장 설정 조회
-    from models import StoreSettings
-    settings = db.query(StoreSettings).filter(StoreSettings.store_id == current_store.id).first()
+    settings = get_safe_store_settings(db, current_store.id)
     
     # 영업 시간 및 브레이크 타임 체크 (관리자 수동 등록은 제외)
     if settings and not waiting.is_admin_registration:
@@ -599,8 +599,7 @@ async def get_next_slot(
     ).scalar()
 
     # Fetch settings
-    from models import StoreSettings
-    settings = db.query(StoreSettings).filter(StoreSettings.store_id == current_store.id).first()
+    settings = get_safe_store_settings(db, current_store.id)
 
     now_time = get_kst_now().time()
     is_business_hours = True

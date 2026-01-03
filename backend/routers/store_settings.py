@@ -37,26 +37,41 @@ async def create_store_settings(
 
     return db_settings
 
-@router.get("", response_model=StoreSettingsSchema)
-async def get_store_settings(
-    current_store: Store = Depends(get_current_store),
-    db: Session = Depends(get_db)
-):
-    """매장 설정 조회"""
+
+def get_safe_store_settings(db: Session, store_id: int):
+    """
+    Safely fetch store settings, deferring potential missing columns in the database.
+    This prevents 500 Internal Server Errors when new columns haven't been migrated yet.
+    """
     try:
         settings = db.query(StoreSettings).filter(
-            StoreSettings.store_id == current_store.id
+            StoreSettings.store_id == store_id
         ).first()
     except (OperationalError, ProgrammingError):
         # Fallback if new column hasn't been migrated yet
         db.rollback()
         settings = db.query(StoreSettings).options(
-            defer(StoreSettings.enable_franchise_monitoring),
-            defer(StoreSettings.manager_button_size),
-            defer(StoreSettings.waiting_manager_max_width),
-            defer(StoreSettings.waiting_list_box_size),
-            
-            # Additional deferred fields to prevent 500 error if DB is outdated
+            defer(StoreSettings.attendance_count_type),
+            defer(StoreSettings.attendance_lookback_days),
+            defer(StoreSettings.show_waiting_number),
+            defer(StoreSettings.mask_customer_name),
+            defer(StoreSettings.name_display_length),
+            defer(StoreSettings.show_order_number),
+            defer(StoreSettings.board_display_order),
+            defer(StoreSettings.board_display_template),
+            defer(StoreSettings.enable_privacy_masking),
+            defer(StoreSettings.manager_font_family),
+            defer(StoreSettings.manager_font_size),
+            defer(StoreSettings.board_font_family),
+            defer(StoreSettings.board_font_size),
+            defer(StoreSettings.keypad_style),
+            defer(StoreSettings.keypad_font_size),
+            defer(StoreSettings.keypad_sound_enabled),
+            defer(StoreSettings.keypad_sound_type),
+            defer(StoreSettings.daily_opening_rule),
+            defer(StoreSettings.enable_revisit_badge),
+            defer(StoreSettings.revisit_period_days),
+            defer(StoreSettings.revisit_badge_style),
             defer(StoreSettings.waiting_modal_timeout),
             defer(StoreSettings.show_member_name_in_waiting_modal),
             defer(StoreSettings.show_new_member_text_in_waiting_modal),
@@ -66,6 +81,9 @@ async def get_store_settings(
             defer(StoreSettings.waiting_voice_name),
             defer(StoreSettings.waiting_voice_rate),
             defer(StoreSettings.waiting_voice_pitch),
+            defer(StoreSettings.manager_button_size),
+            defer(StoreSettings.waiting_manager_max_width),
+            defer(StoreSettings.waiting_list_box_size),
             defer(StoreSettings.waiting_board_page_size),
             defer(StoreSettings.waiting_board_rotation_interval),
             defer(StoreSettings.waiting_board_transition_effect),
@@ -77,27 +95,41 @@ async def get_store_settings(
             defer(StoreSettings.registration_message),
             defer(StoreSettings.max_dashboard_connections),
             defer(StoreSettings.dashboard_connection_policy),
-            defer(StoreSettings.dashboard_connection_policy),
             defer(StoreSettings.sequential_closing),
-            defer(StoreSettings.enable_revisit_badge),
-            defer(StoreSettings.revisit_period_days),
-            defer(StoreSettings.revisit_badge_style),
             defer(StoreSettings.business_start_time),
             defer(StoreSettings.business_end_time),
             defer(StoreSettings.enable_break_time),
             defer(StoreSettings.break_start_time),
             defer(StoreSettings.break_end_time),
-            defer(StoreSettings.break_end_time),
             defer(StoreSettings.operation_type),
+            defer(StoreSettings.detail_mode),
             defer(StoreSettings.enable_party_size),
             defer(StoreSettings.enable_menu_ordering),
-            defer(StoreSettings.party_size_config)
+            defer(StoreSettings.party_size_config),
+            defer(StoreSettings.screen_configs),
+            defer(StoreSettings.enable_printer),
+            defer(StoreSettings.printer_connection_type),
+            defer(StoreSettings.printer_connection_mode),
+            defer(StoreSettings.printer_ip_address),
+            defer(StoreSettings.printer_proxy_ip),
+            defer(StoreSettings.printer_port),
+            defer(StoreSettings.auto_print_registration),
+            defer(StoreSettings.printer_qr_size),
+            defer(StoreSettings.enable_printer_qr),
+            defer(StoreSettings.manager_calling_voice_message),
+            defer(StoreSettings.enable_manager_calling_voice_alert),
+            defer(StoreSettings.enable_manager_entry_voice_alert),
+            defer(StoreSettings.manager_entry_voice_message),
+            defer(StoreSettings.waiting_call_voice_message),
+            defer(StoreSettings.waiting_call_voice_repeat_count),
+            defer(StoreSettings.enable_duplicate_registration_voice),
+            defer(StoreSettings.duplicate_registration_voice_message),
+            defer(StoreSettings.calling_status_display_second),
+            defer(StoreSettings.enable_franchise_monitoring)
         ).filter(
-            StoreSettings.store_id == current_store.id
+            StoreSettings.store_id == store_id
         ).first()
 
-        # Manually set the deferred field ONLY if they are not already set/available
-        # This prevents overwriting actual DB values with defaults every time
         if settings:
             def set_default(obj, field, default_val):
                 try:
@@ -107,10 +139,27 @@ async def get_store_settings(
                 except (AttributeError, Exception):
                     setattr(obj, field, default_val)
 
-            set_default(settings, 'enable_franchise_monitoring', False)
-            set_default(settings, 'manager_button_size', "medium")
-            set_default(settings, 'waiting_manager_max_width', None)
-            set_default(settings, 'waiting_list_box_size', "medium")
+            set_default(settings, 'attendance_count_type', 'days')
+            set_default(settings, 'attendance_lookback_days', 30)
+            set_default(settings, 'show_waiting_number', True)
+            set_default(settings, 'mask_customer_name', False)
+            set_default(settings, 'name_display_length', 0)
+            set_default(settings, 'show_order_number', True)
+            set_default(settings, 'board_display_order', "number,name,order")
+            set_default(settings, 'board_display_template', "{이름}")
+            set_default(settings, 'enable_privacy_masking', False)
+            set_default(settings, 'manager_font_family', "Nanum Gothic")
+            set_default(settings, 'manager_font_size', "15px")
+            set_default(settings, 'board_font_family', "Nanum Gothic")
+            set_default(settings, 'board_font_size', "24px")
+            set_default(settings, 'keypad_style', "modern")
+            set_default(settings, 'keypad_font_size', "large")
+            set_default(settings, 'keypad_sound_enabled', True)
+            set_default(settings, 'keypad_sound_type', "button")
+            set_default(settings, 'daily_opening_rule', "strict")
+            set_default(settings, 'enable_revisit_badge', False)
+            set_default(settings, 'revisit_period_days', 0)
+            set_default(settings, 'revisit_badge_style', "indigo_solid")
             set_default(settings, 'waiting_modal_timeout', 5)
             set_default(settings, 'show_member_name_in_waiting_modal', True)
             set_default(settings, 'show_new_member_text_in_waiting_modal', True)
@@ -120,10 +169,9 @@ async def get_store_settings(
             set_default(settings, 'waiting_voice_name', "유나")
             set_default(settings, 'waiting_voice_rate', 0.8)
             set_default(settings, 'waiting_voice_pitch', 1.0)
-            set_default(settings, 'waiting_call_voice_repeat_count', 1)
-            set_default(settings, 'enable_duplicate_registration_voice', False)
-            set_default(settings, 'duplicate_registration_voice_message', "이미 대기 중인 번호입니다.")
-            set_default(settings, 'calling_status_display_second', 60)
+            set_default(settings, 'manager_button_size', "medium")
+            set_default(settings, 'waiting_manager_max_width', None)
+            set_default(settings, 'waiting_list_box_size', "medium")
             set_default(settings, 'waiting_board_page_size', 12)
             set_default(settings, 'waiting_board_rotation_interval', 5)
             set_default(settings, 'waiting_board_transition_effect', "slide")
@@ -136,23 +184,50 @@ async def get_store_settings(
             set_default(settings, 'max_dashboard_connections', 2)
             set_default(settings, 'dashboard_connection_policy', "eject_old")
             set_default(settings, 'sequential_closing', False)
-            set_default(settings, 'enable_revisit_badge', False)
-            set_default(settings, 'revisit_period_days', 0)
-            set_default(settings, 'revisit_badge_style', "indigo_solid")
             set_default(settings, 'business_start_time', time(9, 0))
             set_default(settings, 'business_end_time', time(22, 0))
             set_default(settings, 'enable_break_time', False)
-            set_default(settings, 'operation_type', 'general')
-            set_default(settings, 'enable_party_size', False)
-            set_default(settings, 'enable_menu_ordering', False)
-            set_default(settings, 'party_size_config', None)
             set_default(settings, 'break_start_time', time(12, 0))
             set_default(settings, 'break_end_time', time(13, 0))
             set_default(settings, 'operation_type', 'general')
+            set_default(settings, 'detail_mode', 'standard')
+            set_default(settings, 'enable_party_size', False)
+            set_default(settings, 'enable_menu_ordering', False)
+            set_default(settings, 'party_size_config', None)
+            set_default(settings, 'screen_configs', None)
+            set_default(settings, 'enable_printer', False)
+            set_default(settings, 'printer_connection_type', 'lan')
+            set_default(settings, 'printer_connection_mode', 'local_proxy')
+            set_default(settings, 'printer_ip_address', None)
+            set_default(settings, 'printer_proxy_ip', 'localhost')
+            set_default(settings, 'printer_port', 9100)
+            set_default(settings, 'auto_print_registration', True)
+            set_default(settings, 'printer_qr_size', 4)
+            set_default(settings, 'enable_printer_qr', True)
+            set_default(settings, 'manager_calling_voice_message', "{순번}번 {회원명}님, 호출되었습니다.")
+            set_default(settings, 'enable_manager_calling_voice_alert', False)
+            set_default(settings, 'enable_manager_entry_voice_alert', False)
+            set_default(settings, 'manager_entry_voice_message', "{순번}번 {회원명}님, 입장해주세요.")
+            set_default(settings, 'waiting_call_voice_message', "{순번}번 {회원명}님, 데스크로 오시기 바랍니다.")
+            set_default(settings, 'waiting_call_voice_repeat_count', 1)
+            set_default(settings, 'enable_duplicate_registration_voice', False)
+            set_default(settings, 'duplicate_registration_voice_message', "이미 대기 중인 번호입니다.")
+            set_default(settings, 'calling_status_display_second', 60)
+            set_default(settings, 'enable_franchise_monitoring', False)
 
+    return settings
+
+@router.get("", response_model=StoreSettingsSchema)
+async def get_store_settings(
+    current_store: Store = Depends(get_current_store),
+    db: Session = Depends(get_db)
+):
+    """매장 설정 조회"""
+    settings = get_safe_store_settings(db, current_store.id)
+    
     if not settings:
         # 기본 설정 생성
-        default_settings = StoreSettings(
+        settings = StoreSettings(
             store_id=current_store.id,
             store_name=current_store.name,
             display_classes_count=3,
@@ -165,17 +240,13 @@ async def get_store_settings(
             show_waiting_number=True,
             mask_customer_name=False,
             show_order_number=True,
-
             board_display_order="number,name,order",
             attendance_count_type="days",
             attendance_lookback_days=30
         )
-        db.add(default_settings)
+        db.add(settings)
         db.commit()
-        db.refresh(default_settings)
-        # Inject store code for frontend usage
-        default_settings.store_code = current_store.code
-        return default_settings
+        db.refresh(settings)
 
     # Inject store code for frontend usage
     settings.store_code = current_store.code
@@ -256,8 +327,6 @@ async def update_store_settings(
                 
             db.commit()
             db.refresh(db_settings)
-            
-            # (Optional) Log Audit here too if second try succeeds, but let's keep it simple for now or copy logic
             
         except Exception as migrate_error:
             # 3차 시도: 최후의 수단으로 안전한 필드만 업데이트 (Fallback)
@@ -435,12 +504,6 @@ async def clone_store_settings(
         # SSE 트래픽 관리 설정
         "enable_waiting_board": source_settings.enable_waiting_board,
         "enable_reception_desk": source_settings.enable_reception_desk,
-        
-        # 프랜차이즈 모니터링 (이미 제거됨, but keeping code clean means ignore/remove if present in dict, but DB model has it)
-        # Note: We removed it from UI, but model still has it. Currently defer/migrated logic handles it. 
-        # We can copy it or skip it. Let's copy it to be safe in case it's used backend-side.
-        # Note: We removed it from UI, but model still has it. Currently defer/migrated logic handles it. 
-        # We can copy it or skip it. Let's copy it to be safe in case it's used backend-side.
         "enable_franchise_monitoring": source_settings.enable_franchise_monitoring,
         "sequential_closing": source_settings.sequential_closing,
         
@@ -637,5 +700,3 @@ async def clone_classes_to_target(
     db.commit()
     
     return {"message": f"{len(source_classes)}개의 클래스가 성공적으로 복제되었습니다."}
-
-
