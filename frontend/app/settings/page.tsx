@@ -3,7 +3,7 @@
 import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Settings2, Calendar, FileText, Shield, Monitor } from 'lucide-react';
+import { Settings2, Calendar, FileText, Shield, Monitor, ChevronLeft } from 'lucide-react';
 import { GeneralSettings } from '@/components/settings/GeneralSettings';
 import { ClassManagement } from '@/components/settings/ClassManagement';
 import { TemplateSettings } from '@/components/settings/TemplateSettings';
@@ -34,7 +34,16 @@ function SettingsContent() {
         <div className="flex min-h-screen bg-slate-50">
             {/* Sidebar */}
             <aside className="w-52 bg-white border-r border-slate-200 flex flex-col sticky top-0 h-screen">
-                <div className="p-6">
+                <div className="px-6 pt-10 pb-6">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-slate-500 hover:text-slate-900 -ml-2 mb-4 group h-8 px-2"
+                        onClick={() => router.push('/manage')}
+                    >
+                        <ChevronLeft className="w-4 h-4 mr-1 group-hover:-translate-x-1 transition-transform" />
+                        메인으로
+                    </Button>
                     <h1 className="text-xl font-bold text-slate-900">환경설정</h1>
                     <p className="text-xs text-slate-500 mt-1">매장 및 시스템 관리</p>
                 </div>
