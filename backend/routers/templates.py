@@ -42,8 +42,45 @@ def get_templates_root():
 @router.get("/{store_id}", response_model=List[TemplateResponse])
 def get_templates(store_id: int, db: Session = Depends(get_db)):
     """Get all templates for a store"""
-    templates = db.query(PrintTemplate).filter(PrintTemplate.store_id == store_id).all()
-    return templates
+    try:
+        templates = db.query(PrintTemplate).filter(PrintTemplate.store_id == store_id).all()
+        return templates
+    except Exception as e:
+        # Log the error (if logger available)
+        print(f"Error fetching templates: {e}")
+        # Return empty list or raise detailed HTTP exception?
+        # Use HTTPException with detail to see on frontend
+        raise HTTPException(status_code=500, detail=f"DB Error: {str(e)}")
+
+@router.post("/force-migrate")
+def force_migrate_templates(db: Session = Depends(get_db)):
+    """Manually add 'options' column if missing (Safe Migration)"""
+    from sqlalchemy import text
+    try:
+        # Check if column exists (Postgres/SQLite compatible-ish)
+        # Try a select with options
+        try:
+            db.execute(text("SELECT options FROM print_templates LIMIT 1"))
+            return {"status": "already_exists", "message": "'options' column already exists"}
+        except Exception:
+            # Likely column missing
+            pass
+            
+        # Add column
+        # Dialect check
+        dialect = db.bind.dialect.name
+        
+        if dialect == 'postgresql':
+            db.execute(text("ALTER TABLE print_templates ADD COLUMN options VARCHAR"))
+        else: # sqlite
+            db.execute(text("ALTER TABLE print_templates ADD COLUMN options TEXT"))
+            
+        db.commit()
+        return {"status": "success", "message": "Added 'options' column"}
+        
+    except Exception as e:
+        db.rollback()
+        return {"status": "error", "message": f"Migration failed: {str(e)}"}
 
 @router.post("/", response_model=TemplateResponse)
 def create_template(template: TemplateCreate, db: Session = Depends(get_db)):
