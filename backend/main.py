@@ -22,7 +22,7 @@ from database import engine, Base
 from models import (
     Franchise, Holiday, Store, User, StoreSettings, DailyClosing, 
     ClassInfo, Member, WaitingList, ClassClosure, WaitingHistory, 
-    AuditLog, SettingsSnapshot, Notice, NoticeAttachment
+    AuditLog, SettingsSnapshot, Notice, NoticeAttachment, PrintTemplate
 )
 
 from routers import (
