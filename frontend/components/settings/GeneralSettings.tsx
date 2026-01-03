@@ -410,10 +410,6 @@ export function GeneralSettings() {
     console.log("Current Form Errors:", form.formState.errors);
     console.log("Current Form Values:", form.getValues());
 
-    if (isLoading) {
-        return <div className="p-8 flex justify-center">로딩 중...</div>;
-    }
-
     const handlePreviewVoice = () => {
         if (previewType === 'waiting') {
             speakRegistration({ class_name: '테스트교시', display_name: '홍길동', class_order: 1 });
@@ -492,6 +488,12 @@ export function GeneralSettings() {
     useEffect(() => {
         fetchUnits();
     }, []);
+
+    if (isLoading) {
+        return <div className="p-8 flex justify-center">로딩 중...</div>;
+    }
+
+
 
 
     return (
