@@ -46,40 +46,30 @@ def get_templates(store_id: int, db: Session = Depends(get_db)):
         templates = db.query(PrintTemplate).filter(PrintTemplate.store_id == store_id).all()
         return templates
     except Exception as e:
-        # Log the error (if logger available)
-        print(f"Error fetching templates: {e}")
-        # Return empty list or raise detailed HTTP exception?
-        # Use HTTPException with detail to see on frontend
-        raise HTTPException(status_code=500, detail=f"DB Error: {str(e)}")
+        db.rollback()
+        # Auto-fix: Attempt migration
+        try:
+            from core.db_auto_migrator import check_and_migrate_table
+            check_and_migrate_table(PrintTemplate)
+            
+            # Retry
+            templates = db.query(PrintTemplate).filter(PrintTemplate.store_id == store_id).all()
+            return templates
+        except Exception as migrate_error:
+            # Check if it is really a DB error or just empty
+            # If migration fails, we can't do much. 
+            print(f"Error fetching templates with auto-migration: {migrate_error}")
+            # Return empty list to prevent 500 crash on frontend, allowing user to potentially "Create" new ones or see empty state
+            return []
 
 @router.post("/force-migrate")
 def force_migrate_templates(db: Session = Depends(get_db)):
-    """Manually add 'options' column if missing (Safe Migration)"""
-    from sqlalchemy import text
+    """Manually check and migrate table schema"""
     try:
-        # Check if column exists (Postgres/SQLite compatible-ish)
-        # Try a select with options
-        try:
-            db.execute(text("SELECT options FROM print_templates LIMIT 1"))
-            return {"status": "already_exists", "message": "'options' column already exists"}
-        except Exception:
-            # Likely column missing
-            pass
-            
-        # Add column
-        # Dialect check
-        dialect = db.bind.dialect.name
-        
-        if dialect == 'postgresql':
-            db.execute(text("ALTER TABLE print_templates ADD COLUMN options VARCHAR"))
-        else: # sqlite
-            db.execute(text("ALTER TABLE print_templates ADD COLUMN options TEXT"))
-            
-        db.commit()
-        return {"status": "success", "message": "Added 'options' column"}
-        
+        from core.db_auto_migrator import check_and_migrate_table
+        check_and_migrate_table(PrintTemplate)
+        return {"status": "success", "message": "Table checked and migrated"}
     except Exception as e:
-        db.rollback()
         return {"status": "error", "message": f"Migration failed: {str(e)}"}
 
 @router.post("", response_model=TemplateResponse)
