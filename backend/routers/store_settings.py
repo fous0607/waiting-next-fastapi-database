@@ -107,6 +107,11 @@ def get_safe_store_settings(db: Session, store_id: int):
             defer(StoreSettings.enable_menu_ordering),
             defer(StoreSettings.party_size_config),
             defer(StoreSettings.screen_configs),
+            defer(StoreSettings.auto_register_member),
+            defer(StoreSettings.business_day_start),
+            defer(StoreSettings.auto_closing),
+            defer(StoreSettings.closing_action),
+            defer(StoreSettings.show_program_notices),
             defer(StoreSettings.enable_printer),
             defer(StoreSettings.printer_connection_type),
             defer(StoreSettings.printer_connection_mode),
@@ -195,6 +200,11 @@ def get_safe_store_settings(db: Session, store_id: int):
             set_default(settings, 'enable_menu_ordering', False)
             set_default(settings, 'party_size_config', None)
             set_default(settings, 'screen_configs', None)
+            set_default(settings, 'auto_register_member', False)
+            set_default(settings, 'business_day_start', 7)
+            set_default(settings, 'auto_closing', True)
+            set_default(settings, 'closing_action', 'reset')
+            set_default(settings, 'show_program_notices', True)
             set_default(settings, 'enable_printer', False)
             set_default(settings, 'printer_connection_type', 'lan')
             set_default(settings, 'printer_connection_mode', 'local_proxy')
