@@ -3,10 +3,9 @@
 import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Settings2, Calendar, FileText, Shield, Monitor, ChevronLeft } from 'lucide-react';
+import { Settings2, Calendar, Shield, Monitor, ChevronLeft } from 'lucide-react';
 import { GeneralSettings } from '@/components/settings/GeneralSettings';
 import { ClassManagement } from '@/components/settings/ClassManagement';
-import { TemplateSettings } from '@/components/settings/TemplateSettings';
 import AdvancedSettings from '@/components/settings/AdvancedSettings';
 import { ScreenQuantityTab } from '@/components/settings/ScreenQuantityTab';
 
@@ -76,14 +75,6 @@ function SettingsContent() {
                         </Button>
                         <Button
                             variant="ghost"
-                            className={`w-full justify-start h-12 px-3 rounded-xl transition-all ${currentTab === 'form' ? 'bg-slate-900 text-white hover:bg-slate-800' : 'text-slate-600 hover:bg-slate-100'}`}
-                            onClick={() => onNavClick('form')}
-                        >
-                            <FileText className={`w-5 h-5 mr-3 ${currentTab === 'form' ? 'text-white' : 'text-slate-400'}`} />
-                            양식 설정
-                        </Button>
-                        <Button
-                            variant="ghost"
                             className={`w-full justify-start h-12 px-3 rounded-xl transition-all ${currentTab === 'advanced' ? 'bg-slate-900 text-white hover:bg-slate-800' : 'text-slate-600 hover:bg-slate-100'}`}
                             onClick={() => onNavClick('advanced')}
                         >
@@ -103,14 +94,12 @@ function SettingsContent() {
                                 {currentTab === 'general' && '기본 설정'}
                                 {currentTab === 'screens' && '화면등록 수량'}
                                 {currentTab === 'class' && '클래스 관리'}
-                                {currentTab === 'form' && '양식 설정'}
                                 {currentTab === 'advanced' && '고급 설정'}
                             </h2>
                             {currentTab !== 'general' && (
                                 <p className="text-muted-foreground mt-1">
                                     {currentTab === 'screens' && '서비스별 화면 수량과 전용 프록시 설정을 관리합니다.'}
                                     {currentTab === 'class' && '수업 시간표와 공휴일 일정을 관리합니다.'}
-                                    {currentTab === 'form' && '대기표 및 영수증 출력 양식을 자유롭게 수정합니다.'}
                                     {currentTab === 'advanced' && '시스템 관리 및 데이터 백업을 수행합니다.'}
                                 </p>
                             )}
@@ -121,7 +110,6 @@ function SettingsContent() {
                         {currentTab === 'general' && <GeneralSettings />}
                         {currentTab === 'screens' && <ScreenQuantityTab />}
                         {currentTab === 'class' && <ClassManagement />}
-                        {currentTab === 'form' && <TemplateSettings />}
                         {currentTab === 'advanced' && <AdvancedSettings />}
                     </div>
                 </div>

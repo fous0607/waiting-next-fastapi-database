@@ -49,7 +49,7 @@ from routers import (
     public, # Public Router (QR/Mobile)
     tts, # Google Cloud TTS Router
     printer_queue, # Printer Queue Router
-    templates, # Print Template Router
+    # templates, # Print Template Router (Removed)
     printer_units, # New Proxy/Printer Units Registry Router
     debug, # DEBUG ROUTER
 )
@@ -107,7 +107,7 @@ async def startup_event():
         check_and_migrate_table(SettingsSnapshot)
         check_and_migrate_table(Notice)
         check_and_migrate_table(NoticeAttachment)
-        check_and_migrate_table(PrintTemplate) # Auto-migrate new table
+        # check_and_migrate_table(PrintTemplate) # Auto-migrate new table (Removed)
         check_and_migrate_table(ProxyUnit)
         check_and_migrate_table(PrinterUnit)
         
@@ -171,7 +171,7 @@ app.include_router(polling.router, prefix="/api/polling", tags=["Polling Optimiz
 app.include_router(public.router, prefix="/api/public", tags=["Public Access"])
 app.include_router(tts.router, prefix="/api/tts", tags=["Text to Speech"])
 app.include_router(printer_queue.router, prefix="/api/printer", tags=["Printer Queue"])
-app.include_router(templates.router, prefix="/api/templates", tags=["Print Templates"])
+# app.include_router(templates.router, prefix="/api/templates", tags=["Print Templates"]) # Removed
 app.include_router(printer_units.router, prefix="/api")
 app.include_router(debug.router, prefix="/api/debug", tags=["Debug"])
 
