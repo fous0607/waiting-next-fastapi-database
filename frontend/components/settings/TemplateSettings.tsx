@@ -102,9 +102,28 @@ export function TemplateSettings() {
             console.log("TemplateSettings: Fetched data:", data);
 
             setTemplates(data);
-        } catch (error) {
+        } catch (error: any) {
             console.error("Failed to fetch templates:", error);
-            // toast.error("템플릿 목록을 불러오지 못했습니다.");
+
+            // 500 Error Auto-Fix (Migration)
+            if (error.response && error.response.status === 500) {
+                try {
+                    console.log("500 Error detected. Attempting auto-migration...");
+                    const storeId = localStorage.getItem('selected_store_id');
+                    await api.post('/templates/force-migrate');
+                    console.log("Migration command sent. Retrying fetch...");
+
+                    // Retry
+                    const { data } = await api.get(`/templates/${storeId}`);
+                    setTemplates(data);
+                    toast.success("데이터베이스가 업데이트되었습니다.");
+                    return;
+                } catch (retryError) {
+                    console.error("Auto-fix failed:", retryError);
+                }
+            }
+
+            toast.error("템플릿 목록을 불러오지 못했습니다.");
         } finally {
             setIsLoading(false);
         }
