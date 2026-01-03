@@ -425,6 +425,9 @@ class NoticeAttachment(Base):
     file_type = Column(String, nullable=False)  # MIME type
     created_at = Column(DateTime, default=func.now())
 
+    # Relationships
+    notice = relationship("Notice", back_populates="attachments")
+
 
 
 class PrintTemplate(Base):
