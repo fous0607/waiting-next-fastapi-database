@@ -75,77 +75,168 @@ def force_migrate_templates(db: Session = Depends(get_db)):
 @router.post("", response_model=TemplateResponse)
 def create_template(template: TemplateCreate, db: Session = Depends(get_db)):
     """Create a new template"""
-    # If this is the first template or set to active, handle active toggle?
-    # For now, just create.
-    
-    db_template = PrintTemplate(
-        store_id=template.store_id,
-        name=template.name,
-        content=template.content,
-        options=template.options,
-        template_type=template.template_type,
-        is_active=template.is_active
-    )
-    db.add(db_template)
-    db.commit()
-    db.refresh(db_template)
-    
-    # If this template is active, deactivate others of the same type?
-    if template.is_active:
-        # Deactivate others
-        others = db.query(PrintTemplate).filter(
-            PrintTemplate.store_id == template.store_id,
-            PrintTemplate.template_type == template.template_type,
-            PrintTemplate.id != db_template.id
-        ).all()
-        for t in others:
-            t.is_active = False
+    try:
+        db_template = PrintTemplate(
+            store_id=template.store_id,
+            name=template.name,
+            content=template.content,
+            options=template.options,
+            template_type=template.template_type,
+            is_active=template.is_active
+        )
+        db.add(db_template)
         db.commit()
+        db.refresh(db_template)
         
-    return db_template
+        if template.is_active:
+            # Deactivate others
+            others = db.query(PrintTemplate).filter(
+                PrintTemplate.store_id == template.store_id,
+                PrintTemplate.template_type == template.template_type,
+                PrintTemplate.id != db_template.id
+            ).all()
+            for t in others:
+                t.is_active = False
+            db.commit()
+            
+        return db_template
+    except Exception as e:
+        db.rollback()
+        # Auto-fix: Attempt migration
+        try:
+            from core.db_auto_migrator import check_and_migrate_table
+            check_and_migrate_table(PrintTemplate)
+            
+            # Retry creation
+            db_template = PrintTemplate(
+                store_id=template.store_id,
+                name=template.name,
+                content=template.content,
+                options=template.options,
+                template_type=template.template_type,
+                is_active=template.is_active
+            )
+            db.add(db_template)
+            db.commit()
+            db.refresh(db_template)
+            
+            if template.is_active:
+                others = db.query(PrintTemplate).filter(
+                    PrintTemplate.store_id == template.store_id,
+                    PrintTemplate.template_type == template.template_type,
+                    PrintTemplate.id != db_template.id
+                ).all()
+                for t in others:
+                    t.is_active = False
+                db.commit()
+                
+            return db_template
+        except Exception as migrate_error:
+            print(f"Error creating template with auto-migration: {migrate_error}")
+            raise HTTPException(status_code=500, detail=f"Failed to create template: {str(e)}")
 
 @router.put("/{template_id}", response_model=TemplateResponse)
 def update_template(template_id: int, template: TemplateUpdate, db: Session = Depends(get_db)):
     """Update a template"""
-    db_template = db.query(PrintTemplate).filter(PrintTemplate.id == template_id).first()
-    if not db_template:
-        raise HTTPException(status_code=404, detail="Template not found")
-    
-    if template.name is not None:
-        db_template.name = template.name
-    if template.content is not None:
-        db_template.content = template.content
-    if template.options is not None:
-        db_template.options = template.options
-    if template.template_type is not None:
-        db_template.template_type = template.template_type
-    
-    if template.is_active is not None:
-        db_template.is_active = template.is_active
-        if template.is_active:
-            # Deactivate others
-            others = db.query(PrintTemplate).filter(
-                PrintTemplate.store_id == db_template.store_id,
-                PrintTemplate.template_type == db_template.template_type,
-                PrintTemplate.id != template_id
-            ).all()
-            for t in others:
-                t.is_active = False
-    
-    db.commit()
-    db.refresh(db_template)
-    return db_template
+    try:
+        db_template = db.query(PrintTemplate).filter(PrintTemplate.id == template_id).first()
+        if not db_template:
+            raise HTTPException(status_code=404, detail="Template not found")
+        
+        if template.name is not None:
+            db_template.name = template.name
+        if template.content is not None:
+            db_template.content = template.content
+        if template.options is not None:
+            db_template.options = template.options
+        if template.template_type is not None:
+            db_template.template_type = template.template_type
+        
+        if template.is_active is not None:
+            db_template.is_active = template.is_active
+            if template.is_active:
+                # Deactivate others
+                others = db.query(PrintTemplate).filter(
+                    PrintTemplate.store_id == db_template.store_id,
+                    PrintTemplate.template_type == db_template.template_type,
+                    PrintTemplate.id != template_id
+                ).all()
+                for t in others:
+                    t.is_active = False
+        
+        db.commit()
+        db.refresh(db_template)
+        return db_template
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        # Auto-fix: Attempt migration
+        try:
+            from core.db_auto_migrator import check_and_migrate_table
+            check_and_migrate_table(PrintTemplate)
+            
+            # Retry update
+            db_template = db.query(PrintTemplate).filter(PrintTemplate.id == template_id).first()
+            if not db_template:
+                raise HTTPException(status_code=404, detail="Template not found")
+            
+            if template.name is not None:
+                db_template.name = template.name
+            if template.content is not None:
+                db_template.content = template.content
+            if template.options is not None:
+                db_template.options = template.options
+            if template.template_type is not None:
+                db_template.template_type = template.template_type
+            
+            if template.is_active is not None:
+                db_template.is_active = template.is_active
+                if template.is_active:
+                    others = db.query(PrintTemplate).filter(
+                        PrintTemplate.store_id == db_template.store_id,
+                        PrintTemplate.template_type == db_template.template_type,
+                        PrintTemplate.id != template_id
+                    ).all()
+                    for t in others:
+                        t.is_active = False
+            
+            db.commit()
+            db.refresh(db_template)
+            return db_template
+        except Exception as migrate_error:
+            print(f"Error updating template with auto-migration: {migrate_error}")
+            raise HTTPException(status_code=500, detail=f"Failed to update template: {str(e)}")
 
 @router.delete("/{template_id}")
 def delete_template(template_id: int, db: Session = Depends(get_db)):
     """Delete a template"""
-    db_template = db.query(PrintTemplate).filter(PrintTemplate.id == template_id).first()
-    if not db_template:
-        raise HTTPException(status_code=404, detail="Template not found")
-    
-    db.delete(db_template)
-    db.commit()
-    return {"status": "success"}
+    try:
+        db_template = db.query(PrintTemplate).filter(PrintTemplate.id == template_id).first()
+        if not db_template:
+            raise HTTPException(status_code=404, detail="Template not found")
+        
+        db.delete(db_template)
+        db.commit()
+        return {"status": "success"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        try:
+            from core.db_auto_migrator import check_and_migrate_table
+            check_and_migrate_table(PrintTemplate)
+            
+            # Retry delete
+            db_template = db.query(PrintTemplate).filter(PrintTemplate.id == template_id).first()
+            if not db_template:
+                 raise HTTPException(status_code=404, detail="Template not found")
+            
+            db.delete(db_template)
+            db.commit()
+            return {"status": "success"}
+        except Exception:
+             raise HTTPException(status_code=500, detail=f"Failed to delete template: {str(e)}")
 
 @router.post("/preview")
 def preview_template(content: str):
@@ -162,14 +253,12 @@ def preview_template(content: str):
 @router.post("/{store_id}/init-samples")
 def init_sample_templates(store_id: int, db: Session = Depends(get_db)):
     """Initialize sample templates for a store"""
-    # Check if duplicates exist? Or just add.
-    # The requirement is to register samples.
-    
-    samples = [
-        {
-            "name": "일반 대기표",
-            "type": "waiting_ticket",
-            "content": """{ALIGN:CENTER}{BOLD:ON}{SIZE:BIG}{STORE_NAME}
+    try:
+        samples = [
+            {
+                "name": "일반 대기표",
+                "type": "waiting_ticket",
+                "content": """{ALIGN:CENTER}{BOLD:ON}{SIZE:BIG}{STORE_NAME}
 
 {SIZE:NORMAL}{BOLD:OFF}--------------------------------
 
@@ -185,55 +274,89 @@ def init_sample_templates(store_id: int, db: Session = Depends(get_db)):
 
 {ALIGN:CENTER}{QR}
 {CUT}""",
-            "is_active": True
-        },
-        {
-            "name": "간편 대기표",
-            "type": "waiting_ticket",
-            "content": """{ALIGN:CENTER}{SIZE:HUGE}{WAITING_NUMBER}
+                "is_active": True
+            },
+            {
+                "name": "간편 대기표",
+                "type": "waiting_ticket",
+                "content": """{ALIGN:CENTER}{SIZE:HUGE}{WAITING_NUMBER}
 
 {ALIGN:CENTER}{SIZE:NORMAL}내 앞 대기: {TEAMS_AHEAD}팀
 {CUT}""",
-            "is_active": False
-        },
-        {
-             "name": "주방 주문서",
-             "type": "kitchen_order",
-             "content": """{ALIGN:CENTER}[주방 주문서]
+                "is_active": False
+            },
+            {
+                "name": "주방 주문서",
+                "type": "kitchen_order",
+                "content": """{ALIGN:CENTER}[주방 주문서]
 {DATE}
 
 {SIZE:BIG}테이블: {TABLE_NO}
---------------------------------
 {ORDER_ITEMS}
---------------------------------
 {CUT}""",
-             "is_active": False
-        }
-    ]
-    
-    created_templates = []
-    for sample in samples:
-        # Check specific existence by name to avoid duplicates if button clicked multiple times
-        exists = db.query(PrintTemplate).filter(
-            PrintTemplate.store_id == store_id,
-            PrintTemplate.name == sample["name"]
-        ).first()
+                "is_active": False
+            }
+        ]
         
-        if not exists:
-            db_template = PrintTemplate(
-                store_id=store_id,
-                name=sample["name"],
-                content=sample["content"],
-                template_type=sample["type"],
-                is_active=sample["is_active"],
-                options="{}"
-            )
-            db.add(db_template)
-            created_templates.append(db_template)
-    
-    if created_templates:
-        db.commit()
-        for t in created_templates:
-            db.refresh(t)
+        created_templates = []
+        for sample in samples:
+            # Check specific existence by name to avoid duplicates if button clicked multiple times
+            exists = db.query(PrintTemplate).filter(
+                PrintTemplate.store_id == store_id,
+                PrintTemplate.name == sample["name"]
+            ).first()
             
-    return db.query(PrintTemplate).filter(PrintTemplate.store_id == store_id).all()
+            if not exists:
+                db_template = PrintTemplate(
+                    store_id=store_id,
+                    name=sample["name"],
+                    content=sample["content"],
+                    template_type=sample["type"],
+                    is_active=sample["is_active"],
+                    options="{}" # JSON Default
+                )
+                db.add(db_template)
+                created_templates.append(db_template)
+        
+        if created_templates:
+            db.commit() # Commit first to see if it fails
+            for t in created_templates:
+                db.refresh(t)
+                
+        return db.query(PrintTemplate).filter(PrintTemplate.store_id == store_id).all()
+        
+    except Exception as e:
+        db.rollback()
+        try:
+             from core.db_auto_migrator import check_and_migrate_table
+             check_and_migrate_table(PrintTemplate)
+             
+             # Retry Init
+             # (Repeat simplified logic or call recursive? Recursive is dangerous if loop)
+             # Just copy/paste logic for safety in one block
+             created_templates = []
+             for sample in samples:
+                exists = db.query(PrintTemplate).filter(
+                    PrintTemplate.store_id == store_id,
+                    PrintTemplate.name == sample["name"]
+                ).first()
+                if not exists:
+                    db_template = PrintTemplate(
+                        store_id=store_id,
+                        name=sample["name"],
+                        content=sample["content"],
+                        template_type=sample["type"],
+                        is_active=sample["is_active"],
+                        options="{}"
+                    )
+                    db.add(db_template)
+                    created_templates.append(db_template)
+             if created_templates:
+                db.commit()
+                for t in created_templates:
+                    db.refresh(t)
+             return db.query(PrintTemplate).filter(PrintTemplate.store_id == store_id).all()
+             
+        except Exception as migrate_error:
+             print(f"Error init samples with auto-migration: {migrate_error}")
+             raise HTTPException(status_code=500, detail=f"Failed to init samples: {str(e)}")
