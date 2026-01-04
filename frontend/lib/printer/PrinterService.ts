@@ -27,6 +27,7 @@ export interface PrintJob {
     teamsAhead?: number;
     waitingOrder?: number;
     customTemplate?: string; // For testing unsaved templates
+    enablePrinterQr?: boolean;
 }
 
 export class PrinterService {
@@ -49,6 +50,7 @@ export class PrinterService {
                 person_count: job.personCount,
                 qr_url: job.qrUrl,
                 printer_qr_size: job.printerQrSize,
+                enable_printer_qr: job.enablePrinterQr,
                 party_size_details: job.partySizeDetails,
                 teams_ahead: job.teamsAhead,
                 waiting_order: job.waitingOrder,

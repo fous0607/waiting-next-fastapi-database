@@ -40,7 +40,7 @@ class ProxyServer {
     router.post('/print', (Request request) async {
       try {
         final payload = await request.readAsString();
-        _log('Received print request');
+        _log('▶ [RECEIVED DATA]: $payload');
         
         final Map<String, dynamic> body = jsonDecode(payload);
         final String ip = body['ip'];
@@ -55,7 +55,7 @@ class ProxyServer {
           headers: _corsHeaders,
         );
       } catch (e) {
-        _log('Error processing request: $e');
+        _log('❌ Error processing request: $e');
         return Response.internalServerError(
           body: 'Error: $e',
           headers: _corsHeaders,
@@ -75,29 +75,35 @@ class ProxyServer {
 
     // Bind to any IPv4 address
     _server = await shelf_io.serve(handler, InternetAddress.anyIPv4, port);
-    _log('Serving at http://${_server!.address.host}:${_server!.port}');
+    _log('🚀 Serving at http://${_server!.address.host}:${_server!.port}');
   }
 
   // Stop the server
   Future<void> stop() async {
     await _server?.close();
     _server = null;
-    _log('Server stopped.');
+    _log('⏹ Server stopped.');
   }
 
   bool get isRunning => _server != null;
 
   // Send data to printer via TCP
   Future<void> _sendToPrinter(String ip, int port, List<int> data) async {
-    _log('Connecting to Printer $ip:$port');
+    _log('🔌 Connecting to Printer $ip:$port');
+    // Log the data being sent (showing first 100 bytes if it's too long)
+    String dataPreview = data.length > 100 
+        ? '${data.sublist(0, 100).toString()}... (+${data.length - 100} bytes)' 
+        : data.toString();
+    _log('◀ [SENT TO PRINTER]: $dataPreview');
+
     Socket? socket;
     try {
       socket = await Socket.connect(ip, port, timeout: Duration(seconds: 5));
       socket.add(data);
       await socket.flush();
-      _log('Data sent successfully to $ip');
+      _log('✅ Data sent successfully to $ip');
     } catch (e) {
-      _log('Printer error ($ip): $e');
+      _log('⚠️ Printer error ($ip): $e');
       rethrow;
     } finally {
       await socket?.close();

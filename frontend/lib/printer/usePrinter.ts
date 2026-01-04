@@ -73,6 +73,7 @@ export const usePrinter = () => {
                 personCount: options?.personCount,
                 qrUrl,
                 printerQrSize: settings.printer_qr_size,
+                enablePrinterQr: settings.enable_printer_qr,
                 partySizeDetails: options?.partySizeDetails,
                 teamsAhead: options?.classOrder ? Math.max(0, options.classOrder - 1) : undefined,
                 waitingOrder: options?.classOrder,
