@@ -139,7 +139,9 @@ def get_safe_store_settings(db: Session, store_id: int):
                 defer(StoreSettings.enable_duplicate_registration_voice),
                 defer(StoreSettings.duplicate_registration_voice_message),
                 defer(StoreSettings.calling_status_display_second),
-                defer(StoreSettings.enable_franchise_monitoring)
+                defer(StoreSettings.enable_franchise_monitoring),
+                defer(StoreSettings.ticket_format_config),
+                defer(StoreSettings.ticket_custom_footer)
             ).filter(
                 StoreSettings.store_id == store_id
             ).first()
@@ -233,6 +235,8 @@ def get_safe_store_settings(db: Session, store_id: int):
                 set_default(settings, 'duplicate_registration_voice_message', "이미 대기 중인 번호입니다.")
                 set_default(settings, 'calling_status_display_second', 60)
                 set_default(settings, 'enable_franchise_monitoring', False)
+                set_default(settings, 'ticket_format_config', '{"show_store_name": true, "show_waiting_number": true, "show_date": true, "show_person_count": true, "show_teams_ahead": true, "show_waiting_order": true}')
+                set_default(settings, 'ticket_custom_footer', None)
         except Exception:
             return None
 

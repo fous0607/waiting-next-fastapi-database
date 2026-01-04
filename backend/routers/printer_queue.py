@@ -4,7 +4,7 @@ from typing import List, Optional
 import time
 from sqlalchemy.orm import Session
 from database import get_db
-from models import PrintTemplate, Store
+from models import Store
 
 router = APIRouter()
 
