@@ -202,6 +202,11 @@ async def generate_ticket(ticket: TicketData):
         commands.append(LF)
         commands.append(LF)
         commands.append(LF)
+        commands.append(LF)
+        commands.append(LF)
+        commands.append(LF)
+        commands.append(LF)
+        commands.append(LF)
         commands.append(CUT)
 
         full_command = b''.join(commands)
