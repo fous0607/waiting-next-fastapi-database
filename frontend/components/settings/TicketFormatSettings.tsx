@@ -83,8 +83,9 @@ export function TicketFormatSettings() {
                     setConfig((prev) => ({
                         ...prev,
                         ...parsed,
-                        enable_printer_qr: storeSettings.enable_printer_qr ?? true,
-                        printer_qr_size: storeSettings.printer_qr_size ?? 4,
+                        ...parsed,
+                        enable_printer_qr: storeSettings.enable_printer_qr !== undefined ? storeSettings.enable_printer_qr : (parsed.enable_printer_qr ?? true),
+                        printer_qr_size: storeSettings.printer_qr_size !== undefined ? storeSettings.printer_qr_size : (parsed.printer_qr_size ?? 4),
                     }));
                 } catch (e) {
                     console.error('Failed to parse ticket format config', e);
@@ -93,8 +94,8 @@ export function TicketFormatSettings() {
                 // Even if config is missing, load QR settings
                 setConfig((prev) => ({
                     ...prev,
-                    enable_printer_qr: storeSettings.enable_printer_qr ?? true,
-                    printer_qr_size: storeSettings.printer_qr_size ?? 4,
+                    enable_printer_qr: storeSettings.enable_printer_qr !== undefined ? storeSettings.enable_printer_qr : true,
+                    printer_qr_size: storeSettings.printer_qr_size !== undefined ? storeSettings.printer_qr_size : 4,
                 }));
             }
             if (storeSettings.ticket_custom_footer) {
@@ -475,9 +476,9 @@ export function TicketFormatSettings() {
                             <div className="space-y-4 pt-4 border-t">
                                 <div className="flex items-center justify-between">
                                     <div className="space-y-0.5">
-                                        <Label className="text-base">영수증 QR 코드 사용</Label>
+                                        <Label className="text-base">대기표 QR 코드 사용</Label>
                                         <p className="text-xs text-muted-foreground">
-                                            영수증에 현재 대기 상황 확인용 QR 코드를 인쇄합니다.
+                                            대기표에 현재 대기 상황 확인용 QR 코드를 인쇄합니다.
                                         </p>
                                     </div>
                                     <Switch
@@ -488,7 +489,7 @@ export function TicketFormatSettings() {
 
                                 {config.enable_printer_qr && (
                                     <div className="space-y-3">
-                                        <Label>영수증 QR 코드 크기 (현재: {config.printer_qr_size})</Label>
+                                        <Label>대기표 QR 코드 크기 (현재: {config.printer_qr_size})</Label>
                                         <div className="flex items-center gap-4">
                                             <Slider
                                                 min={1}

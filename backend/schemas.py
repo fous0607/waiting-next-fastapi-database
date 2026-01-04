@@ -122,6 +122,8 @@ class StoreSettingsBase(BaseModel):
     printer_proxy_ip: str = "localhost"
     printer_port: int = 9100
     auto_print_registration: bool = True
+    printer_qr_size: int = 4
+    enable_printer_qr: bool = True
     screen_configs: Optional[str] = None # JSON string for device configurations
     
     # 대기표 양식 설정 (Ticket Format)
