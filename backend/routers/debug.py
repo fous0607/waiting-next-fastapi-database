@@ -209,3 +209,9 @@ def list_stores(db: Session = Depends(get_db)):
     from models import Store
     stores = db.query(Store).all()
     return [{"id": s.id, "name": s.name} for s in stores]
+
+@router.get("/users")
+def list_users(db: Session = Depends(get_db)):
+    from models import User
+    users = db.query(User).all()
+    return [{"id": u.id, "username": u.username, "store_id": u.store_id} for u in users]
