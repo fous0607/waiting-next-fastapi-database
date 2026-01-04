@@ -203,3 +203,9 @@ def debug_classes(store_id: int, db: Session = Depends(get_db)):
         "raw_classes": raw_info,
         "filtered_ids": [c.id for c in filtered]
     }
+
+@router.get("/stores")
+def list_stores(db: Session = Depends(get_db)):
+    from models import Store
+    stores = db.query(Store).all()
+    return [{"id": s.id, "name": s.name} for s in stores]
