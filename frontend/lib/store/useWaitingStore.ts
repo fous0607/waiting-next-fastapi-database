@@ -53,6 +53,10 @@ export interface StoreSettings {
     printer_ip_address?: string | null;
     printer_port?: number;
     auto_print_registration?: boolean;
+    printer_qr_size?: number;
+    enable_printer_qr?: boolean;
+    ticket_format_config?: string;
+    ticket_custom_footer?: string;
 
     // Voice Settings
     enable_waiting_voice_alert?: boolean;

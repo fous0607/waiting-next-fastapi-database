@@ -48,45 +48,95 @@ class TicketData(BaseModel):
     waiting_order: Optional[int] = None
     store_id: Optional[int] = None # Added for fetching templates
     custom_content: Optional[str] = None # For testing unsaved templates
+    ticket_format_config: Optional[str] = None # JSON string
+    ticket_custom_footer: Optional[str] = None
 
 @router.post("/generate-ticket")
 async def generate_ticket(ticket: TicketData):
     """
-    Generate ESC/POS bytes using a hardcoded default template.
-    Template Settings feature has been removed due to stability issues.
+    Generate ESC/POS bytes using a dynamic template based on ticket_format_config.
     """
     try:
-        # Hardcoded Default Template (Previously 'General Waiting Ticket')
-        template_content = """{ALIGN:CENTER}{BOLD:ON}{SIZE:BIG}{STORE_NAME}
+        # Dynamic Template Construction
+        import json
+        
+        # Default Config
+        config = {
+            "show_store_name": True,
+            "show_waiting_number": True,
+            "show_date": True,
+            "show_person_count": True,
+            "show_teams_ahead": True,
+            "show_waiting_order": True
+        }
 
-{SIZE:NORMAL}{BOLD:OFF}--------------------------------
+        # Parse Config if provided
+        if ticket.ticket_format_config:
+            try:
+                parsed_config = json.loads(ticket.ticket_format_config)
+                config.update(parsed_config)
+            except:
+                print("Failed to parse ticket_format_config, using defaults")
 
-{ALIGN:CENTER}{SIZE:NORMAL}대기번호
-{SIZE:HUGE}{BOLD:ON}{WAITING_NUMBER}
+        # Build Template
+        template_parts = []
+        
+        # Store Name
+        if config["show_store_name"]:
+            template_parts.append("{ALIGN:CENTER}{BOLD:ON}{SIZE:BIG}{STORE_NAME}")
+            template_parts.append("{SIZE:NORMAL}{BOLD:OFF}--------------------------------")
 
-{SIZE:NORMAL}{BOLD:OFF}--------------------------------
+        # Waiting Number (Always centered)
+        if config["show_waiting_number"]:
+            template_parts.append("{ALIGN:CENTER}{SIZE:NORMAL}대기번호")
+            template_parts.append("{SIZE:HUGE}{BOLD:ON}{WAITING_NUMBER}")
+            template_parts.append("{SIZE:NORMAL}{BOLD:OFF}--------------------------------")
 
-{DATE}
+        # Date & Person Count
+        date_line = "{DATE}" if config.get("show_date") else ""
+        people_line = "{PEOPLE}" if config.get("show_person_count") else ""
+        
+        # Combine Date and People
+        if config.get("show_date") and config.get("show_person_count"):
+             template_parts.append(f"{{ALIGN:LEFT}}{date_line}") 
+             template_parts.append(f"{{ALIGN:RIGHT}}{people_line}")
+        elif config.get("show_date"):
+             template_parts.append(f"{{ALIGN:LEFT}}{date_line}")
+        elif config.get("show_person_count"):
+             template_parts.append(f"{{ALIGN:RIGHT}}{people_line}")
 
-{ALIGN:CENTER}내 앞 대기: {TEAMS_AHEAD}팀
-{ALIGN:CENTER}입장 순서: {ORDER}번째
+        # Info Block (Teams Ahead / Order)
+        if config.get("show_teams_ahead"):
+            template_parts.append("{ALIGN:CENTER}내 앞 대기: {TEAMS_AHEAD}팀")
+        
+        if config.get("show_waiting_order"):
+            template_parts.append("{ALIGN:CENTER}입장 순서: {ORDER}번째")
 
-{ALIGN:CENTER}{QR}
-{CUT}"""
+        # QR Code Placeholder (Always add, conditional logic handles actual print)
+        template_parts.append("{ALIGN:CENTER}{QR}")
+
+        # Custom Footer
+        if ticket.ticket_custom_footer:
+            template_parts.append("{ALIGN:CENTER}{BOLD:OFF}{SIZE:NORMAL}")
+            template_parts.append(ticket.ticket_custom_footer)
+
+        template_parts.append("{CUT}")
+        
+        template_content = "\n".join(template_parts)
 
         # Override template if custom content provided (Test Print)
         if ticket.custom_content:
             template_content = ticket.custom_content
             print(f"[PrinterQueue] Using CUSTOM content for generation.")
         else:
-            print(f"[PrinterQueue] Using DEFAULT hardcoded template.")
+            print(f"[PrinterQueue] Using Dynamic template.")
 
         ESC = b'\x1b'
         GS = b'\x1d'
         LF = b'\x0a'
         INIT = ESC + b'@'
         CUT = GS + b'V' + b'\x00'
-
+        
         # Commands Map
         CMD = {
             "{ALIGN:LEFT}": ESC + b'a' + b'\x00',
@@ -110,9 +160,7 @@ async def generate_ticket(ticket: TicketData):
         commands = []
         commands.append(INIT)
 
-        # Dynamic Template Logic
         # Pre-calc variables
-        import json
         details_text = ""
         if ticket.party_size_details:
             try:
@@ -123,6 +171,8 @@ async def generate_ticket(ticket: TicketData):
             except:
                 pass
         people_str = details_text if details_text else (f"{ticket.person_count}명" if ticket.person_count else "")
+        if people_str and config.get("show_person_count"):
+             people_str = f"인원: {people_str}"
 
         VARS = {
             "{STORE_NAME}": ticket.store_name,
@@ -139,14 +189,12 @@ async def generate_ticket(ticket: TicketData):
         lines = content.split('\n')
 
         for line in lines:
-            # Substitute Variables first
             text_line = line
             for k, v in VARS.items():
                 text_line = text_line.replace(k, str(v))
             
             # Handle Special {QR} logic
             if "{QR}" in text_line:
-                # Print QR if enabled and exists
                 if ticket.qr_url and ticket.enable_printer_qr:
                     commands.append(CMD["{ALIGN:CENTER}"]) 
                     
@@ -162,19 +210,17 @@ async def generate_ticket(ticket: TicketData):
                     commands.append(b'\x1d(k\x03\x00\x31\x45\x30') 
                     commands.append(b'\x1d(k' + bytes([pL, pH]) + b'\x31\x50\x30' + qr_data.encode('utf-8')) 
                     commands.append(b'\x1d(k\x03\x00\x31\x51\x30')
-                text_line = text_line.replace("{QR}", "") # Remove tag from text
+                text_line = text_line.replace("{QR}", "") 
             
             # Process Styling Tags
             current_text_buffer = ""
             i = 0
             while i < len(text_line):
                 if text_line[i] == '{':
-                    # flush buffer
                     if current_text_buffer:
                         commands.append(text_to_bytes(current_text_buffer))
                         current_text_buffer = ""
                     
-                    # Find closing '}'
                     close_idx = text_line.find('}', i)
                     if close_idx != -1:
                         tag_candidate = text_line[i:close_idx+1]
@@ -183,7 +229,6 @@ async def generate_ticket(ticket: TicketData):
                             i = close_idx + 1
                             continue
                         else:
-                            # Not a known tag (maybe part of text), just treat as text
                             current_text_buffer += text_line[i]
                             i += 1
                     else:
@@ -198,7 +243,7 @@ async def generate_ticket(ticket: TicketData):
             
             commands.append(LF)
 
-        # Final Cut - Increase margin significantly (SAFE 15 lines)
+        # Final Cut
         for _ in range(15):
             commands.append(LF)
         commands.append(CUT)

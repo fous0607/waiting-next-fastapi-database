@@ -74,6 +74,8 @@ export const usePrinter = () => {
                 qrUrl,
                 printerQrSize: settings.printer_qr_size,
                 enablePrinterQr: settings.enable_printer_qr,
+                ticketFormatConfig: settings.ticket_format_config,
+                ticketCustomFooter: settings.ticket_custom_footer,
                 partySizeDetails: options?.partySizeDetails,
                 teamsAhead: options?.classOrder ? Math.max(0, options.classOrder - 1) : undefined,
                 waitingOrder: options?.classOrder,

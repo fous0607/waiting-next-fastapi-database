@@ -28,6 +28,8 @@ export interface PrintJob {
     waitingOrder?: number;
     customTemplate?: string; // For testing unsaved templates
     enablePrinterQr?: boolean;
+    ticketFormatConfig?: string;
+    ticketCustomFooter?: string;
 }
 
 export class PrinterService {
@@ -51,6 +53,8 @@ export class PrinterService {
                 qr_url: job.qrUrl,
                 printer_qr_size: job.printerQrSize,
                 enable_printer_qr: job.enablePrinterQr,
+                ticket_format_config: job.ticketFormatConfig,
+                ticket_custom_footer: job.ticketCustomFooter,
                 party_size_details: job.partySizeDetails,
                 teams_ahead: job.teamsAhead,
                 waiting_order: job.waitingOrder,

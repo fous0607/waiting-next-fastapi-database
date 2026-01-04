@@ -123,6 +123,10 @@ class StoreSettingsBase(BaseModel):
     printer_port: int = 9100
     auto_print_registration: bool = True
     screen_configs: Optional[str] = None # JSON string for device configurations
+    
+    # 대기표 양식 설정 (Ticket Format)
+    ticket_format_config: str = '{"show_store_name": true, "show_waiting_number": true, "show_date": true, "show_person_count": true, "show_teams_ahead": true, "show_waiting_order": true}'
+    ticket_custom_footer: Optional[str] = None
 
 class StoreSettingsCreate(StoreSettingsBase):
     pass
@@ -252,6 +256,8 @@ class StoreSettingsUpdate(BaseModel):
     auto_print_registration: Optional[bool] = None
     printer_qr_size: Optional[int] = None
     enable_printer_qr: Optional[bool] = None
+    ticket_format_config: Optional[str] = None
+    ticket_custom_footer: Optional[str] = None
     screen_configs: Optional[str] = None
 
 class StoreSettings(StoreSettingsBase):
