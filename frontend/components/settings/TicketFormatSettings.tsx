@@ -257,18 +257,21 @@ export function TicketFormatSettings() {
                             {/* Cutting Margin Visualization */}
                             <div
                                 style={{ height: `${(config.cutting_margin || 15) * 5}px` }}
-                                className="w-full transition-all duration-300 relative"
+                                className="w-full transition-all duration-300 relative bg-[linear-gradient(45deg,#f1f5f9_25%,transparent_25%,transparent_50%,#f1f5f9_50%,#f1f5f9_75%,transparent_75%,transparent)] bg-[length:10px_10px]"
                             >
-                                <div className="absolute bottom-0 left-0 right-0 border-b-2 border-dashed border-red-300 flex justify-center">
-                                    <div className="bg-white px-2 text-red-400 text-xs -mb-2 flex items-center gap-1">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <div className="absolute top-1/2 left-0 right-0 text-center text-[10px] text-slate-400 font-mono -translate-y-1/2 bg-white/50 backdrop-blur-[1px] inline-block mx-auto w-max px-2 rounded">
+                                    Paper Feed ({config.cutting_margin || 15} lines)
+                                </div>
+                                <div className="absolute bottom-0 left-0 right-0 border-b-2 border-dashed border-red-400 flex justify-center z-10">
+                                    <div className="bg-red-50 px-3 py-0.5 text-red-600 text-[10px] -mb-2.5 flex items-center gap-1 font-bold border border-red-200 rounded-full shadow-sm">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                             <circle cx="6" cy="6" r="3" />
                                             <circle cx="6" cy="18" r="3" />
                                             <line x1="20" y1="4" x2="8.12" y2="15.88" />
                                             <line x1="14.47" y1="14.48" x2="20" y2="20" />
                                             <line x1="8.12" y1="8.12" x2="12" y2="12" />
                                         </svg>
-                                        절취선 (Cut Line)
+                                        CUT LINE
                                     </div>
                                 </div>
                             </div>
