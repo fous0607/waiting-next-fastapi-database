@@ -162,3 +162,44 @@ def force_migration():
     except Exception as e:
         import traceback
         return {"status": "error", "detail": str(e), "traceback": traceback.format_exc(), "logs": logs}
+
+@router.get("/classes/{store_id}")
+def debug_classes(store_id: int, db: Session = Depends(get_db)):
+    """Debug class filtering logic"""
+    from models import ClassInfo
+    from routers.waiting import get_current_business_date, filter_classes_by_weekday
+    
+    # 1. Date
+    try:
+        today = get_current_business_date(db, store_id)
+    except Exception as e:
+        today = None
+        
+    # 2. Raw Classes
+    raw_classes = db.query(ClassInfo).filter(
+        ClassInfo.store_id == store_id
+    ).all()
+    
+    raw_info = []
+    for c in raw_classes:
+        raw_info.append({
+            "id": c.id,
+            "name": c.class_name,
+            "is_active": c.is_active,
+            "class_type": c.class_type,
+            "weekday_schedule": c.weekday_schedule,
+        })
+        
+    # 3. Filtered
+    filtered = []
+    if today:
+        filtered = filter_classes_by_weekday(raw_classes, today, db, store_id)
+        
+    return {
+        "store_id": store_id,
+        "business_date": str(today),
+        "raw_count": len(raw_classes),
+        "filtered_count": len(filtered),
+        "raw_classes": raw_info,
+        "filtered_ids": [c.id for c in filtered]
+    }
