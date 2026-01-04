@@ -437,10 +437,11 @@ export function TicketFormatSettings() {
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <Input
+                            <textarea
                                 placeholder="예: 감사합니다."
                                 value={customFooter}
                                 onChange={(e) => setCustomFooter(e.target.value)}
+                                className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                             />
                         </CardContent>
                     </Card>
