@@ -3,18 +3,24 @@ import 'dart:io';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_router/shelf_router.dart';
+import 'database_helper.dart';
 
 class ProxyServer {
   HttpServer? _server;
   final int port = 8000;
   void Function(String)? onLog;
+  final DatabaseHelper _dbHelper = DatabaseHelper();
 
   ProxyServer({this.onLog});
 
-  void _log(String message) {
+  Future<void> _log(String message) async {
     final timestamp = DateTime.now().toString().split('.').first.split(' ').last;
     final logMessage = '[$timestamp] $message';
     print(logMessage);
+    
+    // Save to database
+    await _dbHelper.insertLog(logMessage);
+    
     onLog?.call(logMessage);
   }
 
