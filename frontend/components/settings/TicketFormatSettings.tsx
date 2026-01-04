@@ -136,10 +136,10 @@ export function TicketFormatSettings() {
     const getSizeClass = (size: string) => {
         switch (size) {
             case 'small': return 'text-xs'; // ~12px
-            case 'medium': return 'text-base font-bold'; // ~16px
-            case 'large': return 'text-2xl font-black'; // ~24px
-            case 'huge': return 'text-4xl font-black'; // ~36px
-            default: return 'text-base';
+            case 'medium': return 'text-sm font-bold'; // ~14px (Reduced from base)
+            case 'large': return 'text-lg font-black'; // ~18px (Reduced from 2xl)
+            case 'huge': return 'text-3xl font-black'; // ~30px (Reduced from 4xl)
+            default: return 'text-sm';
         }
     };
 

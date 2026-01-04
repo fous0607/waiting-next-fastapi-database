@@ -64,6 +64,9 @@ class ProxyServer {
         await _dbHelper.insertPrintJob(ip, port, data, waitingInfo);
 
         await _sendToPrinter(ip, port, data);
+        
+        // 하나의 작업 완료 후 빈 줄 로그 추가
+        _log('');
 
         return Response.ok(
           jsonEncode({'status': 'success'}),
@@ -71,6 +74,7 @@ class ProxyServer {
         );
       } catch (e) {
         _log('❌ Error processing request: $e');
+        _log(''); // 에러 시에도 빈 줄 추가
         return Response.internalServerError(
           body: 'Error: $e',
           headers: _corsHeaders,
@@ -91,6 +95,7 @@ class ProxyServer {
     // Bind to any IPv4 address
     _server = await shelf_io.serve(handler, InternetAddress.anyIPv4, port);
     _log('🚀 Serving at http://${_server!.address.host}:${_server!.port}');
+    _log('');
   }
 
   // Stop the server
@@ -98,6 +103,7 @@ class ProxyServer {
     await _server?.close();
     _server = null;
     _log('⏹ Server stopped.');
+    _log('');
   }
 
   bool get isRunning => _server != null;
@@ -150,6 +156,7 @@ class ProxyServer {
   // Static method for reprinting
   Future<void> reprint(String ip, int port, List<int> data) async {
     await _sendToPrinter(ip, port, data);
+    _log(''); // 재출력 후에도 빈 줄 추가
   }
 
   // CORS Headers

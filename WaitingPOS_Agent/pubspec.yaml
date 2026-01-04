@@ -39,7 +39,7 @@ dependencies:
 
   # App Launcher
   url_launcher: ^6.2.5
-  external_app_launcher: ^3.2.0
+  external_app_launcher: ^4.0.3
 
 dev_dependencies:
   flutter_test:

@@ -96,9 +96,9 @@ async def generate_ticket(ticket: TicketData):
             #           Actually user requested: 상(Large), 중(Medium), 하(Small).
             
             if size == "small": return "{SIZE:NORMAL}"
-            if size == "medium": return "{SIZE:BIG}" # Big is GS ! 11 (Double Width/Height)
-            if size == "large": return "{SIZE:HUGE}" # Huge is GS ! 22 (Triple Width/Height)
-            if size == "huge": return "{SIZE:HUGE}" # Legacy support
+            if size == "medium": return "{SIZE:DOUBLE_H}" # Medium is Double Height (1x2)
+            if size == "large": return "{SIZE:BIG}" # Large is Double Width/Height (2x2)
+            if size == "huge": return "{SIZE:HUGE}" # Triple Width/Height (3x3)
             return "{SIZE:NORMAL}" # Default
 
         def get_align_cmd(key_prefix, default="CENTER"):
@@ -194,8 +194,9 @@ async def generate_ticket(ticket: TicketData):
             "{BOLD:ON}": ESC + b'E' + b'\x01',
             "{BOLD:OFF}": ESC + b'E' + b'\x00',
             "{SIZE:NORMAL}": GS + b'!' + b'\x00',
-            "{SIZE:BIG}": GS + b'!' + b'\x11',
-            "{SIZE:HUGE}": GS + b'!' + b'\x22',
+            "{SIZE:DOUBLE_H}": GS + b'!' + b'\x01', # 1x Width, 2x Height
+            "{SIZE:BIG}": GS + b'!' + b'\x11', # 2x Width, 2x Height
+            "{SIZE:HUGE}": GS + b'!' + b'\x22', # 3x Width, 3x Height
             "{CUT}": CUT,
             "{LF}": LF,
         }
