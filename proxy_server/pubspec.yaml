@@ -1,0 +1,42 @@
+name: waiting_print_proxy
+description: A Flutter application to execute local print proxy for waiting system.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # HTTP Server
+  shelf: ^1.4.1
+  shelf_router: ^1.1.4
+  
+  # Network Utils
+  network_info_plus: ^5.0.1
+  http: ^1.1.0
+  
+  # FTP (버전 수정: ^2.5.0 -> ^2.0.5)
+  ftpconnect: ^2.0.5
+  
+  # Background & Wake Lock (Keep screen on)
+  wakelock_plus: ^1.1.4
+  
+  # JSON & Utils
+  json_annotation: ^4.8.1
+  intl: ^0.18.1
+  
+  # Persistence & Files
+  shared_preferences: ^2.2.0
+  path_provider: ^2.1.1
+  path: ^1.8.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true

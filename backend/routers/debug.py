@@ -128,10 +128,37 @@ def get_table_schema(table_name: str):
 
 @router.post("/force-migration")
 def force_migration():
-    """Force Base.metadata.create_all()"""
+    """Force Base.metadata.create_all() AND check for missing columns"""
+    logs = []
     try:
+        # 1. Ensure tables exist
         Base.metadata.create_all(bind=engine)
-        return {"status": "Migration attempted"}
+        logs.append("create_all completed")
+        
+        # 2. Check for missing columns (Auto Migration)
+        from core.db_auto_migrator import check_and_migrate_table
+        from models import StoreSettings, WaitingList, Member, ClassInfo, DailyClosing, User, Store, Notice, NoticeAttachment
+        
+        models_to_check = [
+            StoreSettings, 
+            WaitingList, 
+            Member, 
+            ClassInfo, 
+            DailyClosing, 
+            User,
+            Store,
+            Notice,
+            NoticeAttachment
+        ]
+        
+        for model in models_to_check:
+            try:
+                check_and_migrate_table(model)
+                logs.append(f"Checked {model.__tablename__}")
+            except Exception as e:
+                logs.append(f"Error checking {model.__tablename__}: {str(e)}")
+        
+        return {"status": "Migration completed", "logs": logs}
     except Exception as e:
         import traceback
-        return {"status": "error", "detail": str(e), "traceback": traceback.format_exc()}
+        return {"status": "error", "detail": str(e), "traceback": traceback.format_exc(), "logs": logs}

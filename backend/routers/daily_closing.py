@@ -28,12 +28,18 @@ def get_current_business_date(db: Session, store_id: int) -> date:
         return active_closing.business_date
 
     # 2. 설정 기반 계산
-    start_hour = db.query(StoreSettings.business_day_start).filter(
-        StoreSettings.store_id == store_id
-    ).scalar()
-    
-    if start_hour is None:
-        start_hour = 5
+    start_hour = 5
+    try:
+        start_hour_scalar = db.query(StoreSettings.business_day_start).filter(
+            StoreSettings.store_id == store_id
+        ).scalar()
+        
+        if start_hour_scalar is not None:
+             start_hour = start_hour_scalar
+    except Exception as e:
+        # 컬럼 미생성 등 에러 시 기본값 사용
+        pass
+        
     return get_today_date(start_hour)
 
 @router.get("/predict-date", response_model=Dict[str, str])
