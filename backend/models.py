@@ -218,8 +218,8 @@ class StoreSettings(Base):
     enable_printer_qr = Column(Boolean, default=True) # QR Code Enable/Disable
     
     # 대기표 양식 설정 (Ticket Format)
-    # ticket_format_config = Column(String, default='{"show_store_name": true, "show_waiting_number": true, "show_date": true, "show_person_count": true, "show_teams_ahead": true, "show_waiting_order": true}')
-    # ticket_custom_footer = Column(String, nullable=True) # 사장님 한마디 (하단 문구)
+    ticket_format_config = Column(String, default='{"show_store_name": true, "show_waiting_number": true, "show_date": true, "show_person_count": true, "show_teams_ahead": true, "show_waiting_order": true}')
+    ticket_custom_footer = Column(String, nullable=True) # 사장님 한마디 (하단 문구)
 
     # 클래스 시간 설정
     default_class_minute = Column(Integer, default=50)  # 기본 수업 시간 (분)

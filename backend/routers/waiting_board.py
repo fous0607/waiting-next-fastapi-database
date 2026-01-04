@@ -1377,7 +1377,10 @@ async def get_closed_classes(
         }
     except Exception as e:
         logger.error(f"[API ERROR] get_closed_classes failed: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        # Fallback to empty list to prevent frontend crash
+        return {
+            "closed_class_ids": []
+        }
 
 @router.post("/insert-empty-seat")
 async def insert_empty_seat(
