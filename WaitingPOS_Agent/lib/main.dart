@@ -44,6 +44,7 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _isRunning = false;
   List<String> _logs = [];
   final DatabaseHelper _dbHelper = DatabaseHelper();
+  double? _uploadProgress;
 
   @override
   void initState() {
@@ -105,11 +106,9 @@ class _MyHomePageState extends State<MyHomePage> {
       return;
     }
 
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
-    );
+    setState(() {
+      _uploadProgress = 0.0;
+    });
 
     try {
       final logs = await _dbHelper.getLogs();
@@ -122,31 +121,41 @@ class _MyHomePageState extends State<MyHomePage> {
       String header = "Store Name: $storeName\nAgent Info: $agentInfo\nGenerated: ${DateTime.now()}\n\n";
       await file.writeAsString(header + logContent);
 
-      FTPConnect ftp = FTPConnect(ftpAddr, port: 2100, user: 'bongs', pass: 'Nice0512');
+      FTPConnect ftp = FTPConnect(ftpAddr, port: 2100, user: 'bongs', pass: 'Nice0512', timeout: 30);
 
       await ftp.connect();
       try {
         await ftp.changeDirectory('docker3/log_server');
       } catch (e) {
-        // Directory might not exist or other error
+        // Directory change error
       }
       
-      await ftp.uploadFile(file);
+      await ftp.uploadFile(
+        file,
+        onProgress: (progressInPercent, totalSent, totalSize) {
+          setState(() {
+            _uploadProgress = progressInPercent / 100;
+          });
+        },
+      );
+      
       await ftp.disconnect();
 
       if (mounted) {
-        Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Logs uploaded successfully')),
         );
       }
     } catch (e) {
       if (mounted) {
-        Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Upload failed: $e')),
         );
       }
+    } finally {
+      setState(() {
+        _uploadProgress = null;
+      });
     }
   }
 
@@ -159,7 +168,7 @@ class _MyHomePageState extends State<MyHomePage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.upload),
-            onPressed: _sendLogFile,
+            onPressed: _uploadProgress != null ? null : _sendLogFile,
             tooltip: 'Send Logs to Server',
           ),
           IconButton(
@@ -169,13 +178,26 @@ class _MyHomePageState extends State<MyHomePage> {
                 context,
                 MaterialPageRoute(builder: (context) => const SettingsPage()),
               );
-              setState(() {}); // Refresh if needed
+              setState(() {});
             },
           ),
         ],
       ),
       body: Column(
         children: <Widget>[
+          if (_uploadProgress != null)
+            Column(
+              children: [
+                LinearProgressIndicator(value: _uploadProgress),
+                Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: Text(
+                    'Uploading Logs: ${(_uploadProgress! * 100).toStringAsFixed(1)}%',
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
           const SizedBox(height: 10),
           _buildStatusHeader(),
           const Divider(),

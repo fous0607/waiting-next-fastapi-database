@@ -96,10 +96,11 @@ export class PrinterService {
             .size('normal')
             .bold(false)
             .feed(1)
+            .feed(1)
             .line('--------------------------------')
             .feed(1)
             .text(job.date)
-            .feed(3)
+            .feed(15) // Increased feed to prevent QR/Text cutting
             .cut();
 
         return enc.encode();

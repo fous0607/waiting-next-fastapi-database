@@ -198,15 +198,9 @@ async def generate_ticket(ticket: TicketData):
             
             commands.append(LF)
 
-        # Final Cut
-        commands.append(LF)
-        commands.append(LF)
-        commands.append(LF)
-        commands.append(LF)
-        commands.append(LF)
-        commands.append(LF)
-        commands.append(LF)
-        commands.append(LF)
+        # Final Cut - Increase margin significantly (SAFE 15 lines)
+        for _ in range(15):
+            commands.append(LF)
         commands.append(CUT)
 
         full_command = b''.join(commands)
