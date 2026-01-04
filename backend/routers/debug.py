@@ -163,7 +163,7 @@ def list_users(db: Session = Depends(get_db)):
     users = db.query(User).all()
     return [{"id": u.id, "username": u.username, "store_id": u.store_id} for u in users]
 
-@router.post("/fix-classes/{store_id}")
+@router.get("/fix-classes/{store_id}")
 def fix_store_classes(store_id: int, db: Session = Depends(get_db)):
     classes = db.query(ClassInfo).filter(ClassInfo.store_id == store_id).all()
     count = 0
