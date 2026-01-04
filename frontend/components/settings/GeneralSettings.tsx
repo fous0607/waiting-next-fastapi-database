@@ -1117,13 +1117,13 @@ export function GeneralSettings() {
                                                         </FormControl>
                                                         <SelectContent>
                                                             <SelectItem value="local_proxy">로컬 프록시 (PC 설치)</SelectItem>
-                                                            <SelectItem value="cloud_queue">클라우드 큐 (예정)</SelectItem>
+                                                            <SelectItem value="cloud_queue">클라우드 큐 (Cloud Queue)</SelectItem>
                                                             <SelectItem value="tablet">태블릿 (준비 중)</SelectItem>
                                                         </SelectContent>
                                                     </Select>
                                                     <FormDescription className="text-xs">
                                                         * 로컬 프록시: PC에서 실행 중인 중계 프로그램을 통해 출력합니다.<br />
-                                                        * 클라우드 큐: 서버를 통해 원격으로 출력합니다 (준비 중).
+                                                        * 클라우드 큐: 서버를 통해 중계기(PC)로 명령을 전달합니다. (HTTPS/태블릿 권장)
                                                     </FormDescription>
                                                 </FormItem>
                                             )}

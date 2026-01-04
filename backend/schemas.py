@@ -111,7 +111,6 @@ class StoreSettingsBase(BaseModel):
     enable_party_size: bool = False
     enable_menu_ordering: bool = False
     party_size_config: Optional[str] = None  # JSON string for categories
-    party_size_config: Optional[str] = None  # JSON string for categories
     detail_mode: str = "standard" # standard (table), pickup (cafe)
 
     # 영수증 프린터 설정

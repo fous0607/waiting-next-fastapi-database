@@ -207,7 +207,6 @@ export class PrinterService {
             } catch (error) {
                 console.error(`[PrinterService] Proxy Print Attempt ${attempt} Failed:`, error);
                 lastError = error;
-                // Continuum to next attempt
             }
         }
 
@@ -228,6 +227,28 @@ export class PrinterService {
         }
 
         throw new Error(errorMsg);
+    }
+
+    /**
+     * Print via Cloud Queue (Backend)
+     * Frontend sends job to Backend, PC polls Backend.
+     */
+    async printCloud(ip: string, printerPort: number, data: Uint8Array): Promise<void> {
+        try {
+            console.log('[PrinterService] Sending print job to Cloud Queue...');
+            const dataArray = Array.from(data);
+
+            await api.post('/printer/job', {
+                ip: ip,
+                port: printerPort,
+                data: dataArray
+            });
+
+            console.log('[PrinterService] Job successfully queued in Cloud.');
+        } catch (error) {
+            console.error('[PrinterService] Cloud Print Failed:', error);
+            throw new Error('클라우드 프린터 큐 전송 실패: ' + (error instanceof Error ? error.message : String(error)));
+        }
     }
 
 
@@ -282,6 +303,12 @@ export class PrinterService {
         } else if (config.type === 'lan') {
             if (!targetPrinterIp) throw new Error('IP Address is required for LAN printing');
 
+            // Handle Cloud Queue Mode
+            if (config.connectionMode === 'cloud_queue') {
+                return this.printCloud(targetPrinterIp, config.port || 9100, data);
+            }
+
+            // Default to Local Proxy
             // Pass effective IPs to printLan
             return this.printLan(targetPrinterIp, config.port || 9100, data, targetProxyIp, localSettings.proxyPort || 8000);
         }
