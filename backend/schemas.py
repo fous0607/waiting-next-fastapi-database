@@ -136,7 +136,7 @@ class StoreSettingsCreate(StoreSettingsBase):
 class StoreSettingsUpdate(BaseModel):
     store_name: Optional[str] = None
     display_classes_count: Optional[int] = None
-    display_count: Optional[int] = 5
+    display_count: Optional[int] = None
     list_direction: Optional[str] = None
     rows_per_class: Optional[int] = None
     admin_password: Optional[str] = None
@@ -146,9 +146,9 @@ class StoreSettingsUpdate(BaseModel):
     auto_register_member: Optional[bool] = None
     require_member_registration: Optional[bool] = None
     registration_message: Optional[str] = None
-    business_day_start: Optional[int] = 0
-    auto_closing: Optional[bool] = True
-    closing_action: Optional[str] = "reset"
+    business_day_start: Optional[int] = None
+    auto_closing: Optional[bool] = None
+    closing_action: Optional[str] = None
 
     # 출석 횟수 표시 설정
     attendance_count_type: Optional[str] = None
@@ -258,6 +258,7 @@ class StoreSettingsUpdate(BaseModel):
     auto_print_registration: Optional[bool] = None
     printer_qr_size: Optional[int] = None
     enable_printer_qr: Optional[bool] = None
+
     ticket_format_config: Optional[str] = None
     ticket_custom_footer: Optional[str] = None
     screen_configs: Optional[str] = None
