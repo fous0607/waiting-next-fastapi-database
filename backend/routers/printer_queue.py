@@ -63,11 +63,17 @@ async def generate_ticket(ticket: TicketData):
         # Default Config
         config = {
             "show_store_name": True,
+            "store_name_size": "large",
             "show_waiting_number": True,
+            "waiting_number_size": "huge",
             "show_date": True,
+            "date_size": "small",
             "show_person_count": True,
+            "person_count_size": "medium",
             "show_teams_ahead": True,
-            "show_waiting_order": True
+            "teams_ahead_size": "medium",
+            "show_waiting_order": True,
+            "waiting_order_size": "medium"
         }
 
         # Parse Config if provided
@@ -78,41 +84,77 @@ async def generate_ticket(ticket: TicketData):
             except:
                 print("Failed to parse ticket_format_config, using defaults")
 
+        # Size Mapper
+        def get_size_cmd(size_key: str):
+            size = config.get(size_key, "medium")
+            # Map frontend sizes to ESC/POS commands
+            # small -> Normal (GS ! \x00) - fit more text
+            # medium -> Double Height (GS ! \x10) or slightly bigger? 
+            #           Let's standard: 
+            #           small=Normal(00), medium=DoubleHeight(10) or DoubleWidth(20)? 
+            #           Let's try: small=Normal, medium=Big(DoubleWidthHeight 11), large=Huge(22)
+            #           Actually user requested: 상(Large), 중(Medium), 하(Small).
+            
+            if size == "small": return "{SIZE:NORMAL}"
+            if size == "medium": return "{SIZE:BIG}" # Big is GS ! 11 (Double Width/Height)
+            if size == "large": return "{SIZE:HUGE}" # Huge is GS ! 22 (Triple Width/Height)
+            if size == "huge": return "{SIZE:HUGE}" # Legacy support
+            return "{SIZE:NORMAL}" # Default
+
         # Build Template
         template_parts = []
         
         # Store Name
         if config["show_store_name"]:
-            template_parts.append("{ALIGN:CENTER}{BOLD:ON}{SIZE:BIG}{STORE_NAME}")
+            template_parts.append(f"{{ALIGN:CENTER}}{{BOLD:ON}}{get_size_cmd('store_name_size')}{{STORE_NAME}}")
             template_parts.append("{SIZE:NORMAL}{BOLD:OFF}--------------------------------")
 
         # Waiting Number (Always centered)
         if config["show_waiting_number"]:
             template_parts.append("{ALIGN:CENTER}{SIZE:NORMAL}대기번호")
-            template_parts.append("{SIZE:HUGE}{BOLD:ON}{WAITING_NUMBER}")
-            template_parts.append("{SIZE:NORMAL}{BOLD:OFF}--------------------------------")
+            template_parts.append(f"{{BOLD:ON}}{get_size_cmd('waiting_number_size')}{{WAITING_NUMBER}}")
+            # template_parts.append("{SIZE:NORMAL}{BOLD:OFF}--------------------------------") 
+            # Removed separator below number based on user image
 
-        # Date & Person Count
-        date_line = "{DATE}" if config.get("show_date") else ""
-        people_line = "{PEOPLE}" if config.get("show_person_count") else ""
+        # Data Block - Date, People, Teams, Order
+        # Align logic based on user image:
+        # Date (Left), People (Right, or same line if fits?)
+        # Teams Ahead (Center)
+        # Order (Center)
         
-        # Combine Date and People
-        if config.get("show_date") and config.get("show_person_count"):
-             template_parts.append(f"{{ALIGN:LEFT}}{date_line}") 
-             template_parts.append(f"{{ALIGN:RIGHT}}{people_line}")
-        elif config.get("show_date"):
-             template_parts.append(f"{{ALIGN:LEFT}}{date_line}")
-        elif config.get("show_person_count"):
-             template_parts.append(f"{{ALIGN:RIGHT}}{people_line}")
+        # Date & Person Count Line
+        date_line = f"{{DATE}}" if config.get("show_date") else ""
+        people_line = f"인원: {{PEOPLE}}" if config.get("show_person_count") and ticket.person_count else ""
+        
+        # Use small size for metadata lines usually
+        meta_size = get_size_cmd('date_size') # Use date size for this line
+        
+        if config.get("show_date") or config.get("show_person_count"):
+             # User Image shows Date Left, Person Count Right on same line?
+             # User Image: 
+             # 2026. 1. 4... (Left)
+             #                (Right) ??? No, user image shows:
+             # 2026. 1. 4. [Left]
+             # 인원: 성인 1명... [Right or New Line?] 
+             # Actually looks like:
+             # Date ............
+             #             People
+             # Or maybe standard 2-column layout.
+             
+             template_parts.append(f"{{ALIGN:LEFT}}{meta_size}{date_line}") 
+             if config.get("show_person_count"):
+                 template_parts.append(f"{{ALIGN:RIGHT}}{get_size_cmd('person_count_size')}{people_line}")
+        
+        template_parts.append("{SIZE:NORMAL}--------------------------------")
 
         # Info Block (Teams Ahead / Order)
         if config.get("show_teams_ahead"):
-            template_parts.append("{ALIGN:CENTER}내 앞 대기: {TEAMS_AHEAD}팀")
+            template_parts.append(f"{{ALIGN:CENTER}}{get_size_cmd('teams_ahead_size')}내 앞 대기: {{TEAMS_AHEAD}}팀")
         
         if config.get("show_waiting_order"):
-            template_parts.append("{ALIGN:CENTER}입장 순서: {ORDER}번째")
+            template_parts.append(f"{{ALIGN:CENTER}}{get_size_cmd('waiting_order_size')}입장 순서: {{ORDER}}번째")
 
-        # QR Code Placeholder (Always add, conditional logic handles actual print)
+        # QR Code Placeholder
         template_parts.append("{ALIGN:CENTER}{QR}")
 
         # Custom Footer
@@ -120,7 +162,7 @@ async def generate_ticket(ticket: TicketData):
             template_parts.append("{ALIGN:CENTER}{BOLD:OFF}{SIZE:NORMAL}")
             template_parts.append(ticket.ticket_custom_footer)
 
-        template_parts.append("{CUT}")
+        # template_parts.append("{CUT}")
         
         template_content = "\n".join(template_parts)
 
