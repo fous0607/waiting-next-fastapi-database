@@ -38,13 +38,17 @@ def get_current_business_date(db: Session, store_id: int) -> date:
     2. 없으면 시간 기반 계산
     """
     # 1. 활성화된 영업일 확인
-    active_closing = db.query(DailyClosing).filter(
-        DailyClosing.store_id == store_id,
-        DailyClosing.is_closed == False
-    ).order_by(DailyClosing.business_date.desc()).first()
+    try:
+        active_closing = db.query(DailyClosing).filter(
+            DailyClosing.store_id == store_id,
+            DailyClosing.is_closed == False
+        ).order_by(DailyClosing.business_date.desc()).first()
 
-    if active_closing:
-        return active_closing.business_date
+        if active_closing:
+            return active_closing.business_date
+    except Exception as e:
+        logger.error(f"Error fetching active daily closing: {e}")
+        pass
 
     # 2. 설정 기반 계산
     start_hour = 5 # waiting_board uses 5 as default
