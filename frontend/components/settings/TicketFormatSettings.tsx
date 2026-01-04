@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
+import { Slider } from '@/components/ui/slider';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
@@ -18,6 +19,7 @@ interface TicketFormatConfig {
     show_person_count: boolean;
     show_teams_ahead: boolean;
     show_waiting_order: boolean;
+    cutting_margin: number;
 }
 
 export function TicketFormatSettings() {
@@ -31,6 +33,7 @@ export function TicketFormatSettings() {
         show_person_count: true,
         show_teams_ahead: true,
         show_waiting_order: true,
+        cutting_margin: 15,
     });
     const [customFooter, setCustomFooter] = useState('');
 
@@ -163,6 +166,35 @@ export function TicketFormatSettings() {
                         {isLoading ? '저장 중...' : '설정 저장'}
                     </Button>
                 </div>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Printer className="w-5 h-5" />
+                            프린터 설정
+                        </CardTitle>
+                        <CardDescription>
+                            출력 및 컷팅 관련 세부 설정을 변경합니다.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        <div className="space-y-3">
+                            <div className="flex justify-between">
+                                <Label>절취선 여백 조정 (현재: {config.cutting_margin || 15}줄)</Label>
+                            </div>
+                            <Slider
+                                defaultValue={[config.cutting_margin || 15]}
+                                value={[config.cutting_margin || 15]}
+                                max={30}
+                                step={1}
+                                onValueChange={(vals) => setConfig(prev => ({ ...prev, cutting_margin: vals[0] }))}
+                            />
+                            <p className="text-xs text-muted-foreground">
+                                컷팅 위치가 너무 짧아 QR코드가 잘린다면 값을 늘려주세요. (기본값: 15)
+                            </p>
+                        </div>
+                    </CardContent>
+                </Card>
 
                 {/* Preview */}
                 <Card className="bg-slate-50 border-slate-200">

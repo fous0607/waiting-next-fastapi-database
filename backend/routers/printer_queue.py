@@ -243,8 +243,13 @@ async def generate_ticket(ticket: TicketData):
             
             commands.append(LF)
 
-        # Final Cut
-        for _ in range(15):
+        # Final Cut - Increase margin significantly (Default SAFE 15 lines)
+        cut_margin = config.get("cutting_margin", 15)
+        # Ensure it's an integer
+        if isinstance(cut_margin, str):
+            cut_margin = int(cut_margin)
+            
+        for _ in range(cut_margin):
             commands.append(LF)
         commands.append(CUT)
 
