@@ -57,7 +57,7 @@ export function TicketFormatSettings() {
     const handleSave = async () => {
         setIsLoading(true);
         try {
-            await api.put('/settings', {
+            await api.put('/store', {
                 ticket_format_config: JSON.stringify(config),
                 ticket_custom_footer: customFooter
             });
