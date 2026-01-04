@@ -125,15 +125,16 @@ export function TicketFormatSettings() {
                         </CardHeader>
                         <CardContent className="space-y-6">
                             {/* Store Name */}
+                            {/* Store Name */}
                             <div className="flex items-center justify-between">
-                                <div className="space-y-1">
-                                    <Label htmlFor="show_store_name">매장명</Label>
+                                <div className="flex items-center gap-2">
+                                    <Label htmlFor="show_store_name" className="text-sm font-medium min-w-[60px]">매장명</Label>
                                     <Select
                                         value={config.store_name_size}
                                         onValueChange={(v) => handleSizeChange('store_name_size', v)}
                                         disabled={!config.show_store_name}
                                     >
-                                        <SelectTrigger className="w-[140px] h-8 text-xs">
+                                        <SelectTrigger className="w-[110px] h-7 text-xs">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -151,15 +152,16 @@ export function TicketFormatSettings() {
                             </div>
 
                             {/* Waiting Number */}
+                            {/* Waiting Number */}
                             <div className="flex items-center justify-between">
-                                <div className="space-y-1">
-                                    <Label htmlFor="show_waiting_number">대기번호</Label>
+                                <div className="flex items-center gap-2">
+                                    <Label htmlFor="show_waiting_number" className="text-sm font-medium min-w-[60px]">대기번호</Label>
                                     <Select
                                         value={config.waiting_number_size}
                                         onValueChange={(v) => handleSizeChange('waiting_number_size', v)}
                                         disabled={!config.show_waiting_number}
                                     >
-                                        <SelectTrigger className="w-[140px] h-8 text-xs">
+                                        <SelectTrigger className="w-[110px] h-7 text-xs">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -177,15 +179,16 @@ export function TicketFormatSettings() {
                             </div>
 
                             {/* Date */}
+                            {/* Date */}
                             <div className="flex items-center justify-between">
-                                <div className="space-y-1">
-                                    <Label htmlFor="show_date">접수 일시</Label>
+                                <div className="flex items-center gap-2">
+                                    <Label htmlFor="show_date" className="text-sm font-medium min-w-[60px]">접수 일시</Label>
                                     <Select
                                         value={config.date_size}
                                         onValueChange={(v) => handleSizeChange('date_size', v)}
                                         disabled={!config.show_date}
                                     >
-                                        <SelectTrigger className="w-[140px] h-8 text-xs">
+                                        <SelectTrigger className="w-[110px] h-7 text-xs">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -203,15 +206,16 @@ export function TicketFormatSettings() {
                             </div>
 
                             {/* Person Count */}
+                            {/* Person Count */}
                             <div className="flex items-center justify-between">
-                                <div className="space-y-1">
-                                    <Label htmlFor="show_person_count">인원수</Label>
+                                <div className="flex items-center gap-2">
+                                    <Label htmlFor="show_person_count" className="text-sm font-medium min-w-[60px]">인원수</Label>
                                     <Select
                                         value={config.person_count_size}
                                         onValueChange={(v) => handleSizeChange('person_count_size', v)}
                                         disabled={!config.show_person_count}
                                     >
-                                        <SelectTrigger className="w-[140px] h-8 text-xs">
+                                        <SelectTrigger className="w-[110px] h-7 text-xs">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -231,15 +235,16 @@ export function TicketFormatSettings() {
                             <Separator />
 
                             {/* Teams Ahead */}
+                            {/* Teams Ahead */}
                             <div className="flex items-center justify-between">
-                                <div className="space-y-1">
-                                    <Label htmlFor="show_teams_ahead">내 앞 대기팀 수</Label>
+                                <div className="flex items-center gap-2">
+                                    <Label htmlFor="show_teams_ahead" className="text-sm font-medium min-w-[60px]">내 앞 대기</Label>
                                     <Select
                                         value={config.teams_ahead_size}
                                         onValueChange={(v) => handleSizeChange('teams_ahead_size', v)}
                                         disabled={!config.show_teams_ahead}
                                     >
-                                        <SelectTrigger className="w-[140px] h-8 text-xs">
+                                        <SelectTrigger className="w-[110px] h-7 text-xs">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -257,15 +262,16 @@ export function TicketFormatSettings() {
                             </div>
 
                             {/* Waiting Order */}
+                            {/* Waiting Order */}
                             <div className="flex items-center justify-between">
-                                <div className="space-y-1">
-                                    <Label htmlFor="show_waiting_order">입장 순서</Label>
+                                <div className="flex items-center gap-2">
+                                    <Label htmlFor="show_waiting_order" className="text-sm font-medium min-w-[60px]">입장 순서</Label>
                                     <Select
                                         value={config.waiting_order_size}
                                         onValueChange={(v) => handleSizeChange('waiting_order_size', v)}
                                         disabled={!config.show_waiting_order}
                                     >
-                                        <SelectTrigger className="w-[140px] h-8 text-xs">
+                                        <SelectTrigger className="w-[110px] h-7 text-xs">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -357,15 +363,15 @@ export function TicketFormatSettings() {
                                     </div>
                                 )}
 
-                                {/* Date & People (Flex) */}
-                                <div className="flex justify-between items-start mb-4 px-2">
+                                {/* Date & People (Separate Lines) */}
+                                <div className="mb-4 px-2 space-y-1">
                                     {config.show_date && (
                                         <div className={`text-left ${getSizeClass(config.date_size)}`}>
                                             2026. 1. 4. 오전 3:54:38
                                         </div>
                                     )}
                                     {config.show_person_count && (
-                                        <div className={`text-right ml-4 ${getSizeClass(config.person_count_size)}`}>
+                                        <div className={`text-right ${getSizeClass(config.person_count_size)}`}>
                                             인원: 성인 1명, 어린이 1명
                                         </div>
                                     )}
