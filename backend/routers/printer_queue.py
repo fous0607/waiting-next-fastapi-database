@@ -222,7 +222,8 @@ async def generate_ticket(ticket: TicketData):
                 pass
         people_str = details_text if details_text else (f"{ticket.person_count}명" if ticket.person_count else "")
         if people_str and config.get("show_person_count"):
-             people_str = f"인원: {people_str}"
+             # people_str = f"인원: {people_str}" # REMOVED: Duplicates label in template
+             pass
 
         VARS = {
             "{STORE_NAME}": ticket.store_name,

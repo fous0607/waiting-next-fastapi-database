@@ -5,7 +5,9 @@ import { api } from '@/lib/api';
 import { LocalSettingsManager } from '@/lib/printer/LocalSettingsManager';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { LayoutDashboard, Monitor, MonitorPlay, BarChart3, Smartphone, CheckCircle2, Loader2, LogOut } from 'lucide-react';
+import { LayoutDashboard, Monitor, MonitorPlay, BarChart3, Smartphone, CheckCircle2, Loader2, LogOut, Lock } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { toast } from 'sonner';
 
 interface ScreenInstance {
     id: string;
@@ -174,6 +176,9 @@ export function ScreenIdentitySelector({ category, onSelected }: ScreenIdentityS
 // Helper to reset identity (for debugging or user change)
 export function IdentityStatus() {
     const [settings, setSettings] = useState<any>(null);
+    const [showResetDialog, setShowResetDialog] = useState(false);
+    const [password, setPassword] = useState('');
+    const [isVerifying, setIsVerifying] = useState(false);
 
     useEffect(() => {
         setSettings(LocalSettingsManager.getSettings());
@@ -186,12 +191,73 @@ export function IdentityStatus() {
             <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
             <span>{settings.assignedScreenName}</span>
             <button
-                onClick={() => { if (confirm('기기 설정을 초기화하시겠습니까?')) { LocalSettingsManager.clearSettings(); window.location.reload(); } }}
+                onClick={() => setShowResetDialog(true)}
                 className="ml-1 p-1 hover:bg-white/20 rounded-full transition-colors"
                 title="초기화"
             >
                 <LogOut className="w-3 h-3" />
             </button>
+
+            <Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Lock className="w-5 h-5 text-red-500" />
+                            기기 설정 초기화
+                        </DialogTitle>
+                        <DialogDescription>
+                            현재 기기의 화면 설정을 초기화하려면 관리자 비밀번호를 입력해주세요.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="space-y-4 py-4">
+                        <Input
+                            type="password"
+                            placeholder="관리자 비밀번호"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    handleResetConfirm();
+                                }
+                            }}
+                        />
+                    </div>
+
+                    <div className="flex justify-end gap-2">
+                        <Button variant="ghost" onClick={() => setShowResetDialog(false)}>
+                            취소
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            onClick={handleResetConfirm}
+                            disabled={!password || isVerifying}
+                        >
+                            {isVerifying ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                            초기화
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
+
+    async function handleResetConfirm() {
+        if (!password) return;
+        setIsVerifying(true);
+        try {
+            await api.post('/store/verify-password', null, { params: { password } });
+
+            // Password correct
+            LocalSettingsManager.clearSettings();
+            window.location.reload();
+        } catch (error) {
+            console.error('Password verification failed:', error);
+            // Assuming we have toast
+            alert('비밀번호가 일치하지 않습니다.'); // Fallback if toast not available or configured
+        } finally {
+            setIsVerifying(false);
+        }
+    }
+
 }
