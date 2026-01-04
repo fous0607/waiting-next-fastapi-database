@@ -173,3 +173,17 @@ def fix_store_classes(store_id: int, db: Session = Depends(get_db)):
              count += 1
     db.commit()
     return {"store_id": store_id, "updated_count": count}
+
+@router.get("/closed-classes/{store_id}")
+def debug_closed_classes(store_id: int, db: Session = Depends(get_db)):
+    from models import ClassClosure
+    try:
+        today = get_current_business_date(db, store_id)
+        closed_classes = db.query(ClassClosure).filter(
+             ClassClosure.business_date == today,
+             ClassClosure.store_id == store_id
+        ).all()
+        return {"today": str(today), "count": len(closed_classes), "ids": [c.class_id for c in closed_classes]}
+    except Exception as e:
+        import traceback
+        return {"error": str(e), "traceback": traceback.format_exc()}
