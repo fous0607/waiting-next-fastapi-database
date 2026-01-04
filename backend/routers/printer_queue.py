@@ -101,18 +101,25 @@ async def generate_ticket(ticket: TicketData):
             if size == "huge": return "{SIZE:HUGE}" # Legacy support
             return "{SIZE:NORMAL}" # Default
 
+        def get_align_cmd(key_prefix, default="CENTER"):
+            # key_prefix e.g. 'store_name' -> checks 'store_name_align'
+            align = config.get(f"{key_prefix}_align", default).upper()
+            if align == "LEFT": return "{ALIGN:LEFT}"
+            if align == "RIGHT": return "{ALIGN:RIGHT}"
+            return "{ALIGN:CENTER}"
+
         # Build Template
         template_parts = []
         
         # Store Name
         if config["show_store_name"]:
-            template_parts.append(f"{{ALIGN:CENTER}}{{BOLD:ON}}{get_size_cmd('store_name_size')}{{STORE_NAME}}")
+            template_parts.append(f"{get_align_cmd('store_name', 'CENTER')}{{BOLD:ON}}{get_size_cmd('store_name_size')}{{STORE_NAME}}")
             template_parts.append("{SIZE:NORMAL}{BOLD:OFF}--------------------------------")
 
         # Waiting Number (Always centered)
         if config["show_waiting_number"]:
-            template_parts.append("{ALIGN:CENTER}{SIZE:NORMAL}대기번호")
-            template_parts.append(f"{{BOLD:ON}}{get_size_cmd('waiting_number_size')}{{WAITING_NUMBER}}")
+            template_parts.append(f"{get_align_cmd('waiting_number', 'CENTER')}{{SIZE:NORMAL}}대기번호")
+            template_parts.append(f"{get_align_cmd('waiting_number', 'CENTER')}{{BOLD:ON}}{get_size_cmd('waiting_number_size')}{{WAITING_NUMBER}}")
             # template_parts.append("{SIZE:NORMAL}{BOLD:OFF}--------------------------------") 
             # Removed separator below number based on user image
 
@@ -141,18 +148,18 @@ async def generate_ticket(ticket: TicketData):
              #             People
              # Or maybe standard 2-column layout.
              
-             template_parts.append(f"{{ALIGN:LEFT}}{meta_size}{date_line}") 
+             template_parts.append(f"{get_align_cmd('date', 'LEFT')}{meta_size}{date_line}") 
              if config.get("show_person_count"):
-                 template_parts.append(f"{{ALIGN:RIGHT}}{get_size_cmd('person_count_size')}{people_line}")
+                 template_parts.append(f"{get_align_cmd('person_count', 'RIGHT')}{get_size_cmd('person_count_size')}{people_line}")
         
         template_parts.append("{SIZE:NORMAL}--------------------------------")
 
         # Info Block (Teams Ahead / Order)
         if config.get("show_teams_ahead"):
-            template_parts.append(f"{{ALIGN:CENTER}}{get_size_cmd('teams_ahead_size')}내 앞 대기: {{TEAMS_AHEAD}}팀")
+            template_parts.append(f"{get_align_cmd('teams_ahead', 'CENTER')}{get_size_cmd('teams_ahead_size')}내 앞 대기: {{TEAMS_AHEAD}}팀")
         
         if config.get("show_waiting_order"):
-            template_parts.append(f"{{ALIGN:CENTER}}{get_size_cmd('waiting_order_size')}입장 순서: {{ORDER}}번째")
+            template_parts.append(f"{get_align_cmd('waiting_order', 'CENTER')}{get_size_cmd('waiting_order_size')}입장 순서: {{ORDER}}번째")
 
         # QR Code Placeholder
         template_parts.append("{ALIGN:CENTER}{QR}")

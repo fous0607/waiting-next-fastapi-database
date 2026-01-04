@@ -33,6 +33,14 @@ dependencies:
   ftpconnect: ^2.0.7
   intl: ^0.19.0
 
+  # Permissions & Device Info
+  permission_handler: ^11.3.1
+  device_info_plus: ^10.1.0
+
+  # App Launcher
+  url_launcher: ^6.2.5
+  external_app_launcher: ^3.2.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

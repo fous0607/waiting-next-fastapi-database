@@ -40,13 +40,28 @@ class ProxyServer {
     router.post('/print', (Request request) async {
       try {
         final payload = await request.readAsString();
-        _log('▶ [RECEIVED DATA]: $payload');
-        
         final Map<String, dynamic> body = jsonDecode(payload);
-        final String ip = body['ip'];
+        
+        final String ip = body['ip'] ?? 'Unknown';
         final int port = body['port'] ?? 9100;
-        final List<dynamic> dataDynamic = body['data'];
+        
+        final String waitingNo = (body['waiting_no'] ?? body['waitingNo'] ?? '-').toString();
+        final String seqNo = (body['seq_no'] ?? body['seq'] ?? '-').toString();
+        final String name = (body['name'] ?? body['customer_name'] ?? '-').toString();
+        final String phone = (body['phone'] ?? body['hp'] ?? body['customer_hp'] ?? '-').toString();
+
+        _log('▶ [PRINT REQUEST] IP: $ip:$port');
+        String waitingInfo = 'No: $waitingNo, Seq: $seqNo, Name: $name, HP: $phone';
+        _log('📋 [WAITING INFO] $waitingInfo');
+        
+        final List<dynamic> dataDynamic = body['data'] ?? [];
         final List<int> data = dataDynamic.cast<int>();
+
+        // Check for double cutting commands
+        _analyzeCommands(data);
+
+        // Save for reprint
+        await _dbHelper.insertPrintJob(ip, port, data, waitingInfo);
 
         await _sendToPrinter(ip, port, data);
 
@@ -87,14 +102,36 @@ class ProxyServer {
 
   bool get isRunning => _server != null;
 
+  void _analyzeCommands(List<int> data) {
+    int cutCount = 0;
+    for (int i = 0; i < data.length - 1; i++) {
+      // Pattern: GS V (29, 86)
+      if (data[i] == 29 && data[i + 1] == 86) {
+        cutCount++;
+      }
+      // Pattern: ESC i (27, 105)
+      else if (data[i] == 27 && data[i + 1] == 105) {
+        cutCount++;
+      }
+      // Pattern: ESC m (27, 109)
+      else if (data[i] == 27 && data[i + 1] == 109) {
+        cutCount++;
+      }
+    }
+
+    if (cutCount > 1) {
+      _log('⚠️ [DUPLICATE CUT] Found $cutCount cutting commands in data!');
+    } else if (cutCount == 1) {
+      _log('✂️ [CUT COMMAND] 1 cutting command found.');
+    } else {
+      _log('📄 [NO CUT] No cutting command found.');
+    }
+  }
+
   // Send data to printer via TCP
   Future<void> _sendToPrinter(String ip, int port, List<int> data) async {
     _log('🔌 Connecting to Printer $ip:$port');
-    // Log the data being sent (showing first 100 bytes if it's too long)
-    String dataPreview = data.length > 100 
-        ? '${data.sublist(0, 100).toString()}... (+${data.length - 100} bytes)' 
-        : data.toString();
-    _log('◀ [SENT TO PRINTER]: $dataPreview');
+    _log('📤 Sending print data (${data.length} bytes)');
 
     Socket? socket;
     try {
@@ -108,6 +145,11 @@ class ProxyServer {
     } finally {
       await socket?.close();
     }
+  }
+
+  // Static method for reprinting
+  Future<void> reprint(String ip, int port, List<int> data) async {
+    await _sendToPrinter(ip, port, data);
   }
 
   // CORS Headers

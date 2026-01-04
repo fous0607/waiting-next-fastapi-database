@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
 import { useWaitingStore } from '@/lib/store/useWaitingStore';
-import { Printer, FileText, CheckCircle2 } from 'lucide-react';
+import { Printer, FileText, CheckCircle2, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 
 interface TicketFormatConfig {
@@ -26,6 +26,12 @@ interface TicketFormatConfig {
     teams_ahead_size: string;
     show_waiting_order: boolean;
     waiting_order_size: string;
+    store_name_align: string;
+    waiting_number_align: string;
+    date_align: string;
+    person_count_align: string;
+    teams_ahead_align: string;
+    waiting_order_align: string;
     cutting_margin: number;
 }
 
@@ -53,6 +59,12 @@ export function TicketFormatSettings() {
         teams_ahead_size: 'medium',
         show_waiting_order: true,
         waiting_order_size: 'medium',
+        store_name_align: 'center',
+        waiting_number_align: 'center',
+        date_align: 'left',
+        person_count_align: 'right',
+        teams_ahead_align: 'center',
+        waiting_order_align: 'center',
         cutting_margin: 15,
     });
     const [customFooter, setCustomFooter] = useState('');
@@ -79,6 +91,28 @@ export function TicketFormatSettings() {
 
     const handleSizeChange = (key: keyof TicketFormatConfig, value: string) => {
         setConfig((prev) => ({ ...prev, [key]: value }));
+    };
+
+    const handleAlignmentChange = (key: keyof TicketFormatConfig, value: string) => {
+        setConfig((prev) => ({ ...prev, [key]: value }));
+    };
+
+    const getAlignmentIcon = (align: string) => {
+        switch (align) {
+            case 'left': return <AlignLeft className="w-3 h-3" />;
+            case 'center': return <AlignCenter className="w-3 h-3" />;
+            case 'right': return <AlignRight className="w-3 h-3" />;
+            default: return <AlignCenter className="w-3 h-3" />;
+        }
+    };
+
+    const getAlignClass = (align: string) => {
+        switch (align) {
+            case 'left': return 'text-left';
+            case 'center': return 'text-center';
+            case 'right': return 'text-right';
+            default: return 'text-center';
+        }
     };
 
     const handleSave = async () => {
@@ -143,6 +177,20 @@ export function TicketFormatSettings() {
                                             ))}
                                         </SelectContent>
                                     </Select>
+                                    <Select
+                                        value={config.store_name_align}
+                                        onValueChange={(v) => handleAlignmentChange('store_name_align', v)}
+                                        disabled={!config.show_store_name}
+                                    >
+                                        <SelectTrigger className="w-[50px] h-7 px-1">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="left"><div className="flex items-center gap-2"><AlignLeft className="w-4 h-4" /></div></SelectItem>
+                                            <SelectItem value="center"><div className="flex items-center gap-2"><AlignCenter className="w-4 h-4" /></div></SelectItem>
+                                            <SelectItem value="right"><div className="flex items-center gap-2"><AlignRight className="w-4 h-4" /></div></SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                 </div>
                                 <Switch
                                     id="show_store_name"
@@ -168,6 +216,20 @@ export function TicketFormatSettings() {
                                             {SIZE_OPTIONS.map(opt => (
                                                 <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                                             ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <Select
+                                        value={config.waiting_number_align}
+                                        onValueChange={(v) => handleAlignmentChange('waiting_number_align', v)}
+                                        disabled={!config.show_waiting_number}
+                                    >
+                                        <SelectTrigger className="w-[50px] h-7 px-1">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="left"><div className="flex items-center gap-2"><AlignLeft className="w-4 h-4" /></div></SelectItem>
+                                            <SelectItem value="center"><div className="flex items-center gap-2"><AlignCenter className="w-4 h-4" /></div></SelectItem>
+                                            <SelectItem value="right"><div className="flex items-center gap-2"><AlignRight className="w-4 h-4" /></div></SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -197,6 +259,20 @@ export function TicketFormatSettings() {
                                             ))}
                                         </SelectContent>
                                     </Select>
+                                    <Select
+                                        value={config.date_align}
+                                        onValueChange={(v) => handleAlignmentChange('date_align', v)}
+                                        disabled={!config.show_date}
+                                    >
+                                        <SelectTrigger className="w-[50px] h-7 px-1">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="left"><div className="flex items-center gap-2"><AlignLeft className="w-4 h-4" /></div></SelectItem>
+                                            <SelectItem value="center"><div className="flex items-center gap-2"><AlignCenter className="w-4 h-4" /></div></SelectItem>
+                                            <SelectItem value="right"><div className="flex items-center gap-2"><AlignRight className="w-4 h-4" /></div></SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                 </div>
                                 <Switch
                                     id="show_date"
@@ -222,6 +298,20 @@ export function TicketFormatSettings() {
                                             {SIZE_OPTIONS.map(opt => (
                                                 <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                                             ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <Select
+                                        value={config.person_count_align}
+                                        onValueChange={(v) => handleAlignmentChange('person_count_align', v)}
+                                        disabled={!config.show_person_count}
+                                    >
+                                        <SelectTrigger className="w-[50px] h-7 px-1">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="left"><div className="flex items-center gap-2"><AlignLeft className="w-4 h-4" /></div></SelectItem>
+                                            <SelectItem value="center"><div className="flex items-center gap-2"><AlignCenter className="w-4 h-4" /></div></SelectItem>
+                                            <SelectItem value="right"><div className="flex items-center gap-2"><AlignRight className="w-4 h-4" /></div></SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -253,6 +343,20 @@ export function TicketFormatSettings() {
                                             ))}
                                         </SelectContent>
                                     </Select>
+                                    <Select
+                                        value={config.teams_ahead_align}
+                                        onValueChange={(v) => handleAlignmentChange('teams_ahead_align', v)}
+                                        disabled={!config.show_teams_ahead}
+                                    >
+                                        <SelectTrigger className="w-[50px] h-7 px-1">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="left"><div className="flex items-center gap-2"><AlignLeft className="w-4 h-4" /></div></SelectItem>
+                                            <SelectItem value="center"><div className="flex items-center gap-2"><AlignCenter className="w-4 h-4" /></div></SelectItem>
+                                            <SelectItem value="right"><div className="flex items-center gap-2"><AlignRight className="w-4 h-4" /></div></SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                 </div>
                                 <Switch
                                     id="show_teams_ahead"
@@ -278,6 +382,20 @@ export function TicketFormatSettings() {
                                             {SIZE_OPTIONS.map(opt => (
                                                 <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                                             ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <Select
+                                        value={config.waiting_order_align}
+                                        onValueChange={(v) => handleAlignmentChange('waiting_order_align', v)}
+                                        disabled={!config.show_waiting_order}
+                                    >
+                                        <SelectTrigger className="w-[50px] h-7 px-1">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="left"><div className="flex items-center gap-2"><AlignLeft className="w-4 h-4" /></div></SelectItem>
+                                            <SelectItem value="center"><div className="flex items-center gap-2"><AlignCenter className="w-4 h-4" /></div></SelectItem>
+                                            <SelectItem value="right"><div className="flex items-center gap-2"><AlignRight className="w-4 h-4" /></div></SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -346,32 +464,32 @@ export function TicketFormatSettings() {
                         <CardContent className="flex justify-center py-8">
                             <div className="w-[300px] bg-white shadow-lg border border-slate-200 px-4 py-8 font-mono text-slate-900 leading-tight box-border relative">
 
-                                {/* Store Name (Center) */}
+                                {/* Store Name */}
                                 {config.show_store_name && (
-                                    <div className={`text-center mb-4 ${getSizeClass(config.store_name_size)}`}>
+                                    <div className={`mb-4 w-full ${getSizeClass(config.store_name_size)} ${getAlignClass(config.store_name_align)}`}>
                                         {storeSettings?.store_name || '매장명'}
                                     </div>
                                 )}
 
                                 <div className="border-b border-dashed border-slate-300 mb-4 mx-2"></div>
 
-                                {/* Waiting Number (Center) */}
+                                {/* Waiting Number */}
                                 {config.show_waiting_number && (
-                                    <div className="text-center mb-4">
+                                    <div className={`mb-4 w-full ${getAlignClass(config.waiting_number_align)}`}>
                                         <div className="text-sm text-slate-500 mb-1">대기번호</div>
                                         <div className={`${getSizeClass(config.waiting_number_size)}`}>1</div>
                                     </div>
                                 )}
 
-                                {/* Date & People (Separate Lines) */}
-                                <div className="mb-4 px-2 space-y-1">
+                                {/* Date & People */}
+                                <div className="mb-4 px-2 space-y-1 w-full">
                                     {config.show_date && (
-                                        <div className={`text-left ${getSizeClass(config.date_size)}`}>
+                                        <div className={`w-full ${getSizeClass(config.date_size)} ${getAlignClass(config.date_align)}`}>
                                             2026. 1. 4. 오전 3:54:38
                                         </div>
                                     )}
                                     {config.show_person_count && (
-                                        <div className={`text-right ${getSizeClass(config.person_count_size)}`}>
+                                        <div className={`w-full ${getSizeClass(config.person_count_size)} ${getAlignClass(config.person_count_align)}`}>
                                             인원: 성인 1명, 어린이 1명
                                         </div>
                                     )}
@@ -379,15 +497,15 @@ export function TicketFormatSettings() {
 
                                 <div className="border-b border-dashed border-slate-300 mb-4 mx-2"></div>
 
-                                {/* Teams & Order (Center) */}
-                                <div className="text-center space-y-2 mb-6">
+                                {/* Teams & Order */}
+                                <div className="mb-6 w-full space-y-2">
                                     {config.show_teams_ahead && (
-                                        <div className={`${getSizeClass(config.teams_ahead_size)}`}>
+                                        <div className={`w-full ${getSizeClass(config.teams_ahead_size)} ${getAlignClass(config.teams_ahead_align)}`}>
                                             내 앞 대기: 0팀
                                         </div>
                                     )}
                                     {config.show_waiting_order && (
-                                        <div className={`${getSizeClass(config.waiting_order_size)}`}>
+                                        <div className={`w-full ${getSizeClass(config.waiting_order_size)} ${getAlignClass(config.waiting_order_align)}`}>
                                             입장 순서: 1번째
                                         </div>
                                     )}
