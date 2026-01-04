@@ -33,6 +33,8 @@ interface TicketFormatConfig {
     teams_ahead_align: string;
     waiting_order_align: string;
     cutting_margin: number;
+    enable_printer_qr: boolean;
+    printer_qr_size: number;
 }
 
 const SIZE_OPTIONS = [
@@ -66,6 +68,8 @@ export function TicketFormatSettings() {
         teams_ahead_align: 'center',
         waiting_order_align: 'center',
         cutting_margin: 15,
+        enable_printer_qr: true,
+        printer_qr_size: 4,
     });
     const [customFooter, setCustomFooter] = useState('');
 
@@ -74,10 +78,24 @@ export function TicketFormatSettings() {
             if (storeSettings.ticket_format_config) {
                 try {
                     const parsed = JSON.parse(storeSettings.ticket_format_config);
-                    setConfig((prev) => ({ ...prev, ...parsed }));
+                    // Ensure QR settings are loaded from storeSettings if not present in parsed config (legacy)
+                    // But actually, we want to prioritize storeSettings top-level for QR
+                    setConfig((prev) => ({
+                        ...prev,
+                        ...parsed,
+                        enable_printer_qr: storeSettings.enable_printer_qr ?? true,
+                        printer_qr_size: storeSettings.printer_qr_size ?? 4,
+                    }));
                 } catch (e) {
                     console.error('Failed to parse ticket format config', e);
                 }
+            } else {
+                // Even if config is missing, load QR settings
+                setConfig((prev) => ({
+                    ...prev,
+                    enable_printer_qr: storeSettings.enable_printer_qr ?? true,
+                    printer_qr_size: storeSettings.printer_qr_size ?? 4,
+                }));
             }
             if (storeSettings.ticket_custom_footer) {
                 setCustomFooter(storeSettings.ticket_custom_footer);
@@ -120,7 +138,9 @@ export function TicketFormatSettings() {
         try {
             await api.put('/store', {
                 ticket_format_config: JSON.stringify(config),
-                ticket_custom_footer: customFooter
+                ticket_custom_footer: customFooter,
+                enable_printer_qr: config.enable_printer_qr,
+                printer_qr_size: config.printer_qr_size
             });
             await fetchStoreStatus();
             toast.success('대기표 양식이 저장되었습니다.');
@@ -451,6 +471,38 @@ export function TicketFormatSettings() {
                                     컷팅 위치가 QR코드나 하단 멘트를 자른다면 값을 늘려주세요.
                                 </p>
                             </div>
+
+                            <div className="space-y-4 pt-4 border-t">
+                                <div className="flex items-center justify-between">
+                                    <div className="space-y-0.5">
+                                        <Label className="text-base">영수증 QR 코드 사용</Label>
+                                        <p className="text-xs text-muted-foreground">
+                                            영수증에 현재 대기 상황 확인용 QR 코드를 인쇄합니다.
+                                        </p>
+                                    </div>
+                                    <Switch
+                                        checked={config.enable_printer_qr}
+                                        onCheckedChange={(c) => setConfig(prev => ({ ...prev, enable_printer_qr: c }))}
+                                    />
+                                </div>
+
+                                {config.enable_printer_qr && (
+                                    <div className="space-y-3">
+                                        <Label>영수증 QR 코드 크기 (현재: {config.printer_qr_size})</Label>
+                                        <div className="flex items-center gap-4">
+                                            <Slider
+                                                min={1}
+                                                max={8}
+                                                step={1}
+                                                value={[config.printer_qr_size]}
+                                                onValueChange={(vals) => setConfig(prev => ({ ...prev, printer_qr_size: vals[0] }))}
+                                                className="flex-1"
+                                            />
+                                            <span className="w-8 text-center font-bold">{config.printer_qr_size}</span>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </CardContent>
                     </Card>
 
@@ -512,14 +564,27 @@ export function TicketFormatSettings() {
                                 </div>
 
                                 {/* QR Code (Center) */}
-                                <div className="flex justify-center mb-4">
-                                    <div className="bg-slate-100 p-1">
-                                        {/* Mock QR */}
-                                        <div className="w-24 h-24 border-2 border-slate-800 flex items-center justify-center bg-white">
-                                            <div className="w-20 h-20 bg-[url('https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=Example')] bg-cover opacity-80"></div>
+                                {config.enable_printer_qr && (
+                                    <div className="flex justify-center mb-4">
+                                        <div className="bg-slate-100 p-1">
+                                            {/* Mock QR */}
+                                            <div className="flex items-center justify-center bg-white border-2 border-slate-800"
+                                                style={{
+                                                    width: `${Math.max(48, config.printer_qr_size * 12 + 20)}px`,
+                                                    height: `${Math.max(48, config.printer_qr_size * 12 + 20)}px`
+                                                }}
+                                            >
+                                                {/* Visual representation of QR density/size */}
+                                                <div className="bg-[url('https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=Example')] bg-cover opacity-80"
+                                                    style={{
+                                                        width: '80%',
+                                                        height: '80%'
+                                                    }}
+                                                ></div>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
+                                )}
 
                                 {/* Footer (Center) */}
                                 {customFooter && (

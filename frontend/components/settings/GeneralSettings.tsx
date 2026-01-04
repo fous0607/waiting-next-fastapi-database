@@ -142,8 +142,7 @@ const settingsSchema = z.object({
     printer_ip_address: z.string().optional().nullable(),
     printer_port: z.coerce.number().default(9100),
     auto_print_registration: z.boolean().default(true),
-    printer_qr_size: z.coerce.number().min(1).max(8).default(4),
-    enable_printer_qr: z.boolean().default(true),
+
     screen_configs: z.string().optional().nullable(),
 });
 
@@ -309,8 +308,7 @@ export function GeneralSettings() {
             printer_ip_address: '',
             printer_port: 9100,
             auto_print_registration: true,
-            printer_qr_size: 4,
-            enable_printer_qr: true,
+
         },
     });
 
@@ -1201,59 +1199,7 @@ export function GeneralSettings() {
                                             )}
                                         />
 
-                                        {/* QR Code Settings (Moved here) */}
-                                        <div className="space-y-4 pt-4 border-t">
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <FormField
-                                                    control={form.control}
-                                                    name="enable_printer_qr"
-                                                    render={({ field }) => (
-                                                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 bg-slate-50">
-                                                            <div className="space-y-0.5">
-                                                                <FormLabel className="text-base">영수증 QR 코드 사용</FormLabel>
-                                                                <FormDescription>
-                                                                    영수증에 현재 대기 상황 확인용 QR 코드를 인쇄합니다.
-                                                                </FormDescription>
-                                                            </div>
-                                                            <FormControl>
-                                                                <Checkbox
-                                                                    checked={field.value}
-                                                                    onCheckedChange={field.onChange}
-                                                                />
-                                                            </FormControl>
-                                                        </FormItem>
-                                                    )}
-                                                />
 
-                                                {form.watch('enable_printer_qr') && (
-                                                    <div className="space-y-2">
-                                                        <Label>영수증 QR 코드 크기 (1: 작음 ~ 8: 큼)</Label>
-                                                        <div className="flex items-center space-x-4 h-full pt-2">
-                                                            <FormField
-                                                                control={form.control}
-                                                                name="printer_qr_size"
-                                                                render={({ field }) => (
-                                                                    <>
-                                                                        <input
-                                                                            type="range"
-                                                                            min="1"
-                                                                            max="8"
-                                                                            step="1"
-                                                                            value={field.value || 4}
-                                                                            onChange={(e) => field.onChange(parseInt(e.target.value))}
-                                                                            className="w-[60%] h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 accent-primary"
-                                                                        />
-                                                                        <span className="w-12 text-center font-medium border rounded p-1">
-                                                                            {field.value || 4}
-                                                                        </span>
-                                                                    </>
-                                                                )}
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
 
                                         <div className="mt-8 pt-6 border-t border-slate-200">
                                             <div className="mb-8 border-b pb-8">
