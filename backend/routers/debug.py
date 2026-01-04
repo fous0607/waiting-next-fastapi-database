@@ -215,3 +215,21 @@ def list_users(db: Session = Depends(get_db)):
     from models import User
     users = db.query(User).all()
     return [{"id": u.id, "username": u.username, "store_id": u.store_id} for u in users]
+
+@router.post("/fix-classes/{store_id}")
+def fix_store_classes(store_id: int, db: Session = Depends(get_db)):
+    from models import ClassInfo, Store
+    
+    classes = db.query(ClassInfo).filter(ClassInfo.store_id == store_id).all()
+    count = 0
+    for cls in classes:
+        # Update logic: If only few classes, make them 'all'
+        # Or specifically target Store 3's classes based on name or ID?
+        # Let's blindly set ALL classes for this store to 'all' type as requested fix for "Weekday only" users.
+        # But be careful for Store 1.
+        if cls.class_type == 'weekday':
+             cls.class_type = 'all'
+             count += 1
+             
+    db.commit()
+    return {"store_id": store_id, "updated_count": count, "message": "Updated weekday classes to all"}
