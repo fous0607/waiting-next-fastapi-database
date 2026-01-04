@@ -243,13 +243,13 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
         <>
             <div ref={setNodeRef} style={style} {...attributes}>
                 <Card className={cn(
-                    "hover:shadow-md transition-all relative overflow-visible py-1",
+                    "hover:shadow-md transition-all relative overflow-visible py-0", /* Reduced padding */
                     item.status === 'called' && "border-yellow-400 bg-yellow-50/50 dark:bg-yellow-900/20",
                     isDragging && "shadow-2xl border-primary border-2 bg-primary/5"
                 )}>
-                    {/* Revisit Badge - Top Right Absolute inside Card */}
+                    {/* Revisit Badge - Positioning tweaked */}
                     {item.revisit_count != null && item.revisit_count > 0 && (
-                        <div className="absolute -top-2 right-2 z-20">
+                        <div className="absolute -top-2 left-2 z-20"> {/* Moved to left to avoid button overlap */}
                             {(() => {
                                 const style = revisitBadgeStyle || 'indigo_solid';
                                 let badgeClass = "bg-indigo-600 text-white hover:bg-indigo-700 px-1.5 py-0.5 text-[10px] font-bold shadow-sm whitespace-nowrap rounded-full";
@@ -259,7 +259,7 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                                 } else if (style === 'emerald_pill') {
                                     badgeClass = "bg-emerald-100 text-emerald-700 border border-emerald-200 px-1.5 py-0.5 text-[10px] font-black shadow-sm whitespace-nowrap rounded-full";
                                 } else if (style === 'rose_gradient') {
-                                    badgeClass = "bg-gradient-to-r from-rose-400 to-pink-500 text-white px-1.5 py-0.5 text-[10px] font-bold shadow-md whitespace-nowrap rounded-md";
+                                    badgeClass = "bg-gradient-to-r from-rose-400 to-pink-500 text-white px-1.5 py-0.5 text-[10px] font-bold shadow-sm whitespace-nowrap rounded-md";
                                 } else if (style === 'sky_glass') {
                                     badgeClass = "bg-sky-400/30 text-sky-800 backdrop-blur-md border border-sky-300 px-1.5 py-0.5 text-[10px] font-bold shadow-sm whitespace-nowrap rounded-full";
                                 }
@@ -274,141 +274,132 @@ export function WaitingItem({ item, index }: WaitingItemProps) {
                         </div>
                     )}
 
-                    <CardContent className="flex flex-col p-3 gap-2">
-                        {/* Top: Info Row */}
-                        <div className="flex items-center justify-between gap-2 w-full">
-                            <div className={cn(
-                                "flex items-center gap-2 overflow-hidden flex-1 min-w-0"
-                            )}>
-                                {/* Drag Handle & Number */}
-                                <div
-                                    {...listeners}
-                                    className={cn(
-                                        "flex items-center cursor-grab select-none rounded active:bg-slate-100 transition-colors py-1 px-1 shrink-0",
-                                        isDragging ? "cursor-grabbing" : "cursor-grab"
-                                    )}
-                                >
-                                    <GripVertical className="w-4 h-4 text-slate-300 mr-1" />
-                                    <span className="text-xl font-black text-primary leading-none">
-                                        {storeSettings?.operation_type === 'dining'
-                                            ? `#${item.waiting_number}`
-                                            : `${index + 1}번`
-                                        }
-                                    </span>
-                                </div>
+                    <CardContent className="flex items-center justify-between p-2 gap-2 h-auto min-h-[3.5rem]">
+                        {/* LEFT: Info Section */}
+                        <div className={cn(
+                            "flex items-center gap-2 overflow-hidden flex-1 min-w-0"
+                        )}>
+                            {/* Drag Handle & Number */}
+                            <div
+                                {...listeners}
+                                className={cn(
+                                    "flex flex-col items-center justify-center cursor-grab select-none rounded active:bg-slate-100 transition-colors px-1 shrink-0 w-10",
+                                    isDragging ? "cursor-grabbing" : "cursor-grab"
+                                )}
+                            >
+                                <GripVertical className="w-4 h-4 text-slate-300 mb-0.5" />
+                                <span className="text-lg font-black text-primary leading-none">
+                                    {storeSettings?.operation_type === 'dining'
+                                        ? `${item.waiting_number}`
+                                        : `${index + 1}`
+                                    }
+                                </span>
+                            </div>
 
-                                {/* Name (Clickable for Phone Lookup) & Party Size */}
-                                <div className="flex items-center gap-2 overflow-hidden flex-1 min-w-0 flex-wrap">
-                                    <div
+                            {/* Name & Phone & Party Size */}
+                            <div className="flex flex-col justify-center overflow-hidden flex-1 min-w-0">
+                                <div className="flex items-center gap-1.5">
+                                    <h3
                                         onClick={() => setIsPhoneDialogOpen(true)}
-                                        className="cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 rounded px-1 -ml-1 transition-colors shrink-0"
-                                        title="클릭하여 연락처 확인"
+                                        className="text-lg font-black truncate leading-tight text-slate-900 dark:text-slate-100 tracking-tight cursor-pointer hover:underline"
                                     >
-                                        <h3 className="text-xl font-black truncate leading-tight text-slate-900 dark:text-slate-100 tracking-tight">
-                                            {item.name || "비회원"}
-                                        </h3>
-                                    </div>
-
-                                    {/* Party Size Details (Prominent - Replaces Phone) */}
+                                        {item.name || "비회원"}
+                                    </h3>
                                     {(item.total_party_size ?? 0) > 0 && (
-                                        <div className="flex-1 min-w-0 max-w-[60%]">
-                                            <AutoResizingText className="text-xs font-bold text-blue-600 px-1">
-                                                {renderPartySize()}
-                                            </AutoResizingText>
-                                        </div>
+                                        <Badge variant="secondary" className="px-1 py-0 text-[10px] h-4 whitespace-nowrap">
+                                            {renderPartySize()}
+                                        </Badge>
                                     )}
+                                    {item.status === 'called' && (
+                                        <Badge className="bg-yellow-500 text-white hover:bg-yellow-600 px-1 py-0 h-4 text-[10px] whitespace-nowrap animate-pulse">호출중</Badge>
+                                    )}
+                                </div>
+                                <div className="flex items-center text-slate-500 dark:text-slate-400 mt-0.5">
+                                    <Phone className="w-3 h-3 mr-1 shrink-0" />
+                                    <span className="text-sm font-bold truncate">
+                                        {item.phone ? item.phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3') : '번호없음'}
+                                    </span>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Middle: Party Size & Status (Bundled with actions in one dense row if possible, or stacked compactly) */}
-                        {/* User requested actions to move LEFT to reduce width. We'll combine status and actions. */}
+                        {/* RIGHT: Actions */}
+                        <div className="flex items-center gap-1 shrink-0">
+                            {/* Up/Down Arrows */}
+                            <div className="flex flex-col gap-0.5 mr-1">
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-6 w-6 bg-white hover:bg-slate-100 text-slate-500 border-slate-200 shadow-sm p-0"
+                                    onClick={() => handleOrderChange('up')}
+                                    disabled={index === 0}
+                                >
+                                    <ArrowUp className="w-3 h-3" />
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-6 w-6 bg-white hover:bg-slate-100 text-slate-500 border-slate-200 shadow-sm p-0"
+                                    onClick={() => handleOrderChange('down')}
+                                >
+                                    <ArrowDown className="w-3 h-3" />
+                                </Button>
+                            </div>
 
-                        <div className="flex items-center justify-start gap-1 mt-1 pt-1 border-t border-slate-100 dark:border-slate-800">
-                            {/* Status Info */}
-                            <div className="flex items-center gap-1 shrink-0">
-                                {item.status === 'called' && (
-                                    <Badge className="bg-yellow-500 text-white hover:bg-yellow-600 px-1 py-0 h-5 text-[10px] whitespace-nowrap">호출중</Badge>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={handleCall}
+                                className={cn(
+                                    "h-9 px-3 text-sm font-bold gap-1.5 transition-colors shadow-sm whitespace-nowrap",
+                                    (item.call_count || 0) === 0 && "bg-white hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 text-slate-700",
+                                    (item.call_count || 0) === 1 && "bg-yellow-400 text-white hover:bg-yellow-500 border-yellow-500",
+                                    (item.call_count || 0) === 2 && "bg-orange-500 text-white hover:bg-orange-600 border-orange-600",
+                                    (item.call_count || 0) >= 3 && "bg-red-500 text-white hover:bg-red-600 border-red-600"
                                 )}
-                            </div>
+                            >
+                                <BellRing className={cn("w-4 h-4", (item.call_count || 0) > 0 && "text-white")} />
+                                {useWaitingStore.getState().storeSettings?.detail_mode === 'pickup' ? "준비" : "호출"}
+                            </Button>
 
-                            {/* Actions - Aligned Left */}
-                            <div className="flex items-center gap-1">
-                                {/* Reverted to Side-by-Side Arrows (User Request) */}
-                                <div className="flex items-center gap-0.5 mr-1">
-                                    <Button
-                                        variant="outline"
-                                        size="icon"
-                                        className="h-8 w-8 bg-white hover:bg-slate-100 text-slate-500 border-slate-200 shadow-sm"
-                                        onClick={() => handleOrderChange('up')}
-                                        disabled={index === 0}
-                                    >
-                                        <ArrowUp className="w-4 h-4" />
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleStatusUpdate('attended')}
+                                className={cn(
+                                    "h-9 px-3 text-sm font-bold gap-1.5 transition-colors shadow-sm whitespace-nowrap",
+                                    isEntryClicked || useWaitingStore.getState().storeSettings?.detail_mode === 'pickup'
+                                        ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700"
+                                        : "bg-white hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 text-slate-700"
+                                )}
+                            >
+                                {useWaitingStore.getState().storeSettings?.detail_mode === 'pickup' ? (
+                                    <>
+                                        <CheckCircle className={cn("w-4 h-4", isEntryClicked ? "text-white" : "")} /> 수령
+                                    </>
+                                ) : (
+                                    <>
+                                        <LogIn className={cn("w-4 h-4", isEntryClicked ? "text-white" : "")} /> 입장
+                                    </>
+                                )}
+                            </Button>
+
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="sm" className="h-9 w-6 p-0 hover:bg-slate-100">
+                                        <MoreHorizontal className="w-5 h-5 text-slate-500" />
                                     </Button>
-                                    <Button
-                                        variant="outline"
-                                        size="icon"
-                                        className="h-8 w-8 bg-white hover:bg-slate-100 text-slate-500 border-slate-200 shadow-sm"
-                                        onClick={() => handleOrderChange('down')}
-                                    >
-                                        <ArrowDown className="w-4 h-4" />
-                                    </Button>
-                                </div>
-
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={handleCall}
-                                    className={cn(
-                                        "h-8 px-2 text-xs font-bold gap-1 transition-colors shadow-sm whitespace-nowrap",
-                                        (item.call_count || 0) === 0 && "bg-white hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 text-slate-700",
-                                        (item.call_count || 0) === 1 && "bg-yellow-400 text-white hover:bg-yellow-500 border-yellow-500",
-                                        (item.call_count || 0) === 2 && "bg-orange-500 text-white hover:bg-orange-600 border-orange-600",
-                                        (item.call_count || 0) >= 3 && "bg-red-500 text-white hover:bg-red-600 border-red-600"
-                                    )}
-                                >
-                                    <BellRing className={cn("w-3 h-3", (item.call_count || 0) > 0 && "text-white")} />
-                                    {useWaitingStore.getState().storeSettings?.detail_mode === 'pickup' ? "준비" : "호출"}
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleStatusUpdate('attended')}
-                                    className={cn(
-                                        "h-8 px-2 text-xs font-bold gap-1 transition-colors shadow-sm whitespace-nowrap",
-                                        isEntryClicked || useWaitingStore.getState().storeSettings?.detail_mode === 'pickup' // Pickup mode defaults to blue per user request? No, reverting to feedback logic.
-                                            ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700" // Clicked State or if forced
-                                            : "bg-white hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 text-slate-700" // Default State
-                                    )}
-                                >
-                                    {useWaitingStore.getState().storeSettings?.detail_mode === 'pickup' ? (
-                                        <>
-                                            <CheckCircle className={cn("w-3 h-3", isEntryClicked ? "text-white" : "")} /> 수령
-                                        </>
-                                    ) : (
-                                        <>
-                                            <LogIn className={cn("w-3 h-3", isEntryClicked ? "text-white" : "")} /> 입장
-                                        </>
-                                    )}
-                                </Button>
-
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="sm" className="h-8 w-5 p-0 hover:bg-slate-100">
-                                            <MoreHorizontal className="w-4 h-4 text-slate-500" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                        <DropdownMenuItem onSelect={() => handleReprint()}>
-                                            <span className="font-bold text-slate-700">번호표 재출력</span>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onSelect={() => setIsNameDialogOpen(true)}>이름 변경</DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleStatusUpdate('cancelled')}>취소</DropdownMenuItem>
-                                        <DropdownMenuItem onSelect={() => setIsMoveDialogOpen(true)}>교시 이동</DropdownMenuItem>
-                                        <DropdownMenuItem onSelect={() => setIsMemberDetailOpen(true)} disabled={!item.member_id}>회원 상세</DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </div>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onSelect={() => handleReprint()}>
+                                        <span className="font-bold text-slate-700">번호표 재출력</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={() => setIsNameDialogOpen(true)}>이름 변경</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleStatusUpdate('cancelled')}>취소</DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={() => setIsMoveDialogOpen(true)}>교시 이동</DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={() => setIsMemberDetailOpen(true)} disabled={!item.member_id}>회원 상세</DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         </div>
                     </CardContent>
                 </Card>
